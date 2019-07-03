@@ -1,0 +1,11 @@
+#! /bin/bash
+
+set -e
+
+# Change into top directory.
+cd "$(dirname "$0")"
+cd ..
+
+python tests/whitelist.py
+python -m vulture tests/whitelist.py
+python -m vulture --exclude=external lab downward examples tests

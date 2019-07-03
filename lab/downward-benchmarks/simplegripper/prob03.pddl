@@ -1,0 +1,16 @@
+(define (problem strips-gripper-soc)
+(:domain gripper-strips)
+(:objects roomr rooml ball hand)
+(:init
+       (room roomr)
+       (room rooml)
+       (ball ball)
+       (at-robby rooml)
+       (free hand)
+       (at ball rooml)
+       (gripper hand)
+)
+(:goal (and
+            (at ball roomr))
+       )
+)

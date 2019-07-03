@@ -1,0 +1,86 @@
+diff -r 69ad07c0e8c6 -r b106ec3b48b5 src/search/lp/lp_solver.cc
+--- a/src/search/lp/lp_solver.cc	Thu Feb 25 15:37:36 2016 +0100
++++ b/src/search/lp/lp_solver.cc	Thu Feb 25 21:08:36 2016 +0100
+@@ -4,6 +4,7 @@
+ 
+ #include "../option_parser.h"
+ 
++#include "../utils/logging.h"
+ #include "../utils/system.h"
+ 
+ #ifdef USE_LP
+@@ -70,10 +71,11 @@
+ }
+ 
+ LPVariable::LPVariable(double lower_bound_, double upper_bound_,
+-                       double objective_coefficient_)
++                       double objective_coefficient_, bool is_integer_)
+     : lower_bound(lower_bound_),
+       upper_bound(upper_bound_),
+-      objective_coefficient(objective_coefficient_) {
++      objective_coefficient(objective_coefficient_),
++      is_integer(is_integer_) {
+ }
+ 
+ LPVariable::~LPVariable() {
+@@ -162,6 +164,14 @@
+                                objective.data(),
+                                row_lb.data(),
+                                row_ub.data());
++        int num_vars = variables.size();
++        for (int i = 0; i < num_vars; ++i) {
++            if (variables[i].is_integer) {
++                lp_solver->setInteger(i);
++            }
++        }
++        cout << "Integer tolerance: " << lp_solver->getIntegerTolerance() << endl;
++        cout << "Number of integer variables: " << lp_solver->getNumIntegers() << endl;
+     } catch (CoinError &error) {
+         handle_coin_error(error);
+     }
+@@ -303,6 +313,20 @@
+     }
+ }
+ 
++void LPSolver::solve_mip() {
++    try {
++        lp_solver->branchAndBound();
++        if (lp_solver->isAbandoned()) {
++            cerr << "Abandoned LP. "
++                 << "Reasons include \"numerical difficulties\" and running out of memory." << endl;
++            utils::exit_with(ExitCode::CRITICAL_ERROR);
++        }
++        is_solved = true;
++    } catch (CoinError &error) {
++        handle_coin_error(error);
++    }
++}
++
+ bool LPSolver::has_optimal_solution() const {
+     assert(is_solved);
+     try {
+diff -r 69ad07c0e8c6 -r b106ec3b48b5 src/search/lp/lp_solver.h
+--- a/src/search/lp/lp_solver.h	Thu Feb 25 15:37:36 2016 +0100
++++ b/src/search/lp/lp_solver.h	Thu Feb 25 21:08:36 2016 +0100
+@@ -68,10 +68,12 @@
+     double lower_bound;
+     double upper_bound;
+     double objective_coefficient;
++    bool is_integer;
+ 
+     LPVariable(double lower_bound_,
+                double upper_bound_,
+-               double objective_coefficient_);
++               double objective_coefficient_,
++               bool is_integer_ = false);
+     ~LPVariable();
+ };
+ 
+@@ -128,6 +130,7 @@
+     LP_METHOD(void set_variable_upper_bound(int index, double bound))
+ 
+     LP_METHOD(void solve())
++    LP_METHOD(void solve_mip())
+ 
+     /*
+       Return true if the solving the LP showed that it is bounded feasible and

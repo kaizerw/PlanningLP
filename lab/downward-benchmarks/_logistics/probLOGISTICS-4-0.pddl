@@ -1,0 +1,6 @@
+(define (problem logistics)
+(:domain logistics)
+(:objects tru obj loc1 loc2 )
+(:init  (truck tru) (package obj) (location loc1) (location loc2) (at obj loc1) (at tru loc2))
+(:goal (at obj loc2))
+)

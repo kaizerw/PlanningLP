@@ -1,0 +1,218 @@
+{
+    "solved": {
+        "regex": "search exit code: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "infeasible": {
+        "regex": "search exit code: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "timeout": {
+        "regex": "search exit code: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "memout": {
+        "regex": "search exit code: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "cplex_exception": {
+        "regex": "search exit code: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "best_bound": {
+        "regex": "Best bound found: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "quality_score": {
+        "regex": "Best bound found: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "plan_cost": {
+        "regex": "Plan cost: (.*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "plan_length": {
+        "regex": "Plan length: (.*) step\\(s\\)\\.",
+        "type": "int",
+        "summary": "mean"
+    },
+    "number_of_seqs": {
+        "regex": "Number of seqs: (.*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "repeated_sequencings": {
+        "regex": "Repeated sequencings: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "restarts": {
+        "regex": "Restarts: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "total_astar_time": {
+        "regex": "Total astar time: (.*)s",
+        "type": "float",
+        "summary": "mean"
+    },
+    "total_solve_time": {
+        "regex": "Total solve time: (.*)s",
+        "type": "float",
+        "summary": "mean"
+    },
+    "planner_memory": {
+        "regex": "Peak memory: (.*) KB",
+        "type": "int",
+        "summary": "mean"
+    },
+    "number_of_ops": {
+        "regex": "Number of ops: (.*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "number_of_variables": {
+        "regex": "Number of variables: (.*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "mean_ops_by_constraint": {
+        "regex": "Mean ops by constraint: (.*)",
+        "type": "float",
+        "summary": "mean"
+    },
+    "median_ops_by_constraint": {
+        "regex": "Median ops by constraint: (.*)",
+        "type": "float",
+        "summary": "mean"
+    },
+    "last_ops_by_constraint": {
+        "regex": "Last ops by constraint: (.*)",
+        "type": "float",
+        "summary": "mean"
+    },
+    "mean_lp_added_constraints": {
+        "regex": "Mean LP added constraints: (.*)",
+        "type": "float",
+        "summary": "mean"
+    },
+    "last_lp_added_constraints": {
+        "regex": "Last LP added constraints: (.*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "times_made_progress": {
+        "regex": "Times made progress: (.*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "max_f_found": {
+        "regex": "Max f found: (.*)",
+        "type": "float",
+        "summary": "mean"
+    },
+    "last_nodes_expanded": {
+        "regex": "Last nodes expanded: (.*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "mean_nodes_expanded": {
+        "regex": "Mean nodes expanded: (.*)",
+        "type": "float",
+        "summary": "mean"
+    },
+    "max_op_count": {
+        "regex": "Max op count: (.*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "initial_lp_solution": {
+        "regex": "Initial LP solution: (.*)",
+        "type": "float",
+        "summary": "mean"
+    },
+    "max_lp_solution": {
+        "regex": "Max LP solution: (.*)",
+        "type": "float",
+        "summary": "mean"
+    },
+    "total_pre_lp_time": {
+        "regex": "Total pre LP time: (.*)s",
+        "type": "float",
+        "summary": "mean"
+    },
+    "total_lp_time": {
+        "regex": "Total LP time: (.*)s",
+        "type": "float",
+        "summary": "mean"
+    },
+    "exit_code": {
+        "regex": "search exit code: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "plot_line_max_op_count": {
+        "regex": "Plot max op count: (.*);",
+        "type": "str"
+    },
+    "plot_line_max_f_found": {
+        "regex": "Plot max f found: (.*);",
+        "type": "str"
+    },
+    "plot_line_nodes_expanded": {
+        "regex": "Plot nodes expanded: (.*);",
+        "type": "str"
+    },
+    "plot_line_lp_added_constraints": {
+        "regex": "Plot LP added constraints: (.*);",
+        "type": "str"
+    },
+    "plot_line_lp_added_variables": {
+        "regex": "Plot LP added variables: (.*);",
+        "type": "str"
+    },
+    "plot_line_lp_updated_constraints": {
+        "regex": "Plot LP updated constraints: (.*);",
+        "type": "str"
+    },
+    "plot_line_lp_all_constraints": {
+        "regex": "Plot LP all constraints: (.*);",
+        "type": "str"
+    },
+    "plot_line_lp_all_variables": {
+        "regex": "Plot LP all variables: (.*);",
+        "type": "str"
+    },
+    "plot_line_lp_oc_solution": {
+        "regex": "Plot LP OC solution: (.*);",
+        "type": "str"
+    },
+    "plot_line_lp_rounded_oc_solution": {
+        "regex": "Plot LP rounded OC solution: (.*);",
+        "type": "str"
+    },
+    "plot_pre_line_lp_time": {
+        "regex": "Plot pre LP time: (.*);",
+        "type": "str"
+    },
+    "plot_line_lp_time": {
+        "regex": "Plot LP time: (.*);",
+        "type": "str"
+    },
+    "plot_line_astar_time": {
+        "regex": "Plot astar time: (.*);",
+        "type": "str"
+    },
+    "plot_bar_op_count": {
+        "regex": "Plot bar op count: (.*);",
+        "type": "str"
+    }
+}

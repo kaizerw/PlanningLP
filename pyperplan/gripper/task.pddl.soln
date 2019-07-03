@@ -1,0 +1,8 @@
+(move roomr rooml)
+(pick ball2 rooml hand)
+(move rooml roomr)
+(drop ball2 roomr hand)
+(move roomr rooml)
+(pick ball1 rooml hand)
+(move rooml roomr)
+(drop ball1 roomr hand)

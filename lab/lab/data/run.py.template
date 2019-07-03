@@ -1,0 +1,27 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import logging
+import os
+import platform
+
+from lab.calls.call import Call
+from lab import tools
+
+tools.configure_logging()
+
+logging.info('node: {}'.format(platform.node()))
+
+run_log = open('run.log', 'w')
+run_err = open('run.err', 'w')
+redirects = {'stdout': run_log, 'stderr': run_err}
+
+# Make sure we're in the run directory.
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+%(calls)s
+
+for f in [run_log, run_err]:
+    f.close()
+    if os.path.getsize(f.name) == 0:
+        os.remove(f.name)

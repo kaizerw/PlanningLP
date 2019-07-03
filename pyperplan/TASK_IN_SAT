@@ -1,0 +1,560 @@
+********************************************************************************
+TASK IN SAT:
+
+PART 3:
+	(at-robby roomr)l0 &
+	(free hand)l0 &
+	(at ball2 rooml)l0 &
+	(at ball1 rooml)l0
+
+PART 7:
+	(at ball2 roomr)l4 | Aux115 &
+	(at ball1 roomr)l4 | Aux116
+
+PART 8:
+	~(move roomr rooml)l1 | Aux289 | Aux117 &
+	~(move roomr rooml)l2 | Aux290 | Aux117 &
+	~Aux289 | Aux290 | Aux117 &
+	~(move roomr rooml)l2 | ~Aux289 | Aux117 &
+	~(move roomr rooml)l3 | Aux291 | Aux117 &
+	~Aux290 | Aux291 | Aux117 &
+	~(move roomr rooml)l3 | ~Aux290 | Aux117 &
+	~(move roomr rooml)l4 | ~Aux291 | Aux117 &
+	~(move rooml roomr)l1 | Aux292 | Aux118 &
+	~(move rooml roomr)l2 | Aux293 | Aux118 &
+	~Aux292 | Aux293 | Aux118 &
+	~(move rooml roomr)l2 | ~Aux294 | Aux118 &
+	~(move rooml roomr)l3 | Aux295 | Aux118 &
+	~Aux293 | Aux295 | Aux118 &
+	~(move rooml roomr)l3 | ~Aux296 | Aux118 &
+	~(move rooml roomr)l4 | ~Aux297 | Aux118 &
+	~(pick ball1 roomr hand)l1 | Aux298 | Aux119 &
+	~(pick ball1 roomr hand)l2 | Aux299 | Aux119 &
+	~Aux298 | Aux299 | Aux119 &
+	~(pick ball1 roomr hand)l2 | ~Aux300 | Aux119 &
+	~(pick ball1 roomr hand)l3 | Aux301 | Aux119 &
+	~Aux299 | Aux301 | Aux119 &
+	~(pick ball1 roomr hand)l3 | ~Aux302 | Aux119 &
+	~(pick ball1 roomr hand)l4 | ~Aux303 | Aux119 &
+	~(pick ball1 rooml hand)l1 | Aux304 | Aux120 &
+	~(pick ball1 rooml hand)l2 | Aux305 | Aux120 &
+	~Aux304 | Aux305 | Aux120 &
+	~(pick ball1 rooml hand)l2 | ~Aux304 | Aux120 &
+	~(pick ball1 rooml hand)l3 | Aux306 | Aux120 &
+	~Aux305 | Aux306 | Aux120 &
+	~(pick ball1 rooml hand)l3 | ~Aux305 | Aux120 &
+	~(pick ball1 rooml hand)l4 | ~Aux306 | Aux120 &
+	~(pick ball2 roomr hand)l1 | Aux307 | Aux121 &
+	~(pick ball2 roomr hand)l2 | Aux308 | Aux121 &
+	~Aux307 | Aux308 | Aux121 &
+	~(pick ball2 roomr hand)l2 | ~Aux309 | Aux121 &
+	~(pick ball2 roomr hand)l3 | Aux310 | Aux121 &
+	~Aux308 | Aux310 | Aux121 &
+	~(pick ball2 roomr hand)l3 | ~Aux311 | Aux121 &
+	~(pick ball2 roomr hand)l4 | ~Aux312 | Aux121 &
+	~(pick ball2 rooml hand)l1 | Aux313 | Aux122 &
+	~(pick ball2 rooml hand)l2 | Aux314 | Aux122 &
+	~Aux313 | Aux314 | Aux122 &
+	~(pick ball2 rooml hand)l2 | ~Aux313 | Aux122 &
+	~(pick ball2 rooml hand)l3 | Aux315 | Aux122 &
+	~Aux314 | Aux315 | Aux122 &
+	~(pick ball2 rooml hand)l3 | ~Aux314 | Aux122 &
+	~(pick ball2 rooml hand)l4 | ~Aux315 | Aux122 &
+	~(drop ball1 roomr hand)l1 | Aux316 | Aux123 &
+	~(drop ball1 roomr hand)l2 | Aux317 | Aux123 &
+	~Aux316 | Aux317 | Aux123 &
+	~(drop ball1 roomr hand)l2 | ~Aux316 | Aux123 &
+	~(drop ball1 roomr hand)l3 | Aux318 | Aux123 &
+	~Aux317 | Aux318 | Aux123 &
+	~(drop ball1 roomr hand)l3 | ~Aux317 | Aux123 &
+	~(drop ball1 roomr hand)l4 | ~Aux318 | Aux123 &
+	~(drop ball1 rooml hand)l1 | Aux319 | Aux124 &
+	~(drop ball1 rooml hand)l2 | Aux320 | Aux124 &
+	~Aux319 | Aux320 | Aux124 &
+	~(drop ball1 rooml hand)l2 | ~Aux321 | Aux124 &
+	~(drop ball1 rooml hand)l3 | Aux322 | Aux124 &
+	~Aux320 | Aux322 | Aux124 &
+	~(drop ball1 rooml hand)l3 | ~Aux323 | Aux124 &
+	~(drop ball1 rooml hand)l4 | ~Aux324 | Aux124 &
+	~(drop ball2 roomr hand)l1 | Aux325 | Aux125 &
+	~(drop ball2 roomr hand)l2 | Aux326 | Aux125 &
+	~Aux325 | Aux326 | Aux125 &
+	~(drop ball2 roomr hand)l2 | ~Aux325 | Aux125 &
+	~(drop ball2 roomr hand)l3 | Aux327 | Aux125 &
+	~Aux326 | Aux327 | Aux125 &
+	~(drop ball2 roomr hand)l3 | ~Aux326 | Aux125 &
+	~(drop ball2 roomr hand)l4 | ~Aux327 | Aux125 &
+	~(drop ball2 rooml hand)l1 | Aux328 | Aux126 &
+	~(drop ball2 rooml hand)l2 | Aux329 | Aux126 &
+	~Aux328 | Aux329 | Aux126 &
+	~(drop ball2 rooml hand)l2 | ~Aux330 | Aux126 &
+	~(drop ball2 rooml hand)l3 | Aux331 | Aux126 &
+	~Aux329 | Aux331 | Aux126 &
+	~(drop ball2 rooml hand)l3 | ~Aux332 | Aux126 &
+	~(drop ball2 rooml hand)l4 | ~Aux333 | Aux126
+
+PART 6:
+	~(at ball1 rooml)l1 | (at ball1 rooml)l0 | (drop ball1 rooml hand)l1 &
+	(at ball1 rooml)l1 | ~(at ball1 rooml)l0 | (pick ball1 rooml hand)l1 &
+	~(at-robby rooml)l1 | (at-robby rooml)l0 | (move roomr rooml)l1 &
+	(at-robby rooml)l1 | ~(at-robby rooml)l0 | (move rooml roomr)l1 &
+	~(at ball1 roomr)l1 | (at ball1 roomr)l0 | (drop ball1 roomr hand)l1 &
+	(at ball1 roomr)l1 | ~(at ball1 roomr)l0 | (pick ball1 roomr hand)l1 &
+	~(at-robby roomr)l1 | (at-robby roomr)l0 | (move rooml roomr)l1 &
+	(at-robby roomr)l1 | ~(at-robby roomr)l0 | (move roomr rooml)l1 &
+	~(carry ball2 hand)l1 | (carry ball2 hand)l0 | (pick ball2 rooml hand)l1 | (pick ball2 roomr hand)l1 &
+	(carry ball2 hand)l1 | ~(carry ball2 hand)l0 | (drop ball2 rooml hand)l1 | (drop ball2 roomr hand)l1 &
+	~(free hand)l1 | (free hand)l0 | (drop ball2 rooml hand)l1 | (drop ball1 rooml hand)l1 | (drop ball2 roomr hand)l1 | (drop ball1 roomr hand)l1 &
+	(free hand)l1 | ~(free hand)l0 | (pick ball2 rooml hand)l1 | (pick ball1 rooml hand)l1 | (pick ball1 roomr hand)l1 | (pick ball2 roomr hand)l1 &
+	~(at ball2 rooml)l1 | (at ball2 rooml)l0 | (drop ball2 rooml hand)l1 &
+	(at ball2 rooml)l1 | ~(at ball2 rooml)l0 | (pick ball2 rooml hand)l1 &
+	~(at ball2 roomr)l1 | (at ball2 roomr)l0 | (drop ball2 roomr hand)l1 &
+	(at ball2 roomr)l1 | ~(at ball2 roomr)l0 | (pick ball2 roomr hand)l1 &
+	~(carry ball1 hand)l1 | (carry ball1 hand)l0 | (pick ball1 rooml hand)l1 | (pick ball1 roomr hand)l1 &
+	(carry ball1 hand)l1 | ~(carry ball1 hand)l0 | (drop ball1 rooml hand)l1 | (drop ball1 roomr hand)l1
+********************************************************************************
+LAYER 1:
+
+PART 1:
+	~(move roomr rooml)l1 | Aux334 &
+	~(move rooml roomr)l1 | Aux335 &
+	~Aux334 | Aux335 &
+	~(move rooml roomr)l1 | ~Aux334 &
+	~(pick ball1 roomr hand)l1 | Aux336 &
+	~Aux335 | Aux336 &
+	~(pick ball1 roomr hand)l1 | ~Aux335 &
+	~(pick ball1 rooml hand)l1 | Aux337 &
+	~Aux336 | Aux337 &
+	~(pick ball1 rooml hand)l1 | ~Aux336 &
+	~(pick ball2 roomr hand)l1 | Aux338 &
+	~Aux337 | Aux338 &
+	~(pick ball2 roomr hand)l1 | ~Aux337 &
+	~(pick ball2 rooml hand)l1 | Aux339 &
+	~Aux338 | Aux339 &
+	~(pick ball2 rooml hand)l1 | ~Aux338 &
+	~(drop ball1 roomr hand)l1 | Aux340 &
+	~Aux339 | Aux340 &
+	~(drop ball1 roomr hand)l1 | ~Aux339 &
+	~(drop ball1 rooml hand)l1 | Aux341 &
+	~Aux340 | Aux341 &
+	~(drop ball1 rooml hand)l1 | ~Aux340 &
+	~(drop ball2 roomr hand)l1 | Aux342 &
+	~Aux341 | Aux342 &
+	~(drop ball2 roomr hand)l1 | ~Aux341 &
+	~(drop ball2 rooml hand)l1 | ~Aux342
+
+PART 2:
+	(at ball1 rooml)l1 | ~(at ball1 rooml)l1 &
+	(at-robby rooml)l1 | ~(at-robby rooml)l1 &
+	(at ball1 roomr)l1 | ~(at ball1 roomr)l1 &
+	(at-robby roomr)l1 | ~(at-robby roomr)l1 &
+	(carry ball2 hand)l1 | ~(carry ball2 hand)l1 &
+	(free hand)l1 | ~(free hand)l1 &
+	(at ball2 rooml)l1 | ~(at ball2 rooml)l1 &
+	(at ball2 roomr)l1 | ~(at ball2 roomr)l1 &
+	(carry ball1 hand)l1 | ~(carry ball1 hand)l1
+
+PART 4:
+	~(move roomr rooml)l1 | (at-robby roomr)l0 &
+	~(move rooml roomr)l1 | (at-robby rooml)l0 &
+	~(pick ball1 roomr hand)l1 | (at-robby roomr)l0 &
+	~(pick ball1 roomr hand)l1 | (free hand)l0 &
+	~(pick ball1 roomr hand)l1 | (at ball1 roomr)l0 &
+	~(pick ball1 rooml hand)l1 | (at-robby rooml)l0 &
+	~(pick ball1 rooml hand)l1 | (free hand)l0 &
+	~(pick ball1 rooml hand)l1 | (at ball1 rooml)l0 &
+	~(pick ball2 roomr hand)l1 | (at-robby roomr)l0 &
+	~(pick ball2 roomr hand)l1 | (free hand)l0 &
+	~(pick ball2 roomr hand)l1 | (at ball2 roomr)l0 &
+	~(pick ball2 rooml hand)l1 | (at-robby rooml)l0 &
+	~(pick ball2 rooml hand)l1 | (at ball2 rooml)l0 &
+	~(pick ball2 rooml hand)l1 | (free hand)l0 &
+	~(drop ball1 roomr hand)l1 | (at-robby roomr)l0 &
+	~(drop ball1 roomr hand)l1 | (carry ball1 hand)l0 &
+	~(drop ball1 rooml hand)l1 | (at-robby rooml)l0 &
+	~(drop ball1 rooml hand)l1 | (carry ball1 hand)l0 &
+	~(drop ball2 roomr hand)l1 | (at-robby roomr)l0 &
+	~(drop ball2 roomr hand)l1 | (carry ball2 hand)l0 &
+	~(drop ball2 rooml hand)l1 | (at-robby rooml)l0 &
+	~(drop ball2 rooml hand)l1 | (carry ball2 hand)l0
+
+PART 5:
+	~(move roomr rooml)l1 | (at-robby rooml)l1 &
+	~(move roomr rooml)l1 | ~(at-robby roomr)l1 &
+	~(move rooml roomr)l1 | (at-robby roomr)l1 &
+	~(move rooml roomr)l1 | ~(at-robby rooml)l1 &
+	~(pick ball1 roomr hand)l1 | ~(free hand)l1 &
+	~(pick ball1 roomr hand)l1 | (carry ball1 hand)l1 &
+	~(pick ball1 roomr hand)l1 | ~(at ball1 roomr)l1 &
+	~(pick ball1 rooml hand)l1 | ~(free hand)l1 &
+	~(pick ball1 rooml hand)l1 | (carry ball1 hand)l1 &
+	~(pick ball1 rooml hand)l1 | ~(at ball1 rooml)l1 &
+	~(pick ball2 roomr hand)l1 | ~(free hand)l1 &
+	~(pick ball2 roomr hand)l1 | (carry ball2 hand)l1 &
+	~(pick ball2 roomr hand)l1 | ~(at ball2 roomr)l1 &
+	~(pick ball2 rooml hand)l1 | ~(free hand)l1 &
+	~(pick ball2 rooml hand)l1 | (carry ball2 hand)l1 &
+	~(pick ball2 rooml hand)l1 | ~(at ball2 rooml)l1 &
+	~(drop ball1 roomr hand)l1 | ~(carry ball1 hand)l1 &
+	~(drop ball1 roomr hand)l1 | (free hand)l1 &
+	~(drop ball1 roomr hand)l1 | (at ball1 roomr)l1 &
+	~(drop ball1 rooml hand)l1 | ~(carry ball1 hand)l1 &
+	~(drop ball1 rooml hand)l1 | (free hand)l1 &
+	~(drop ball1 rooml hand)l1 | (at ball1 rooml)l1 &
+	~(drop ball2 roomr hand)l1 | (free hand)l1 &
+	~(drop ball2 roomr hand)l1 | (at ball2 roomr)l1 &
+	~(drop ball2 roomr hand)l1 | ~(carry ball2 hand)l1 &
+	~(drop ball2 rooml hand)l1 | (free hand)l1 &
+	~(drop ball2 rooml hand)l1 | (at ball2 rooml)l1 &
+	~(drop ball2 rooml hand)l1 | ~(carry ball2 hand)l1
+
+PART 6:
+	~(at ball1 rooml)l2 | (at ball1 rooml)l1 | (drop ball1 rooml hand)l2 &
+	(at ball1 rooml)l2 | ~(at ball1 rooml)l1 | (pick ball1 rooml hand)l2 &
+	~(at-robby rooml)l2 | (at-robby rooml)l1 | (move roomr rooml)l2 &
+	(at-robby rooml)l2 | ~(at-robby rooml)l1 | (move rooml roomr)l2 &
+	~(at ball1 roomr)l2 | (at ball1 roomr)l1 | (drop ball1 roomr hand)l2 &
+	(at ball1 roomr)l2 | ~(at ball1 roomr)l1 | (pick ball1 roomr hand)l2 &
+	~(at-robby roomr)l2 | (at-robby roomr)l1 | (move rooml roomr)l2 &
+	(at-robby roomr)l2 | ~(at-robby roomr)l1 | (move roomr rooml)l2 &
+	~(carry ball2 hand)l2 | (carry ball2 hand)l1 | (pick ball2 rooml hand)l2 | (pick ball2 roomr hand)l2 &
+	(carry ball2 hand)l2 | ~(carry ball2 hand)l1 | (drop ball2 rooml hand)l2 | (drop ball2 roomr hand)l2 &
+	~(free hand)l2 | (free hand)l1 | (drop ball2 rooml hand)l2 | (drop ball1 rooml hand)l2 | (drop ball2 roomr hand)l2 | (drop ball1 roomr hand)l2 &
+	(free hand)l2 | ~(free hand)l1 | (pick ball2 rooml hand)l2 | (pick ball1 rooml hand)l2 | (pick ball1 roomr hand)l2 | (pick ball2 roomr hand)l2 &
+	~(at ball2 rooml)l2 | (at ball2 rooml)l1 | (drop ball2 rooml hand)l2 &
+	(at ball2 rooml)l2 | ~(at ball2 rooml)l1 | (pick ball2 rooml hand)l2 &
+	~(at ball2 roomr)l2 | (at ball2 roomr)l1 | (drop ball2 roomr hand)l2 &
+	(at ball2 roomr)l2 | ~(at ball2 roomr)l1 | (pick ball2 roomr hand)l2 &
+	~(carry ball1 hand)l2 | (carry ball1 hand)l1 | (pick ball1 rooml hand)l2 | (pick ball1 roomr hand)l2 &
+	(carry ball1 hand)l2 | ~(carry ball1 hand)l1 | (drop ball1 rooml hand)l2 | (drop ball1 roomr hand)l2
+********************************************************************************
+********************************************************************************
+LAYER 2:
+
+PART 1:
+	~(move roomr rooml)l2 | Aux343 &
+	~(move rooml roomr)l2 | Aux344 &
+	~Aux343 | Aux344 &
+	~(move rooml roomr)l2 | ~Aux343 &
+	~(pick ball1 roomr hand)l2 | Aux345 &
+	~Aux344 | Aux345 &
+	~(pick ball1 roomr hand)l2 | ~Aux344 &
+	~(pick ball1 rooml hand)l2 | Aux346 &
+	~Aux345 | Aux346 &
+	~(pick ball1 rooml hand)l2 | ~Aux345 &
+	~(pick ball2 roomr hand)l2 | Aux347 &
+	~Aux346 | Aux347 &
+	~(pick ball2 roomr hand)l2 | ~Aux346 &
+	~(pick ball2 rooml hand)l2 | Aux348 &
+	~Aux347 | Aux348 &
+	~(pick ball2 rooml hand)l2 | ~Aux347 &
+	~(drop ball1 roomr hand)l2 | Aux349 &
+	~Aux348 | Aux349 &
+	~(drop ball1 roomr hand)l2 | ~Aux348 &
+	~(drop ball1 rooml hand)l2 | Aux350 &
+	~Aux349 | Aux350 &
+	~(drop ball1 rooml hand)l2 | ~Aux349 &
+	~(drop ball2 roomr hand)l2 | Aux351 &
+	~Aux350 | Aux351 &
+	~(drop ball2 roomr hand)l2 | ~Aux350 &
+	~(drop ball2 rooml hand)l2 | ~Aux351
+
+PART 2:
+	(at ball1 rooml)l2 | ~(at ball1 rooml)l2 &
+	(at-robby rooml)l2 | ~(at-robby rooml)l2 &
+	(at ball1 roomr)l2 | ~(at ball1 roomr)l2 &
+	(at-robby roomr)l2 | ~(at-robby roomr)l2 &
+	(carry ball2 hand)l2 | ~(carry ball2 hand)l2 &
+	(free hand)l2 | ~(free hand)l2 &
+	(at ball2 rooml)l2 | ~(at ball2 rooml)l2 &
+	(at ball2 roomr)l2 | ~(at ball2 roomr)l2 &
+	(carry ball1 hand)l2 | ~(carry ball1 hand)l2
+
+PART 4:
+	~(move roomr rooml)l2 | (at-robby roomr)l1 &
+	~(move rooml roomr)l2 | (at-robby rooml)l1 &
+	~(pick ball1 roomr hand)l2 | (at-robby roomr)l1 &
+	~(pick ball1 roomr hand)l2 | (free hand)l1 &
+	~(pick ball1 roomr hand)l2 | (at ball1 roomr)l1 &
+	~(pick ball1 rooml hand)l2 | (at-robby rooml)l1 &
+	~(pick ball1 rooml hand)l2 | (free hand)l1 &
+	~(pick ball1 rooml hand)l2 | (at ball1 rooml)l1 &
+	~(pick ball2 roomr hand)l2 | (at-robby roomr)l1 &
+	~(pick ball2 roomr hand)l2 | (free hand)l1 &
+	~(pick ball2 roomr hand)l2 | (at ball2 roomr)l1 &
+	~(pick ball2 rooml hand)l2 | (at-robby rooml)l1 &
+	~(pick ball2 rooml hand)l2 | (at ball2 rooml)l1 &
+	~(pick ball2 rooml hand)l2 | (free hand)l1 &
+	~(drop ball1 roomr hand)l2 | (at-robby roomr)l1 &
+	~(drop ball1 roomr hand)l2 | (carry ball1 hand)l1 &
+	~(drop ball1 rooml hand)l2 | (at-robby rooml)l1 &
+	~(drop ball1 rooml hand)l2 | (carry ball1 hand)l1 &
+	~(drop ball2 roomr hand)l2 | (at-robby roomr)l1 &
+	~(drop ball2 roomr hand)l2 | (carry ball2 hand)l1 &
+	~(drop ball2 rooml hand)l2 | (at-robby rooml)l1 &
+	~(drop ball2 rooml hand)l2 | (carry ball2 hand)l1
+
+PART 5:
+	~(move roomr rooml)l2 | (at-robby rooml)l2 &
+	~(move roomr rooml)l2 | ~(at-robby roomr)l2 &
+	~(move rooml roomr)l2 | (at-robby roomr)l2 &
+	~(move rooml roomr)l2 | ~(at-robby rooml)l2 &
+	~(pick ball1 roomr hand)l2 | ~(free hand)l2 &
+	~(pick ball1 roomr hand)l2 | (carry ball1 hand)l2 &
+	~(pick ball1 roomr hand)l2 | ~(at ball1 roomr)l2 &
+	~(pick ball1 rooml hand)l2 | ~(free hand)l2 &
+	~(pick ball1 rooml hand)l2 | (carry ball1 hand)l2 &
+	~(pick ball1 rooml hand)l2 | ~(at ball1 rooml)l2 &
+	~(pick ball2 roomr hand)l2 | ~(free hand)l2 &
+	~(pick ball2 roomr hand)l2 | (carry ball2 hand)l2 &
+	~(pick ball2 roomr hand)l2 | ~(at ball2 roomr)l2 &
+	~(pick ball2 rooml hand)l2 | ~(free hand)l2 &
+	~(pick ball2 rooml hand)l2 | (carry ball2 hand)l2 &
+	~(pick ball2 rooml hand)l2 | ~(at ball2 rooml)l2 &
+	~(drop ball1 roomr hand)l2 | ~(carry ball1 hand)l2 &
+	~(drop ball1 roomr hand)l2 | (free hand)l2 &
+	~(drop ball1 roomr hand)l2 | (at ball1 roomr)l2 &
+	~(drop ball1 rooml hand)l2 | ~(carry ball1 hand)l2 &
+	~(drop ball1 rooml hand)l2 | (free hand)l2 &
+	~(drop ball1 rooml hand)l2 | (at ball1 rooml)l2 &
+	~(drop ball2 roomr hand)l2 | (free hand)l2 &
+	~(drop ball2 roomr hand)l2 | (at ball2 roomr)l2 &
+	~(drop ball2 roomr hand)l2 | ~(carry ball2 hand)l2 &
+	~(drop ball2 rooml hand)l2 | (free hand)l2 &
+	~(drop ball2 rooml hand)l2 | (at ball2 rooml)l2 &
+	~(drop ball2 rooml hand)l2 | ~(carry ball2 hand)l2
+
+PART 6:
+	~(at ball1 rooml)l3 | (at ball1 rooml)l2 | (drop ball1 rooml hand)l3 &
+	(at ball1 rooml)l3 | ~(at ball1 rooml)l2 | (pick ball1 rooml hand)l3 &
+	~(at-robby rooml)l3 | (at-robby rooml)l2 | (move roomr rooml)l3 &
+	(at-robby rooml)l3 | ~(at-robby rooml)l2 | (move rooml roomr)l3 &
+	~(at ball1 roomr)l3 | (at ball1 roomr)l2 | (drop ball1 roomr hand)l3 &
+	(at ball1 roomr)l3 | ~(at ball1 roomr)l2 | (pick ball1 roomr hand)l3 &
+	~(at-robby roomr)l3 | (at-robby roomr)l2 | (move rooml roomr)l3 &
+	(at-robby roomr)l3 | ~(at-robby roomr)l2 | (move roomr rooml)l3 &
+	~(carry ball2 hand)l3 | (carry ball2 hand)l2 | (pick ball2 rooml hand)l3 | (pick ball2 roomr hand)l3 &
+	(carry ball2 hand)l3 | ~(carry ball2 hand)l2 | (drop ball2 rooml hand)l3 | (drop ball2 roomr hand)l3 &
+	~(free hand)l3 | (free hand)l2 | (drop ball2 rooml hand)l3 | (drop ball1 rooml hand)l3 | (drop ball2 roomr hand)l3 | (drop ball1 roomr hand)l3 &
+	(free hand)l3 | ~(free hand)l2 | (pick ball2 rooml hand)l3 | (pick ball1 rooml hand)l3 | (pick ball1 roomr hand)l3 | (pick ball2 roomr hand)l3 &
+	~(at ball2 rooml)l3 | (at ball2 rooml)l2 | (drop ball2 rooml hand)l3 &
+	(at ball2 rooml)l3 | ~(at ball2 rooml)l2 | (pick ball2 rooml hand)l3 &
+	~(at ball2 roomr)l3 | (at ball2 roomr)l2 | (drop ball2 roomr hand)l3 &
+	(at ball2 roomr)l3 | ~(at ball2 roomr)l2 | (pick ball2 roomr hand)l3 &
+	~(carry ball1 hand)l3 | (carry ball1 hand)l2 | (pick ball1 rooml hand)l3 | (pick ball1 roomr hand)l3 &
+	(carry ball1 hand)l3 | ~(carry ball1 hand)l2 | (drop ball1 rooml hand)l3 | (drop ball1 roomr hand)l3
+********************************************************************************
+********************************************************************************
+LAYER 3:
+
+PART 1:
+	~(move roomr rooml)l3 | Aux352 &
+	~(move rooml roomr)l3 | Aux353 &
+	~Aux352 | Aux353 &
+	~(move rooml roomr)l3 | ~Aux352 &
+	~(pick ball1 roomr hand)l3 | Aux354 &
+	~Aux353 | Aux354 &
+	~(pick ball1 roomr hand)l3 | ~Aux353 &
+	~(pick ball1 rooml hand)l3 | Aux355 &
+	~Aux354 | Aux355 &
+	~(pick ball1 rooml hand)l3 | ~Aux354 &
+	~(pick ball2 roomr hand)l3 | Aux356 &
+	~Aux355 | Aux356 &
+	~(pick ball2 roomr hand)l3 | ~Aux355 &
+	~(pick ball2 rooml hand)l3 | Aux357 &
+	~Aux356 | Aux357 &
+	~(pick ball2 rooml hand)l3 | ~Aux356 &
+	~(drop ball1 roomr hand)l3 | Aux358 &
+	~Aux357 | Aux358 &
+	~(drop ball1 roomr hand)l3 | ~Aux357 &
+	~(drop ball1 rooml hand)l3 | Aux359 &
+	~Aux358 | Aux359 &
+	~(drop ball1 rooml hand)l3 | ~Aux358 &
+	~(drop ball2 roomr hand)l3 | Aux360 &
+	~Aux359 | Aux360 &
+	~(drop ball2 roomr hand)l3 | ~Aux359 &
+	~(drop ball2 rooml hand)l3 | ~Aux360
+
+PART 2:
+	(at ball1 rooml)l3 | ~(at ball1 rooml)l3 &
+	(at-robby rooml)l3 | ~(at-robby rooml)l3 &
+	(at ball1 roomr)l3 | ~(at ball1 roomr)l3 &
+	(at-robby roomr)l3 | ~(at-robby roomr)l3 &
+	(carry ball2 hand)l3 | ~(carry ball2 hand)l3 &
+	(free hand)l3 | ~(free hand)l3 &
+	(at ball2 rooml)l3 | ~(at ball2 rooml)l3 &
+	(at ball2 roomr)l3 | ~(at ball2 roomr)l3 &
+	(carry ball1 hand)l3 | ~(carry ball1 hand)l3
+
+PART 4:
+	~(move roomr rooml)l3 | (at-robby roomr)l2 &
+	~(move rooml roomr)l3 | (at-robby rooml)l2 &
+	~(pick ball1 roomr hand)l3 | (at-robby roomr)l2 &
+	~(pick ball1 roomr hand)l3 | (free hand)l2 &
+	~(pick ball1 roomr hand)l3 | (at ball1 roomr)l2 &
+	~(pick ball1 rooml hand)l3 | (at-robby rooml)l2 &
+	~(pick ball1 rooml hand)l3 | (free hand)l2 &
+	~(pick ball1 rooml hand)l3 | (at ball1 rooml)l2 &
+	~(pick ball2 roomr hand)l3 | (at-robby roomr)l2 &
+	~(pick ball2 roomr hand)l3 | (free hand)l2 &
+	~(pick ball2 roomr hand)l3 | (at ball2 roomr)l2 &
+	~(pick ball2 rooml hand)l3 | (at-robby rooml)l2 &
+	~(pick ball2 rooml hand)l3 | (at ball2 rooml)l2 &
+	~(pick ball2 rooml hand)l3 | (free hand)l2 &
+	~(drop ball1 roomr hand)l3 | (at-robby roomr)l2 &
+	~(drop ball1 roomr hand)l3 | (carry ball1 hand)l2 &
+	~(drop ball1 rooml hand)l3 | (at-robby rooml)l2 &
+	~(drop ball1 rooml hand)l3 | (carry ball1 hand)l2 &
+	~(drop ball2 roomr hand)l3 | (at-robby roomr)l2 &
+	~(drop ball2 roomr hand)l3 | (carry ball2 hand)l2 &
+	~(drop ball2 rooml hand)l3 | (at-robby rooml)l2 &
+	~(drop ball2 rooml hand)l3 | (carry ball2 hand)l2
+
+PART 5:
+	~(move roomr rooml)l3 | (at-robby rooml)l3 &
+	~(move roomr rooml)l3 | ~(at-robby roomr)l3 &
+	~(move rooml roomr)l3 | (at-robby roomr)l3 &
+	~(move rooml roomr)l3 | ~(at-robby rooml)l3 &
+	~(pick ball1 roomr hand)l3 | ~(free hand)l3 &
+	~(pick ball1 roomr hand)l3 | (carry ball1 hand)l3 &
+	~(pick ball1 roomr hand)l3 | ~(at ball1 roomr)l3 &
+	~(pick ball1 rooml hand)l3 | ~(free hand)l3 &
+	~(pick ball1 rooml hand)l3 | (carry ball1 hand)l3 &
+	~(pick ball1 rooml hand)l3 | ~(at ball1 rooml)l3 &
+	~(pick ball2 roomr hand)l3 | ~(free hand)l3 &
+	~(pick ball2 roomr hand)l3 | (carry ball2 hand)l3 &
+	~(pick ball2 roomr hand)l3 | ~(at ball2 roomr)l3 &
+	~(pick ball2 rooml hand)l3 | ~(free hand)l3 &
+	~(pick ball2 rooml hand)l3 | (carry ball2 hand)l3 &
+	~(pick ball2 rooml hand)l3 | ~(at ball2 rooml)l3 &
+	~(drop ball1 roomr hand)l3 | ~(carry ball1 hand)l3 &
+	~(drop ball1 roomr hand)l3 | (free hand)l3 &
+	~(drop ball1 roomr hand)l3 | (at ball1 roomr)l3 &
+	~(drop ball1 rooml hand)l3 | ~(carry ball1 hand)l3 &
+	~(drop ball1 rooml hand)l3 | (free hand)l3 &
+	~(drop ball1 rooml hand)l3 | (at ball1 rooml)l3 &
+	~(drop ball2 roomr hand)l3 | (free hand)l3 &
+	~(drop ball2 roomr hand)l3 | (at ball2 roomr)l3 &
+	~(drop ball2 roomr hand)l3 | ~(carry ball2 hand)l3 &
+	~(drop ball2 rooml hand)l3 | (free hand)l3 &
+	~(drop ball2 rooml hand)l3 | (at ball2 rooml)l3 &
+	~(drop ball2 rooml hand)l3 | ~(carry ball2 hand)l3
+
+PART 6:
+	~(at ball1 rooml)l4 | (at ball1 rooml)l3 | (drop ball1 rooml hand)l4 &
+	(at ball1 rooml)l4 | ~(at ball1 rooml)l3 | (pick ball1 rooml hand)l4 &
+	~(at-robby rooml)l4 | (at-robby rooml)l3 | (move roomr rooml)l4 &
+	(at-robby rooml)l4 | ~(at-robby rooml)l3 | (move rooml roomr)l4 &
+	~(at ball1 roomr)l4 | (at ball1 roomr)l3 | (drop ball1 roomr hand)l4 &
+	(at ball1 roomr)l4 | ~(at ball1 roomr)l3 | (pick ball1 roomr hand)l4 &
+	~(at-robby roomr)l4 | (at-robby roomr)l3 | (move rooml roomr)l4 &
+	(at-robby roomr)l4 | ~(at-robby roomr)l3 | (move roomr rooml)l4 &
+	~(carry ball2 hand)l4 | (carry ball2 hand)l3 | (pick ball2 rooml hand)l4 | (pick ball2 roomr hand)l4 &
+	(carry ball2 hand)l4 | ~(carry ball2 hand)l3 | (drop ball2 rooml hand)l4 | (drop ball2 roomr hand)l4 &
+	~(free hand)l4 | (free hand)l3 | (drop ball2 rooml hand)l4 | (drop ball1 rooml hand)l4 | (drop ball2 roomr hand)l4 | (drop ball1 roomr hand)l4 &
+	(free hand)l4 | ~(free hand)l3 | (pick ball2 rooml hand)l4 | (pick ball1 rooml hand)l4 | (pick ball1 roomr hand)l4 | (pick ball2 roomr hand)l4 &
+	~(at ball2 rooml)l4 | (at ball2 rooml)l3 | (drop ball2 rooml hand)l4 &
+	(at ball2 rooml)l4 | ~(at ball2 rooml)l3 | (pick ball2 rooml hand)l4 &
+	~(at ball2 roomr)l4 | (at ball2 roomr)l3 | (drop ball2 roomr hand)l4 &
+	(at ball2 roomr)l4 | ~(at ball2 roomr)l3 | (pick ball2 roomr hand)l4 &
+	~(carry ball1 hand)l4 | (carry ball1 hand)l3 | (pick ball1 rooml hand)l4 | (pick ball1 roomr hand)l4 &
+	(carry ball1 hand)l4 | ~(carry ball1 hand)l3 | (drop ball1 rooml hand)l4 | (drop ball1 roomr hand)l4
+********************************************************************************
+********************************************************************************
+LAYER 4:
+
+PART 1:
+	~(move roomr rooml)l4 | Aux361 &
+	~(move rooml roomr)l4 | Aux362 &
+	~Aux361 | Aux362 &
+	~(move rooml roomr)l4 | ~Aux361 &
+	~(pick ball1 roomr hand)l4 | Aux363 &
+	~Aux362 | Aux363 &
+	~(pick ball1 roomr hand)l4 | ~Aux362 &
+	~(pick ball1 rooml hand)l4 | Aux364 &
+	~Aux363 | Aux364 &
+	~(pick ball1 rooml hand)l4 | ~Aux363 &
+	~(pick ball2 roomr hand)l4 | Aux365 &
+	~Aux364 | Aux365 &
+	~(pick ball2 roomr hand)l4 | ~Aux364 &
+	~(pick ball2 rooml hand)l4 | Aux366 &
+	~Aux365 | Aux366 &
+	~(pick ball2 rooml hand)l4 | ~Aux365 &
+	~(drop ball1 roomr hand)l4 | Aux367 &
+	~Aux366 | Aux367 &
+	~(drop ball1 roomr hand)l4 | ~Aux366 &
+	~(drop ball1 rooml hand)l4 | Aux368 &
+	~Aux367 | Aux368 &
+	~(drop ball1 rooml hand)l4 | ~Aux367 &
+	~(drop ball2 roomr hand)l4 | Aux369 &
+	~Aux368 | Aux369 &
+	~(drop ball2 roomr hand)l4 | ~Aux368 &
+	~(drop ball2 rooml hand)l4 | ~Aux369
+
+PART 2:
+	(at ball1 rooml)l4 | ~(at ball1 rooml)l4 &
+	(at-robby rooml)l4 | ~(at-robby rooml)l4 &
+	(at ball1 roomr)l4 | ~(at ball1 roomr)l4 &
+	(at-robby roomr)l4 | ~(at-robby roomr)l4 &
+	(carry ball2 hand)l4 | ~(carry ball2 hand)l4 &
+	(free hand)l4 | ~(free hand)l4 &
+	(at ball2 rooml)l4 | ~(at ball2 rooml)l4 &
+	(at ball2 roomr)l4 | ~(at ball2 roomr)l4 &
+	(carry ball1 hand)l4 | ~(carry ball1 hand)l4
+
+PART 4:
+	~(move roomr rooml)l4 | (at-robby roomr)l3 &
+	~(move rooml roomr)l4 | (at-robby rooml)l3 &
+	~(pick ball1 roomr hand)l4 | (at-robby roomr)l3 &
+	~(pick ball1 roomr hand)l4 | (free hand)l3 &
+	~(pick ball1 roomr hand)l4 | (at ball1 roomr)l3 &
+	~(pick ball1 rooml hand)l4 | (at-robby rooml)l3 &
+	~(pick ball1 rooml hand)l4 | (free hand)l3 &
+	~(pick ball1 rooml hand)l4 | (at ball1 rooml)l3 &
+	~(pick ball2 roomr hand)l4 | (at-robby roomr)l3 &
+	~(pick ball2 roomr hand)l4 | (free hand)l3 &
+	~(pick ball2 roomr hand)l4 | (at ball2 roomr)l3 &
+	~(pick ball2 rooml hand)l4 | (at-robby rooml)l3 &
+	~(pick ball2 rooml hand)l4 | (at ball2 rooml)l3 &
+	~(pick ball2 rooml hand)l4 | (free hand)l3 &
+	~(drop ball1 roomr hand)l4 | (at-robby roomr)l3 &
+	~(drop ball1 roomr hand)l4 | (carry ball1 hand)l3 &
+	~(drop ball1 rooml hand)l4 | (at-robby rooml)l3 &
+	~(drop ball1 rooml hand)l4 | (carry ball1 hand)l3 &
+	~(drop ball2 roomr hand)l4 | (at-robby roomr)l3 &
+	~(drop ball2 roomr hand)l4 | (carry ball2 hand)l3 &
+	~(drop ball2 rooml hand)l4 | (at-robby rooml)l3 &
+	~(drop ball2 rooml hand)l4 | (carry ball2 hand)l3
+
+PART 5:
+	~(move roomr rooml)l4 | (at-robby rooml)l4 &
+	~(move roomr rooml)l4 | ~(at-robby roomr)l4 &
+	~(move rooml roomr)l4 | (at-robby roomr)l4 &
+	~(move rooml roomr)l4 | ~(at-robby rooml)l4 &
+	~(pick ball1 roomr hand)l4 | ~(free hand)l4 &
+	~(pick ball1 roomr hand)l4 | (carry ball1 hand)l4 &
+	~(pick ball1 roomr hand)l4 | ~(at ball1 roomr)l4 &
+	~(pick ball1 rooml hand)l4 | ~(free hand)l4 &
+	~(pick ball1 rooml hand)l4 | (carry ball1 hand)l4 &
+	~(pick ball1 rooml hand)l4 | ~(at ball1 rooml)l4 &
+	~(pick ball2 roomr hand)l4 | ~(free hand)l4 &
+	~(pick ball2 roomr hand)l4 | (carry ball2 hand)l4 &
+	~(pick ball2 roomr hand)l4 | ~(at ball2 roomr)l4 &
+	~(pick ball2 rooml hand)l4 | ~(free hand)l4 &
+	~(pick ball2 rooml hand)l4 | (carry ball2 hand)l4 &
+	~(pick ball2 rooml hand)l4 | ~(at ball2 rooml)l4 &
+	~(drop ball1 roomr hand)l4 | ~(carry ball1 hand)l4 &
+	~(drop ball1 roomr hand)l4 | (free hand)l4 &
+	~(drop ball1 roomr hand)l4 | (at ball1 roomr)l4 &
+	~(drop ball1 rooml hand)l4 | ~(carry ball1 hand)l4 &
+	~(drop ball1 rooml hand)l4 | (free hand)l4 &
+	~(drop ball1 rooml hand)l4 | (at ball1 rooml)l4 &
+	~(drop ball2 roomr hand)l4 | (free hand)l4 &
+	~(drop ball2 roomr hand)l4 | (at ball2 roomr)l4 &
+	~(drop ball2 roomr hand)l4 | ~(carry ball2 hand)l4 &
+	~(drop ball2 rooml hand)l4 | (free hand)l4 &
+	~(drop ball2 rooml hand)l4 | (at ball2 rooml)l4 &
+	~(drop ball2 rooml hand)l4 | ~(carry ball2 hand)l4
+********************************************************************************
+********************************************************************************
+

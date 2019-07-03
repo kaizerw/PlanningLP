@@ -1,0 +1,35 @@
+[
+    {
+        "name": "T1",
+        "search": "socwsss(constraint_type=1)",
+        "domains": [
+            "_airport",
+            "_blocks",
+            "_depot",
+            "_gripper1hand",
+            "_gripper2hands"
+        ]
+    },
+    {
+        "name": "T2",
+        "search": "socwsss(constraint_type=2)",
+        "domains": [
+            "_airport",
+            "_blocks",
+            "_depot",
+            "_gripper1hand",
+            "_gripper2hands"
+        ]
+    },
+    {
+        "name": "T3",
+        "search": "socwsss(constraint_type=3)",
+        "domains": [
+            "_airport",
+            "_blocks",
+            "_depot",
+            "_gripper1hand",
+            "_gripper2hands"
+        ]
+    }
+]
