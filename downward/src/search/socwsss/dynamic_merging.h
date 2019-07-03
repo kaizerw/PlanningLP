@@ -86,7 +86,9 @@ class DynamicMerging {
    public:
     DynamicMerging(lp::LPSolverType lp_solver_type,
                    shared_ptr<TaskProxy> task_proxy, double infinity,
-                   int lp_variables_offset, int lp_constraints_offset);
+                   int lp_variables_offset, int lp_constraints_offset,
+                   bool use_safety_improvement = true,
+                   bool use_only_upper_bounds = false);
     vector<lp::LPConstraint> get_lp_constraints();
     vector<lp::LPVariable> get_lp_variables();
 };

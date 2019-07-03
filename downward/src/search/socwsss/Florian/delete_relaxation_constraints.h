@@ -17,10 +17,10 @@ class Options;
 }
 
 class FlorianDeleteRelaxationConstraints {
-    bool use_time_vars;
-    bool use_integer_vars;
     shared_ptr<TaskProxy> task_proxy;
     double infinity;
+    bool use_time_vars;
+    bool use_integer_vars;
     unordered_map<string, int> var_op_used;
     unordered_map<string, int> var_fact_reached;
     unordered_map<string, int> var_first_achiever;
@@ -42,10 +42,9 @@ class FlorianDeleteRelaxationConstraints {
                             double infinity);
 
    public:
-    FlorianDeleteRelaxationConstraints(bool use_time_vars,
-                                       bool use_integer_vars,
-                                       shared_ptr<TaskProxy> task_proxy,
-                                       double infinity);
+    FlorianDeleteRelaxationConstraints(shared_ptr<TaskProxy> task_proxy,
+                                       double infinity, bool use_time_vars=true,
+                                       bool use_integer_vars=true);
 
     void operator()(vector<lp::LPVariable> &variables,
                     vector<lp::LPConstraint> &constraints, const State &state);

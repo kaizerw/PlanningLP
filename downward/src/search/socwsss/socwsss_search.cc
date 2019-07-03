@@ -40,8 +40,8 @@ void SOCWSSSSearch::initialize() {
     }
 
     // Create state-equation constraints
-    SEQConstraints(true, false)(this->task, this->all_lp_constraints, infinity,
-                                task_proxy.get_initial_state());
+    SEQConstraints()(this->task, this->all_lp_constraints, infinity,
+                     task_proxy.get_initial_state());
 
     // Create variable Y_T
     this->all_lp_variables.push_back(

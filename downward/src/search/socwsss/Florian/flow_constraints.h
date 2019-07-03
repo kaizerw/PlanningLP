@@ -12,6 +12,7 @@
 #include "../../utils/timer.h"
 #include "../algorithms/combinations.h"
 
+#include <limits>
 #include <unordered_map>
 #include <vector>
 
@@ -44,10 +45,13 @@ class FlorianFlowConstraints {
 
    public:
     explicit FlorianFlowConstraints(
-        bool remove_dead_states, bool single_transition_optimization,
-        bool self_loop_optimization, bool weak_linking_constraints,
-        bool use_mutexes, bool partial_merges, int max_merge_feature_size,
-        double partial_merge_time_limit, double merge_lp_solve_time_limit);
+        bool remove_dead_states = true,
+        bool single_transition_optimization = true,
+        bool self_loop_optimization = true,
+        bool weak_linking_constraints = true, bool use_mutexes = true,
+        bool partial_merges = true, int max_merge_feature_size = 2,
+        double partial_merge_time_limit = numeric_limits<double>::infinity(),
+        double merge_lp_solve_time_limit = numeric_limits<double>::infinity());
 
     void operator()(const shared_ptr<AbstractTask> task,
                     vector<lp::LPVariable> &variables,

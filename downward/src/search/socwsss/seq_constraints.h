@@ -41,7 +41,8 @@ class SEQConstraints {
                          double infinity);
 
    public:
-    SEQConstraints(bool use_safety_improvement, bool use_only_upper_bounds);
+    SEQConstraints(bool use_safety_improvement = true,
+                   bool use_only_upper_bounds = false);
     void operator()(const shared_ptr<AbstractTask> &task,
                     vector<lp::LPConstraint> &constraints, double infinity,
                     const State &state);

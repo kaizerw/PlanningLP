@@ -70,9 +70,8 @@ Benders::Benders(const Options &opts, TaskProxy &task_proxy,
     // Create state-equation constraints
     if (this->use_seq_constraints) {
         cout << "Using SEQ constraints" << endl;
-        SEQConstraints(true, false)(this->task, this->all_lp_constraints,
-                                    this->infinity,
-                                    this->task_proxy->get_initial_state());
+        SEQConstraints()(this->task, this->all_lp_constraints, this->infinity,
+                         this->task_proxy->get_initial_state());
     }
 
     // Add lmcut landmark constraints with bounds literals
@@ -113,8 +112,7 @@ Benders::Benders(const Options &opts, TaskProxy &task_proxy,
     // Florian delete relaxation constraints
     if (this->use_delete_relaxation_constraints) {
         cout << "Using delete relaxation constraints" << endl;
-        FlorianDeleteRelaxationConstraints(true, true, this->task_proxy,
-                                           this->infinity)(
+        FlorianDeleteRelaxationConstraints(this->task_proxy, this->infinity)(
             this->all_lp_variables, this->all_lp_constraints,
             this->task_proxy->get_initial_state());
         this->gen_var_ids = this->all_lp_variables.size();
@@ -123,10 +121,9 @@ Benders::Benders(const Options &opts, TaskProxy &task_proxy,
     // Florian flow constraints
     if (this->use_flow_constraints) {
         cout << "Using flow constraints" << endl;
-        FlorianFlowConstraints(true, true, true, true, true, true, 2,
-                               this->infinity, this->infinity)(
-            this->task, this->all_lp_variables, this->all_lp_constraints,
-            this->infinity, this->task_proxy->get_initial_state());
+        FlorianFlowConstraints()(this->task, this->all_lp_variables,
+                                 this->all_lp_constraints, this->infinity,
+                                 this->task_proxy->get_initial_state());
         this->gen_var_ids = this->all_lp_variables.size();
     }
 }

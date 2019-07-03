@@ -3,15 +3,16 @@
 DynamicMerging::DynamicMerging(lp::LPSolverType lp_solver_type,
                                shared_ptr<TaskProxy> task_proxy,
                                double infinity, int lp_variables_offset,
-                               int lp_constraints_offset)
+                               int lp_constraints_offset,
+                               bool use_safety_improvement,
+                               bool use_only_upper_bounds)
     : lp_solver_type(lp_solver_type),
       task_proxy(task_proxy),
       infinity(infinity),
       lp_variables_offset(lp_variables_offset),
-      lp_constraints_offset(lp_constraints_offset) {
-    this->use_safety_improvement = true;
-    this->use_only_upper_bounds = false;
-
+      lp_constraints_offset(lp_constraints_offset),
+      use_safety_improvement(use_safety_improvement),
+      use_only_upper_bounds(use_only_upper_bounds) {
     OperatorsProxy ops = this->task_proxy->get_operators();
     VariablesProxy vars = this->task_proxy->get_variables();
 

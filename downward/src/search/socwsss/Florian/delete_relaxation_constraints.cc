@@ -1,12 +1,12 @@
 #include "delete_relaxation_constraints.h"
 
 FlorianDeleteRelaxationConstraints::FlorianDeleteRelaxationConstraints(
-    bool use_time_vars, bool use_integer_vars, shared_ptr<TaskProxy> task_proxy,
-    double infinity)
-    : use_time_vars(use_time_vars),
-      use_integer_vars(use_integer_vars),
-      task_proxy(task_proxy),
-      infinity(infinity) {}
+    shared_ptr<TaskProxy> task_proxy, double infinity, bool use_time_vars,
+    bool use_integer_vars)
+    : task_proxy(task_proxy),
+      infinity(infinity),
+      use_time_vars(use_time_vars),
+      use_integer_vars(use_integer_vars) {}
 
 int FlorianDeleteRelaxationConstraints::get_var_op_used(
     OperatorProxy op, vector<lp::LPVariable> &variables) {

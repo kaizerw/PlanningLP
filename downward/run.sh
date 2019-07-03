@@ -15,9 +15,9 @@
 #              eval=lmcut())"
 opts="socwsss_cplex(constraint_type=3, \
                     use_seq_constraints=true, \
-                    use_lmcut_constraints=true, \
+                    use_lmcut_constraints=false, \
                     use_dynamic_merging_constraints=false, \
-                    use_delete_relaxation_constraints=true, \
+                    use_delete_relaxation_constraints=false, \
                     use_flow_constraints=true, \
                     use_sequencing_cache=true, \
                     print_current_oc=false, \
