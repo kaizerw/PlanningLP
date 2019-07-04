@@ -17,7 +17,7 @@ opts="socwsss_cplex(constraint_type=3, \
                     use_seq_constraints=true, \
                     use_lmcut_constraints=false, \
                     use_dynamic_merging_constraints=false, \
-                    use_delete_relaxation_constraints=false, \
+                    use_delete_relaxation_constraints=true, \
                     use_flow_constraints=true, \
                     use_sequencing_cache=true, \
                     print_current_oc=false, \
@@ -74,7 +74,7 @@ opts="socwsss_cplex(constraint_type=3, \
 # elevators      56         nok (nok)           2 ops with cost=0 others fcost
 # nomystery      11         ok  (ok)            all ops with cost=1
 # openstacks     2          nok (nok)           1 op with cost=1 others cost=0
-# parcprinter    375821     ok  (ok)            all ops with different costs>1
+# parcprinter    375821     ok  (ok)            1 op with cost=0 and others with different costs>1
 # pegsol         3          ok  (ok)            1 op with cost=1 others cost=0
 # scanalyzer     13         ok  (ok)            2 ops with cost=3 and 2 ops with cost=1
 # sokoban        9          nok (nok)           2 ops with cost=1 and 1 op with cost=0

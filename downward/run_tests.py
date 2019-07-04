@@ -76,17 +76,18 @@ class Slave:
             elif parser['type'] == 'float':
                 attr = [i for i in attr if i.isdigit()]
                 attr = attr[-1] if len(attr) > 0 else '0'
-                attr = round(float(attr), 5)
+                attr = round(float(attr), 10)
             else:
                 attr = attr[-1] if len(attr) > 0 else ''
 
             if   name == 'solved':          attr = int(attr == 0)
+            elif name == 'optimal':         attr = int(attr == lb)
             elif name == 'infeasible':      attr = int(attr == 12)
             elif name == 'timeout':         attr = int(attr == 23)
             elif name == 'memout':          attr = int(attr == 22)
             elif name == 'cplex_exception': attr = int(attr == 25)
             elif name == 'best_bound':      attr = int(attr == lb)
-            elif name == 'quality_score':   attr = round(attr / lb, 5) if lb > 0 else 0.0
+            elif name == 'quality_score':   attr = round(attr / lb, 10) if lb > 0 else 0.0
 
             self.parsed_output[name] = attr
 
@@ -122,7 +123,7 @@ class Slave:
             if parser.startswith('plot_line'):
                 y = str(data[parser]).split(';')
                 if y != '' and len(y) > 0:
-                    y = [round(float(i), 5) for i in y]
+                    y = [round(float(i), 10) for i in y]
 
                     fig = pyplot.figure()
                     ax = fig.add_subplot(111)
@@ -140,7 +141,7 @@ class Slave:
                             opsfile.write(f'{i} = {xi}\n')
 
                     x = [str(i) for i, _ in enumerate(x)]
-                    y = [round(float(i.split('|')[1]), 5) for i in y]
+                    y = [round(float(i.split('|')[1]), 10) for i in y]
 
                     fig = pyplot.figure()
                     ax = fig.add_subplot(111)

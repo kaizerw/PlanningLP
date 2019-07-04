@@ -4,6 +4,11 @@
         "type": "int",
         "summary": "sum"
     },
+    "optimal": {
+        "regex": "Plan cost: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
     "infeasible": {
         "regex": "search exit code: (.*)",
         "type": "int",
@@ -31,7 +36,7 @@
     },
     "quality_score": {
         "regex": "Best bound found: (.*)",
-        "type": "int",
+        "type": "float",
         "summary": "sum"
     },
     "plan_cost": {
