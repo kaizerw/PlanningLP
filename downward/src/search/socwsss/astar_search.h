@@ -10,8 +10,8 @@
 #include "glc.h"
 #include "hmax_heuristic.h"
 
-#include <optional.hh>
 #include <unordered_map>
+#include "../ext/optional.hh"
 
 using eager_search::EagerSearch;
 using soc_hmax_heuristic::SOCHMaxHeuristic;

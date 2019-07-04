@@ -19,6 +19,14 @@ matplotlib.use('Agg')
 from matplotlib import pyplot
 
 
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
 class Slave:
 
     def __init__(self, parsers, all_fieldnames, notplot_fieldnames, plot_fieldnames, config, domain, instance, args, infos):
@@ -70,11 +78,11 @@ class Slave:
                 continue
 
             if parser['type'] == 'int':
-                attr = [i for i in attr if i.isdigit()]
+                attr = [i for i in attr if is_float(i)]
                 attr = attr[-1] if len(attr) > 0 else '0'
                 attr = int(float(attr))
             elif parser['type'] == 'float':
-                attr = [i for i in attr if i.isdigit()]
+                attr = [i for i in attr if is_float(i)]
                 attr = attr[-1] if len(attr) > 0 else '0'
                 attr = round(float(attr), 10)
             else:

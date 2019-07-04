@@ -13,24 +13,24 @@
 #              max_time_to_solve=30, \
 #              max_mem_to_solve=3.5, \
 #              eval=lmcut())"
-opts="socwsss_cplex(constraint_type=3, \
+opts="socwsss_cplex(constraint_type=1, \
                     use_seq_constraints=true, \
                     use_lmcut_constraints=false, \
                     use_dynamic_merging_constraints=false, \
                     use_delete_relaxation_constraints=true, \
-                    use_flow_constraints=true, \
+                    use_flow_constraints=false, \
                     use_sequencing_cache=true, \
                     print_current_oc=false, \
                     print_learned_constraints=false, \
                     print_lp_changes=false, \
                     print_search_tree=false, \
                     max_seqs=-1, \
-                    eval=lmcut())"
+                    eval=blind())"
 
 #./fast-downward.py $DOWNWARD_BENCHMARKS/gripper_1hand_2balls/prob01.sas --search "$opts"
 #./fast-downward.py $DOWNWARD_BENCHMARKS/gripper_2hands_4balls/prob01.sas --search "$opts"
 # T3
-./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p07.sas --search "$opts"
+#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p07.sas --search "$opts"
 #valgrind ./builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p07.sas
 # T3: not optimal
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p03.sas --search "$opts"
@@ -38,6 +38,7 @@ opts="socwsss_cplex(constraint_type=3, \
 #./fast-downward.py --overall-memory-limit 1024M $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 # T1 seq landmarks dm hmax: overflow x538
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p14.sas --search "$opts"
+./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 ################################################################################
 # Test Dynamic Merging
 #opts="astar(operatorcounting(constraint_generators=[state_equation_constraints()]))"

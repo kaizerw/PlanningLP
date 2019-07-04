@@ -4,8 +4,8 @@
 #include <iostream>
 #include <string>
 
-#include <tree.hh>
-#include <tree_util.hh>
+#include "../ext/tree.hh"
+#include "../ext/tree_util.hh"
 
 namespace options {
 struct ParseNode {

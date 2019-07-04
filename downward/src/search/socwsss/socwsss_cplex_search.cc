@@ -71,6 +71,8 @@ SearchStatus SOCWSSSCplexSearch::step() {
                 exit(22);
             }
             exit(25);
+        } catch (...) {
+            exit(25);
         }
 
         if (benders->restart) {
