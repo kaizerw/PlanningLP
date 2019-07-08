@@ -606,10 +606,3 @@ void DynamicMerging::create_flow_constraints() {
         this->lp_constraints.emplace_back(flow_constraint);
     }
 }
-
-vector<lp::LPConstraint> DynamicMerging::get_lp_constraints() {
-    return this->lp_constraints;
-}
-vector<lp::LPVariable> DynamicMerging::get_lp_variables() {
-    return this->lp_variables;
-}

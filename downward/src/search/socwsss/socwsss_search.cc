@@ -92,11 +92,11 @@ void SOCWSSSSearch::initialize() {
                           this->all_lp_variables.size(),
                           this->all_lp_constraints.size());
 
-        this->gen_var_ids += dm.get_lp_variables().size();
+        this->gen_var_ids += dm.lp_variables.size();
 
         // Copy dynamic merging constraints and variables
-        vector<lp::LPVariable> dm_lp_variables = dm.get_lp_variables();
-        vector<lp::LPConstraint> dm_lp_constraints = dm.get_lp_constraints();
+        vector<lp::LPVariable> dm_lp_variables = dm.lp_variables;
+        vector<lp::LPConstraint> dm_lp_constraints = dm.lp_constraints;
         copy(dm_lp_variables.begin(), dm_lp_variables.end(),
              back_inserter(this->all_lp_variables));
         copy(dm_lp_constraints.begin(), dm_lp_constraints.end(),
@@ -191,9 +191,9 @@ void SOCWSSSSearch::get_op_count() {
     // Create new variables and constraints for the last learned constraints
     for (shared_ptr<GLC> new_glc : this->last_learned_glcs) {
         this->glcs->push_back(new_glc);
-        int yt_bound = new_glc->get_yt_bound();
+        int yt_bound = new_glc->yt_bound;
         int last_yt_bound = this->bounds_literals[this->yt_index].size() - 1;
-        int right_side_coeff = new_glc->get_right_side_coeff();
+        int right_side_coeff = new_glc->right_side_coeff;
 
         lp::LPConstraint constraint_last_glc(right_side_coeff, infinity);
         if (yt_bound > last_yt_bound) {
@@ -204,7 +204,7 @@ void SOCWSSSSearch::get_op_count() {
             constraint_last_glc.insert(
                 this->bounds_literals[this->yt_index][yt_bound], 1.0);
         }
-        for (pair<int, int> &bound_literal : new_glc->get_ops_bounds()) {
+        for (pair<int, int> &bound_literal : new_glc->ops_bounds) {
             int op_id = bound_literal.first;
             int op_bound = bound_literal.second;
             int last_op_bound = this->bounds_literals[op_id].size() - 1;
@@ -343,7 +343,7 @@ SearchStatus SOCWSSSSearch::get_sequence() {
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
                                       chrono::system_clock::now() - start)
                                       .count();
-    this->printer_plots->plot_max_f_found.push_back(astar->get_max_f_found());
+    this->printer_plots->plot_max_f_found.push_back(astar->max_f_found);
     this->printer_plots->plot_astar_time.push_back(elapsed_microseconds);
     this->printer_plots->plot_nodes_expanded.push_back(
         astar->get_statistics().get_expanded());
@@ -371,7 +371,7 @@ SearchStatus SOCWSSSSearch::get_sequence() {
             status = SOLVED;
         }
     } else {
-        this->last_learned_glcs = astar->get_learned_glcs();
+        this->last_learned_glcs = astar->learned_glcs;
 
         status = FAILED;
     }
@@ -558,8 +558,8 @@ void SOCWSSSSearch::fn_print_learned_constraints(
              << "LEARNED CONSTRAINTS:" << endl;
         for (int glc_id = 0; glc_id < (int)this->glcs->size(); ++glc_id) {
             shared_ptr<GLC> glc = this->glcs->at(glc_id);
-            int yt_bound = glc->get_yt_bound();
-            int right_side_coeff = glc->get_right_side_coeff();
+            int yt_bound = glc->yt_bound;
+            int right_side_coeff = glc->right_side_coeff;
 
             cout << "(" << glc_id << ") ";
 
@@ -571,7 +571,7 @@ void SOCWSSSSearch::fn_print_learned_constraints(
             }
             cout << endl;
 
-            for (pair<int, int> &bound_literal : glc->get_ops_bounds()) {
+            for (pair<int, int> &bound_literal : glc->ops_bounds) {
                 int op_id = bound_literal.first;
                 int bound = bound_literal.second;
                 string name = task_proxy.get_operators()[op_id].get_name();
@@ -593,7 +593,7 @@ void SOCWSSSSearch::fn_get_op_count_from_bounds(
 
     for (size_t glc_id = 0; glc_id < this->glcs->size(); ++glc_id) {
         shared_ptr<GLC> glc = this->glcs->at(glc_id);
-        for (pair<int, int> &bound_literal : glc->get_ops_bounds()) {
+        for (pair<int, int> &bound_literal : glc->ops_bounds) {
             int op_id = bound_literal.first;
             int bound = bound_literal.second;
 

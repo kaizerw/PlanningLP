@@ -766,7 +766,6 @@ fast_downward_plugin(
         socwsss/astar_search
         socwsss/printer_plots
         socwsss/dynamic_merging
-        socwsss/delete_relaxation_constraints
         socwsss/Florian/delete_relaxation_constraints
         socwsss/Florian/flow_constraint_internals
         socwsss/Florian/flow_constraints

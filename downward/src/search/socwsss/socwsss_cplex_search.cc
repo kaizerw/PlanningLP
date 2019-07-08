@@ -92,7 +92,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
         benders->cplex.getStatus() ==
             IloAlgorithm::Status::InfeasibleOrUnbounded) {
         cout << "INFEASIBLE" << endl;
-        exit(12);
+        exit(13);
     }
 
     // Get final plan

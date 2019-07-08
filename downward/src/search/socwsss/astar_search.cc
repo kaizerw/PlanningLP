@@ -426,9 +426,9 @@ void SOCAStarSearch::generate_constraint() {
             new_glc.add_op_bound(op_id, this->op_count[op_id] + 1);
         }
     }
-    if (this->yt_learned_constraint || new_glc.get_op_bounds_size() == 0) {
-        new_glc.set_yt_bound(
-            accumulate(this->op_count.begin(), this->op_count.end(), 0) + 1);
+    if (this->yt_learned_constraint || new_glc.ops_bounds.size() == 0) {
+        new_glc.yt_bound =
+            accumulate(this->op_count.begin(), this->op_count.end(), 0) + 1;
     }
     this->learned_glcs.emplace_back(make_shared<GLC>(new_glc));
 
@@ -699,11 +699,4 @@ vector<int> SOCAStarSearch::compute_action_landmarks(const GlobalState &state) {
 
     return action_landmarks;
 }
-
-double SOCAStarSearch::get_max_f_found() { return this->max_f_found; }
-
-vector<shared_ptr<GLC>> SOCAStarSearch::get_learned_glcs() {
-    return this->learned_glcs;
-}
-
 }  // namespace soc_astar_search

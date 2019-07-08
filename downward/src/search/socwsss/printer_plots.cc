@@ -43,7 +43,7 @@ int PrinterPlots::compute_times_made_progress() {
     return times_made_progress;
 }
 
-void PrinterPlots::show_data(int seq, int best_bound_found,
+void PrinterPlots::show_data(int seq, double best_bound_found,
                              int repeated_sequencings, int restarts) {
     double total_solve_time = chrono::duration_cast<chrono::microseconds>(
                                   chrono::system_clock::now() - this->start)
@@ -52,14 +52,14 @@ void PrinterPlots::show_data(int seq, int best_bound_found,
     vector<double> ops_by_constraint;
     transform(this->glcs->begin(), this->glcs->end(),
               back_inserter(ops_by_constraint), [&](shared_ptr<GLC> glc) {
-                  return ((double)glc->get_op_bounds_size()) / this->n_ops;
+                  return ((double)glc->ops_bounds.size()) / this->n_ops;
               });
 
     // Print out custom attributes
     cout << fixed;
     cout.precision(5);
 
-    cout << "Repeated sequencings: " << repeated_sequencings << endl;
+    cout << "Repeated seqs: " << repeated_sequencings << endl;
     cout << "Restarts: " << restarts << endl;
 
     // Convert times to seconds
@@ -78,7 +78,7 @@ void PrinterPlots::show_data(int seq, int best_bound_found,
                                 this->plot_max_f_found.end())
                  : 0)
          << endl;
-    cout << "Best bound found: " << max(best_bound_found, 0) << endl;
+    cout << "Best bound found: " << max(best_bound_found, 0.0) << endl;
     cout << "Mean ops by constraint: " << calc_mean<double>(ops_by_constraint)
          << endl;
     cout << "Median ops by constraint: "
@@ -104,6 +104,10 @@ void PrinterPlots::show_data(int seq, int best_bound_found,
          << (this->plot_nodes_expanded.size() > 0
                  ? this->plot_nodes_expanded.back()
                  : 0)
+         << endl;
+    cout << "Last astar time: "
+         << (this->plot_astar_time.size() > 0 ? this->plot_astar_time.back()
+                                              : 0)
          << endl;
     cout << "Mean nodes expanded: " << calc_mean<int>(this->plot_nodes_expanded)
          << endl;

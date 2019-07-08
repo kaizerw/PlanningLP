@@ -40,7 +40,7 @@ class PrinterPlots {
                  shared_ptr<vector<shared_ptr<GLC>>> glcs,
                  chrono::time_point<chrono::system_clock> start);
     int compute_times_made_progress();
-    void show_data(int seq, int best_bound_found, int repeated_sequencings,
+    void show_data(int seq, double best_bound_found, int repeated_sequencings,
                    int restarts);
 };
 

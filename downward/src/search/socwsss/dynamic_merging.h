@@ -43,7 +43,7 @@ struct Proposition {
     ~Proposition() = default;
 };
 
-class DynamicMerging {
+struct DynamicMerging {
     vector<lp::LPVariable> lp_variables;
     vector<lp::LPConstraint> lp_constraints;
     vector<vector<vector<int>>> copies;
@@ -83,14 +83,11 @@ class DynamicMerging {
     void create_link_constraints();
     void create_flow_constraints();
 
-   public:
     DynamicMerging(lp::LPSolverType lp_solver_type,
                    shared_ptr<TaskProxy> task_proxy, double infinity,
                    int lp_variables_offset, int lp_constraints_offset,
                    bool use_safety_improvement = true,
                    bool use_only_upper_bounds = false);
-    vector<lp::LPConstraint> get_lp_constraints();
-    vector<lp::LPVariable> get_lp_variables();
 };
 
 #endif

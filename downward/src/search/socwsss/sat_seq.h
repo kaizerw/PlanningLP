@@ -17,8 +17,7 @@
 
 using namespace std;
 
-class PlanToMinisat {
-   public:
+struct PlanToMinisat {
     shared_ptr<TaskProxy> task_proxy;
     int n_layers;
     vector<int> op_counts;

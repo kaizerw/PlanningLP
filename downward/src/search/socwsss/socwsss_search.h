@@ -20,7 +20,6 @@
 #include "../operator_counting/lm_cut_constraints.h"
 
 #include "astar_search.h"
-#include "delete_relaxation_constraints.h"
 #include "dynamic_merging.h"
 #include "glc.h"
 #include "printer_plots.h"
@@ -47,7 +46,7 @@ class Options;
 
 namespace SOCWSSS_search {
 
-class SOCWSSSSearch : public SearchEngine {
+struct SOCWSSSSearch : public SearchEngine {
     // Attributes from command line to SOCWSSS and SearchEngine
     lp::LPSolverType lp_solver_type;
     bool mip;
@@ -100,7 +99,6 @@ class SOCWSSSSearch : public SearchEngine {
     // Store constraints (2) e (3) for each operator
     vector<tuple<int, int>> c23_ops;
 
-   protected:
     virtual void initialize() override;
     virtual SearchStatus step() override;
 
@@ -116,7 +114,6 @@ class SOCWSSSSearch : public SearchEngine {
     void fn_get_op_count_from_bounds(vector<double> &original_solution,
                                      vector<int> &rounded_solution);
 
-   public:
     explicit SOCWSSSSearch(const options::Options &opts);
     virtual ~SOCWSSSSearch() = default;
 

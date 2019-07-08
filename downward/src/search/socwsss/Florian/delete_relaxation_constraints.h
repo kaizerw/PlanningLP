@@ -16,7 +16,7 @@ namespace options {
 class Options;
 }
 
-class FlorianDeleteRelaxationConstraints {
+struct FlorianDeleteRelaxationConstraints {
     shared_ptr<TaskProxy> task_proxy;
     double infinity;
     bool use_time_vars;
@@ -41,7 +41,6 @@ class FlorianDeleteRelaxationConstraints {
                             vector<lp::LPConstraint> &constraints,
                             double infinity);
 
-   public:
     FlorianDeleteRelaxationConstraints(shared_ptr<TaskProxy> task_proxy,
                                        double infinity, bool use_time_vars=true,
                                        bool use_integer_vars=true);

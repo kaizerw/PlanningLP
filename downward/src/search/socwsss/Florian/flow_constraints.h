@@ -25,7 +25,7 @@ namespace options {
 class Options;
 }
 
-class FlorianFlowConstraints {
+struct FlorianFlowConstraints {
     shared_ptr<pdbs::PatternCollectionGenerator> pattern_generator;
     bool remove_dead_states;
     bool single_transition_optimization;
@@ -43,7 +43,6 @@ class FlorianFlowConstraints {
                                     vector<lp::LPConstraint> &constraints,
                                     double infinity);
 
-   public:
     explicit FlorianFlowConstraints(
         bool remove_dead_states = true,
         bool single_transition_optimization = true,

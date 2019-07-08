@@ -35,17 +35,15 @@ class Options;
 
 namespace SOCWSSS_cplex_search {
 
-class SOCWSSSCplexSearch : public SearchEngine {
+struct SOCWSSSCplexSearch : public SearchEngine {
     Options opts;
     shared_ptr<Benders> benders;
     shared_ptr<CustomCallback> custom_callback;
     long custom_callback_mask = 0;
 
-   protected:
     virtual void initialize() override;
     virtual SearchStatus step() override;
 
-   public:
     explicit SOCWSSSCplexSearch(const options::Options &opts);
     virtual ~SOCWSSSCplexSearch() = default;
 

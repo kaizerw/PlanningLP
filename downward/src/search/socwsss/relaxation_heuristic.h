@@ -53,11 +53,10 @@ struct Proposition {
     }
 };
 
-class SOCRelaxationHeuristic : public Heuristic {
+struct SOCRelaxationHeuristic : public Heuristic {
     void build_unary_operators(const OperatorProxy &op, int op_no);
     void simplify();
 
-   protected:
     vector<UnaryOperator> unary_operators;
     vector<vector<Proposition>> propositions;
     vector<Proposition *> goal_propositions;
@@ -65,7 +64,6 @@ class SOCRelaxationHeuristic : public Heuristic {
     Proposition *get_proposition(const FactProxy &fact);
     virtual int compute_heuristic(const GlobalState &state) = 0;
 
-   public:
     SOCRelaxationHeuristic(const options::Options &options);
     virtual ~SOCRelaxationHeuristic();
     virtual bool dead_ends_are_reliable() const;

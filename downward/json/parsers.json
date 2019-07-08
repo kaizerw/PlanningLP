@@ -29,9 +29,14 @@
         "type": "int",
         "summary": "sum"
     },
+    "other_error": {
+        "regex": "search exit code: (.*)",
+        "type": "int",
+        "summary": "sum"
+    },
     "best_bound": {
         "regex": "Best bound found: (.*)",
-        "type": "int",
+        "type": "float",
         "summary": "sum"
     },
     "quality_score": {
@@ -49,13 +54,13 @@
         "type": "int",
         "summary": "mean"
     },
-    "number_of_seqs": {
+    "seqs": {
         "regex": "Number of seqs: (.*)",
         "type": "int",
         "summary": "mean"
     },
-    "repeated_sequencings": {
-        "regex": "Repeated sequencings: (.*)",
+    "repeated_seqs": {
+        "regex": "Repeated seqs: (.*)",
         "type": "int",
         "summary": "sum"
     },
@@ -79,12 +84,32 @@
         "type": "int",
         "summary": "mean"
     },
-    "number_of_ops": {
+    "last_nodes_expanded": {
+        "regex": "Last nodes expanded: (.*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "last_astar_time": {
+        "regex": "Last astar time: (.*)",
+        "type": "float",
+        "summary": "mean"
+    },
+    "max_op_count": {
+        "regex": "Max op count: (.*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "max_f_found": {
+        "regex": "Max f found: (.*)",
+        "type": "float",
+        "summary": "mean"
+    },
+    "ops": {
         "regex": "Number of ops: (.*)",
         "type": "int",
         "summary": "mean"
     },
-    "number_of_variables": {
+    "variables": {
         "regex": "Number of variables: (.*)",
         "type": "int",
         "summary": "mean"
@@ -119,24 +144,9 @@
         "type": "int",
         "summary": "mean"
     },
-    "max_f_found": {
-        "regex": "Max f found: (.*)",
-        "type": "float",
-        "summary": "mean"
-    },
-    "last_nodes_expanded": {
-        "regex": "Last nodes expanded: (.*)",
-        "type": "int",
-        "summary": "mean"
-    },
     "mean_nodes_expanded": {
         "regex": "Mean nodes expanded: (.*)",
         "type": "float",
-        "summary": "mean"
-    },
-    "max_op_count": {
-        "regex": "Max op count: (.*)",
-        "type": "int",
         "summary": "mean"
     },
     "initial_lp_solution": {

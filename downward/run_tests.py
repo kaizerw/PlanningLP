@@ -90,11 +90,11 @@ class Slave:
 
             if   name == 'solved':          attr = int(attr == 0)
             elif name == 'optimal':         attr = int(attr == lb)
-            elif name == 'infeasible':      attr = int(attr == 12)
+            elif name == 'infeasible':      attr = int(attr == 13)
             elif name == 'timeout':         attr = int(attr == 23)
             elif name == 'memout':          attr = int(attr == 22)
             elif name == 'cplex_exception': attr = int(attr == 25)
-            elif name == 'best_bound':      attr = int(attr == lb)
+            elif name == 'other_error':     attr = int(attr not in [0, 13, 23, 22, 25])
             elif name == 'quality_score':   attr = round(attr / lb, 10) if lb > 0 else 0.0
 
             self.parsed_output[name] = attr

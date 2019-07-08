@@ -28,7 +28,7 @@ struct Prop {
     ~Prop() = default;
 };
 
-class SEQConstraints {
+struct SEQConstraints {
     bool use_safety_improvement;
     bool use_only_upper_bounds;
     vector<vector<Prop>> propositions;
@@ -40,7 +40,6 @@ class SEQConstraints {
     void add_constraints(vector<lp::LPConstraint> &constraints,
                          double infinity);
 
-   public:
     SEQConstraints(bool use_safety_improvement = true,
                    bool use_only_upper_bounds = false);
     void operator()(const shared_ptr<AbstractTask> &task,

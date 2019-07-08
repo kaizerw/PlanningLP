@@ -27,7 +27,7 @@ namespace options {
 class Options;
 }
 
-class DeleteRelaxationConstraints {
+struct DeleteRelaxationConstraints {
     shared_ptr<TaskProxy> task_proxy;
     shared_ptr<AbstractTask> task;
     lp::LPSolverType lp_solver_type;
@@ -35,7 +35,6 @@ class DeleteRelaxationConstraints {
     int n_ops;
     StateRegistry& state_registry;
 
-   public:
     DeleteRelaxationConstraints(shared_ptr<TaskProxy> task_proxy,
                                 shared_ptr<AbstractTask> task,
                                 lp::LPSolverType lp_solver_type,

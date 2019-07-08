@@ -19,7 +19,7 @@ using soc_hmax_heuristic::SOCHMaxHeuristic;
 using namespace std;
 
 namespace soc_astar_search {
-class SOCAStarSearch : public EagerSearch {
+struct SOCAStarSearch : public EagerSearch {
     ////////////////////////////////////////////////////////////////////////////
     vector<int> op_count;
     int h_oc;
@@ -45,20 +45,13 @@ class SOCAStarSearch : public EagerSearch {
     vector<int> compute_action_landmarks(const GlobalState &state);
     ////////////////////////////////////////////////////////////////////////////
 
-   protected:
     bool check_goal_and_set_plan(const GlobalState &state);
     virtual void initialize() override;
     virtual void print_statistics() const override;
     virtual SearchStatus step() override;
 
-   public:
     explicit SOCAStarSearch(const options::Options &opts);
     virtual ~SOCAStarSearch() = default;
-
-    ////////////////////////////////////////////////////////////////////////////
-    double get_max_f_found();
-    vector<shared_ptr<GLC>> get_learned_glcs();
-    ////////////////////////////////////////////////////////////////////////////
 };
 }  // namespace soc_astar_search
 

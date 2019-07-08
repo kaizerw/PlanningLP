@@ -12,7 +12,7 @@ using soc_relaxation_heuristic::Proposition;
 using soc_relaxation_heuristic::SOCRelaxationHeuristic;
 using soc_relaxation_heuristic::UnaryOperator;
 
-class SOCHMaxHeuristic : public SOCRelaxationHeuristic {
+struct SOCHMaxHeuristic : public SOCRelaxationHeuristic {
     priority_queues::AdaptiveQueue<Proposition *> queue;
 
     void setup_exploration_queue();
@@ -28,7 +28,6 @@ class SOCHMaxHeuristic : public SOCRelaxationHeuristic {
         assert(prop->cost != -1 && prop->cost <= cost);
     }
 
-   public:
     virtual int compute_heuristic(const GlobalState &global_state);
     SOCHMaxHeuristic(const options::Options &opts);
     ~SOCHMaxHeuristic();

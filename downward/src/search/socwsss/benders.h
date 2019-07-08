@@ -25,7 +25,6 @@
 
 #include "Florian/delete_relaxation_constraints.h"
 #include "Florian/flow_constraints.h"
-#include "delete_relaxation_constraints.h"
 #include "dynamic_merging.h"
 #include "glc.h"
 #include "printer_plots.h"
@@ -61,8 +60,7 @@ struct HashOpCount {
     }
 };
 
-class Benders {
-   public:
+struct Benders {
     int constraint_type;
     bool use_seq_constraints;
     bool use_lmcut_constraints;
@@ -126,7 +124,7 @@ class Benders {
                            vector<shared_ptr<GLC>> last_learned_glcs);
     void get_domain_constraints(int op_id, int current_bound,
                                 int previous_bound);
-    tuple<bool, vector<shared_ptr<GLC>>, Plan, int> get_sequence(
+    tuple<bool, tuple<bool, vector<shared_ptr<GLC>>, Plan, int>> get_sequence(
         int h_oc, vector<int> op_count);
     void fn_print_lp_changes(int seq);
     void fn_print_current_oc(int seq, double original_lp_h_oc, int lp_h_oc,

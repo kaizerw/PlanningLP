@@ -82,12 +82,14 @@ void CustomCallback::sequence(const Context &c, double o_z, vector<double> &o_x,
         this->benders->repeated_sequencings, this->benders->restarts);
 
     // Try to sequence current solution
+    bool found_in_cache = false;
+    tuple<bool, vector<shared_ptr<GLC>>, Plan, int> info;
+    tie(found_in_cache, info) = this->benders->get_sequence(r_z, r_x);
     bool status = false;
     vector<shared_ptr<GLC>> learned_glcs;
     Plan plan;
     int plan_cost = 0;
-    tie(status, learned_glcs, plan, plan_cost) =
-        this->benders->get_sequence(r_z, r_x);
+    tie(status, learned_glcs, plan, plan_cost) = info;
 
     if (status) {
         // If this plan has the same cost as the lower-bound found by the
@@ -132,15 +134,21 @@ void CustomCallback::sequence(const Context &c, double o_z, vector<double> &o_x,
         }
 
         if (c.inRelaxation()) {
-            for_each(cuts.begin(), cuts.end(), [&](IloExpr expr) {
-                c.addUserCut(expr >= 1.0, IloCplex::UseCutPurge, IloFalse);
-                expr.end();
-            });
+            if (!found_in_cache) {
+                for_each(cuts.begin(), cuts.end(), [&](IloExpr expr) {
+                    c.addUserCut(expr >= 1.0, IloCplex::UseCutPurge, IloFalse);
+                    expr.end();
+                });
+            }
         } else if (c.inCandidate()) {
-            for_each(cuts.begin(), cuts.end(), [&](IloExpr expr) {
-                c.rejectCandidate(expr >= 1.0);
-                expr.end();
-            });
+            if (!found_in_cache) {
+                for_each(cuts.begin(), cuts.end(), [&](IloExpr expr) {
+                    c.rejectCandidate(expr >= 1.0);
+                    expr.end();
+                });
+            } else {
+                c.rejectCandidate();
+            }
         }
 
         this->benders->update_and_prints(this->benders->seq, o_z, r_z, o_x, r_x,

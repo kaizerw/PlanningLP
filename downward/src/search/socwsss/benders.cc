@@ -97,15 +97,12 @@ Benders::Benders(const Options &opts, TaskProxy &task_proxy,
                           this->infinity, this->all_lp_variables.size(),
                           this->all_lp_constraints.size());
 
-        this->gen_var_ids += dm.get_lp_variables().size();
+        this->gen_var_ids += dm.lp_variables.size();
 
         // Copy dynamic merging constraints and variables
-        vector<lp::LPVariable> dm_lp_variables = dm.get_lp_variables();
-        vector<lp::LPConstraint> dm_lp_constraints = dm.get_lp_constraints();
-
-        copy(dm_lp_variables.begin(), dm_lp_variables.end(),
+        copy(dm.lp_variables.begin(), dm.lp_variables.end(),
              back_inserter(this->all_lp_variables));
-        copy(dm_lp_constraints.begin(), dm_lp_constraints.end(),
+        copy(dm.lp_constraints.begin(), dm.lp_constraints.end(),
              back_inserter(this->all_lp_constraints));
     }
 
@@ -139,14 +136,14 @@ void Benders::initialize() {
     // Create new bounds literals if needed
     for (size_t glc_id = 0; glc_id < this->glcs->size(); ++glc_id) {
         shared_ptr<GLC> new_glc = this->glcs->at(glc_id);
-        int yt_bound = new_glc->get_yt_bound();
+        int yt_bound = new_glc->yt_bound;
         int last_yt_bound = this->bounds_literals[this->yt_index].size() - 1;
 
         if (yt_bound > 0 && yt_bound > last_yt_bound) {
             this->get_domain_constraints(this->yt_index, yt_bound,
                                          last_yt_bound);
         }
-        for (pair<int, int> &bound_literal : new_glc->get_ops_bounds()) {
+        for (pair<int, int> &bound_literal : new_glc->ops_bounds) {
             int op_id = bound_literal.first;
             int op_bound = bound_literal.second;
             int last_op_bound = this->bounds_literals[op_id].size() - 1;
@@ -184,13 +181,13 @@ void Benders::initialize() {
     vector<IloExpr> cuts;
     for (size_t glc_id = 0; glc_id < this->glcs->size(); ++glc_id) {
         shared_ptr<GLC> new_glc = this->glcs->at(glc_id);
-        int yt_bound = new_glc->get_yt_bound();
+        int yt_bound = new_glc->yt_bound;
 
         IloExpr Expr(this->env);
         if (yt_bound > 0) {
             Expr += this->x[this->bounds_literals[this->yt_index][yt_bound]];
         }
-        for (pair<int, int> &bound_literal : new_glc->get_ops_bounds()) {
+        for (pair<int, int> &bound_literal : new_glc->ops_bounds) {
             int op_id = bound_literal.first;
             int op_bound = bound_literal.second;
 
@@ -237,7 +234,7 @@ tuple<int, vector<IloExpr>> Benders::get_cuts(
     vector<IloExpr> cuts;
 
     for (shared_ptr<GLC> new_glc : learned_glcs) {
-        int yt_bound = new_glc->get_yt_bound();
+        int yt_bound = new_glc->yt_bound;
         int last_yt_bound = this->bounds_literals[this->yt_index].size() - 1;
 
         IloExpr Expr(this->env);
@@ -251,7 +248,7 @@ tuple<int, vector<IloExpr>> Benders::get_cuts(
             }
         }
 
-        for (pair<int, int> &bound_literal : new_glc->get_ops_bounds()) {
+        for (pair<int, int> &bound_literal : new_glc->ops_bounds) {
             int op_id = bound_literal.first;
             int op_bound = bound_literal.second;
             int last_op_bound = this->bounds_literals[op_id].size() - 1;
@@ -281,9 +278,9 @@ void Benders::update_and_prints(int seq, double original_lp_h_oc, int lp_h_oc,
 
     // Create new variables and constraints for the last learned constraints
     for (shared_ptr<GLC> new_glc : last_learned_glcs) {
-        int yt_bound = new_glc->get_yt_bound();
+        int yt_bound = new_glc->yt_bound;
         int last_yt_bound = this->bounds_literals[this->yt_index].size() - 1;
-        int right_side_coeff = new_glc->get_right_side_coeff();
+        int right_side_coeff = new_glc->right_side_coeff;
 
         lp::LPConstraint constraint_last_glc(right_side_coeff, infinity);
         if (yt_bound > 0) {
@@ -294,7 +291,7 @@ void Benders::update_and_prints(int seq, double original_lp_h_oc, int lp_h_oc,
                 constraint_last_glc.insert(this->yt_index, (1.0 / yt_bound));
             }
         }
-        for (pair<int, int> &bound_literal : new_glc->get_ops_bounds()) {
+        for (pair<int, int> &bound_literal : new_glc->ops_bounds) {
             int op_id = bound_literal.first;
             int op_bound = bound_literal.second;
             int last_op_bound = this->bounds_literals[op_id].size() - 1;
@@ -401,11 +398,11 @@ void Benders::get_domain_constraints(int op_id, int current_bound,
     }
 }
 
-tuple<bool, vector<shared_ptr<GLC>>, Plan, int> Benders::get_sequence(
-    int h_oc, vector<int> op_count) {
+tuple<bool, tuple<bool, vector<shared_ptr<GLC>>, Plan, int>>
+Benders::get_sequence(int h_oc, vector<int> op_count) {
     if (this->use_sequencing_cache && this->all_op_counts.count(op_count) > 0) {
         this->repeated_sequencings++;
-        return this->all_op_counts[op_count];
+        return make_tuple(true, this->all_op_counts[op_count]);
     }
 
     bool status = false;
@@ -414,7 +411,8 @@ tuple<bool, vector<shared_ptr<GLC>>, Plan, int> Benders::get_sequence(
     int plan_cost = 0;
 
     if (this->max_seqs != -1 && this->seq > this->max_seqs) {
-        return make_tuple(status, learned_glcs, plan, plan_cost);
+        return make_tuple(false,
+                          make_tuple(status, learned_glcs, plan, plan_cost));
     }
 
     this->seq++;
@@ -455,8 +453,7 @@ tuple<bool, vector<shared_ptr<GLC>>, Plan, int> Benders::get_sequence(
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
                                       chrono::system_clock::now() - start)
                                       .count();
-    this->printer_plots->plot_max_f_found.emplace_back(
-        astar->get_max_f_found());
+    this->printer_plots->plot_max_f_found.emplace_back(astar->max_f_found);
     this->printer_plots->plot_astar_time.emplace_back(elapsed_microseconds);
     this->printer_plots->plot_nodes_expanded.emplace_back(
         astar->get_statistics().get_expanded());
@@ -476,7 +473,7 @@ tuple<bool, vector<shared_ptr<GLC>>, Plan, int> Benders::get_sequence(
              << plan_cost << endl;
         status = true;
     } else {
-        learned_glcs = astar->get_learned_glcs();
+        learned_glcs = astar->learned_glcs;
         cout << "SEQ " << this->seq
              << ": SOLUTION NOT FOUND WITH MAX F: " << h_oc << endl;
         status = false;
@@ -486,7 +483,7 @@ tuple<bool, vector<shared_ptr<GLC>>, Plan, int> Benders::get_sequence(
     if (this->use_sequencing_cache || status) {
         this->all_op_counts[op_count] = ret;
     }
-    return ret;
+    return make_tuple(false, ret);
 }
 
 void Benders::fn_print_lp_changes(int seq) {
@@ -606,8 +603,8 @@ void Benders::fn_print_learned_constraints(
              << "LEARNED CONSTRAINTS:" << endl;
         for (int glc_id = 0; glc_id < (int)this->glcs->size(); ++glc_id) {
             shared_ptr<GLC> glc = this->glcs->at(glc_id);
-            int yt_bound = glc->get_yt_bound();
-            int right_side_coeff = glc->get_right_side_coeff();
+            int yt_bound = glc->yt_bound;
+            int right_side_coeff = glc->right_side_coeff;
 
             cout << "(" << glc_id << ") ";
 
@@ -619,7 +616,7 @@ void Benders::fn_print_learned_constraints(
             }
             cout << endl;
 
-            for (pair<int, int> &bound_literal : glc->get_ops_bounds()) {
+            for (pair<int, int> &bound_literal : glc->ops_bounds) {
                 int op_id = bound_literal.first;
                 int bound = bound_literal.second;
                 string name = task_proxy->get_operators()[op_id].get_name();

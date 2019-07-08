@@ -18,8 +18,7 @@ using namespace std;
 using Function = IloCplex::Callback::Function;
 using Context = IloCplex::Callback::Context;
 
-class CustomCallback : public Function {
-   public:
+struct CustomCallback : public Function {
     shared_ptr<Benders> benders;
 
     CustomCallback(shared_ptr<Benders> benders);

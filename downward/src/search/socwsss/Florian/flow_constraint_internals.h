@@ -32,7 +32,7 @@ struct FlowConstraintSettings {
     std::vector<std::vector<int>> partial_merge_states;
 };
 
-class FlowConstraintInternals {
+struct FlowConstraintInternals {
     std::vector<bool> is_goal;
     int state_constraint_offset;
     int current_state;
@@ -51,7 +51,6 @@ class FlowConstraintInternals {
         const pdbs::AbstractTransitionSystem &transition_system,
         const TaskProxy &task_proxy, const FlowConstraintSettings &settings);
 
-   public:
     FlowConstraintInternals(const AbstractTask &task,
                             std::vector<lp::LPVariable> &variables,
                             std::vector<lp::LPConstraint> &constraints,

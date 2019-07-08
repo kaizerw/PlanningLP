@@ -6,7 +6,7 @@
 
 using namespace std;
 
-class GLC {
+struct GLC {
     // This struct can represent generalized landmark constraints in the form:
     // [Y_T >= yt_bound] + {[o.id >= o.bound] | for o in ops_bounds}
     // >= right_side_coeff
@@ -20,12 +20,6 @@ class GLC {
     GLC();
     GLC(const GLC &other);
     void add_op_bound(int op_id, int op_bound);
-    size_t get_op_bounds_size();
-    vector<pair<int, int>> get_ops_bounds();
-    int get_yt_bound();
-    void set_yt_bound(int new_yt_bound);
-    int get_right_side_coeff();
-    void set_right_side_coeff(int new_right_side_coeff);
 };
 
 #endif
