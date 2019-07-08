@@ -38,7 +38,9 @@ opts="socwsss_cplex(constraint_type=1, \
 #./fast-downward.py --overall-memory-limit 1024M $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 # T1 seq landmarks dm hmax: overflow x538
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p14.sas --search "$opts"
-./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
+# IntPacker
+#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
+valgrind ./builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas
 ################################################################################
 # Test Dynamic Merging
 #opts="astar(operatorcounting(constraint_generators=[state_equation_constraints()]))"

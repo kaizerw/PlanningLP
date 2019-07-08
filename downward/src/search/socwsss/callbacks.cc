@@ -79,7 +79,7 @@ void CustomCallback::sequence(const Context &c, double o_z, vector<double> &o_x,
                               int r_z, vector<int> &r_x) {
     this->benders->printer_plots->show_data(
         this->benders->seq, this->benders->cplex.getBestObjValue(),
-        this->benders->repeated_sequencings, this->benders->restarts);
+        this->benders->repeated_seqs, this->benders->restarts);
 
     // Try to sequence current solution
     bool found_in_cache = false;
@@ -136,7 +136,7 @@ void CustomCallback::sequence(const Context &c, double o_z, vector<double> &o_x,
         if (c.inRelaxation()) {
             if (!found_in_cache) {
                 for_each(cuts.begin(), cuts.end(), [&](IloExpr expr) {
-                    c.addUserCut(expr >= 1.0, IloCplex::UseCutPurge, IloFalse);
+                    c.addUserCut(expr >= 1.0, IloCplex::UseCutForce, IloFalse);
                     expr.end();
                 });
             }

@@ -401,7 +401,7 @@ void Benders::get_domain_constraints(int op_id, int current_bound,
 tuple<bool, tuple<bool, vector<shared_ptr<GLC>>, Plan, int>>
 Benders::get_sequence(int h_oc, vector<int> op_count) {
     if (this->use_sequencing_cache && this->all_op_counts.count(op_count) > 0) {
-        this->repeated_sequencings++;
+        this->repeated_seqs++;
         return make_tuple(true, this->all_op_counts[op_count]);
     }
 

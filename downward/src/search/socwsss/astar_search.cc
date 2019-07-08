@@ -44,12 +44,8 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       ops_learned_constraint(task_proxy.get_operators().size(),
                              (this->constraint_type == 1)),
       yt_learned_constraint(false),
-      state_registry(task_proxy),
-      search_space(state_registry) {
-    cout << "Initializing SOC A* Search" << endl;
-    state_registry.soc = true;
-    state_registry.op_count = this->op_count;
-}
+      state_registry(task_proxy, true, op_count),
+      search_space(state_registry) {}
 
 bool SOCAStarSearch::check_goal_and_set_plan(const GlobalState &state) {
     if (task_properties::is_goal_state(task_proxy, state)) {
@@ -260,8 +256,6 @@ SearchStatus SOCAStarSearch::step() {
         if ((node->get_real_g() + op.get_cost()) >= bound) continue;
 
         GlobalState succ_state = state_registry.get_successor_state(s, op);
-        unordered_map<int, int> succ_op_count =
-            state_registry.lookup_op_count(succ_state.get_id());
 
         statistics.inc_generated();
         bool is_preferred = preferred_operators.contains(op_id);
@@ -276,13 +270,9 @@ SearchStatus SOCAStarSearch::step() {
         if (succ_node.is_dead_end()) continue;
 
         ////////////////////////////////////////////////////////////////////////
-        int oc_op = 0;
-        if (s_op_count.count(op.get_id()) > 0) {
-            oc_op = s_op_count[op.get_id()];
-        }
         // If OC(op) == 0 then a new constraint can be learned
         // In this case succ_node won't be added to open list later
-        if (oc_op == 0) {
+        if (s_op_count[op.get_id()] == 0) {
             // 1. Add all operators
             if (this->constraint_type == 1) {
                 this->print_edge(*node, op, succ_node);
@@ -455,11 +445,7 @@ void SOCAStarSearch::generate_constraint() {
                 unordered_map<int, int> state_op_count =
                     state_registry.lookup_op_count(state_id);
 
-                int node_oc = 0;
-                if (state_op_count.count(landmark) > 0) {
-                    node_oc = state_op_count[landmark];
-                }
-                if (node_oc == 0) {
+                if (state_op_count[landmark] == 0) {
                     min_new_oc = min(min_new_oc, this->op_count[landmark] + 1);
                     break;
                 }
@@ -536,11 +522,7 @@ void SOCAStarSearch::print_node(SearchNode &node) {
 
         for (OperatorID appop : appops) {
             cout << task_proxy.get_operators()[appop.get_index()].get_name();
-            int oc = 0;
-            if (node_op_count.count(appop.get_index()) > 0) {
-                oc = node_op_count[appop.get_index()];
-            }
-            cout << " x" << oc << endl;
+            cout << " x" << node_op_count[appop.get_index()] << endl;
         }
 
         cout << endl << "ACTION LANDMARKS:" << endl;
@@ -605,10 +587,7 @@ void SOCAStarSearch::print_node(SearchNode &node, OperatorProxy &op,
         cout << "APPLICABLE OPS:" << endl;
         for (OperatorID appop : appops) {
             cout << task_proxy.get_operators()[appop.get_index()].get_name();
-            int oc = 0;
-            if (node_op_count.count(appop.get_index()) > 0) {
-                oc = node_op_count[appop.get_index()];
-            }
+            int oc = node_op_count[appop.get_index()];
             if (appop.get_index() == op.get_id()) {
                 cout << " x" << (oc - 1) << endl;
             } else {
@@ -641,8 +620,8 @@ void SOCAStarSearch::print_edge(SearchNode &node, OperatorProxy &op,
         cout << "SEQ: " << this->seq << endl;
         cout << "EDGE: " << op.get_name() << " (" << op.get_cost() << ")"
              << endl;
-        if (state_registry.lookup_op_count(node.get_state_id())
-                .count(op.get_id()) > 0) {
+        if (state_registry.lookup_op_count(node.get_state_id())[op.get_id()] >
+            0) {
             cout << "COLOR: blue" << endl;
         } else {
             cout << "COLOR: red" << endl;
@@ -662,12 +641,10 @@ bool SOCAStarSearch::is_fully_expanded(SearchNode &node) {
         OperatorProxy op = task_proxy.get_operators()[appop];
         GlobalState succ_state =
             state_registry.get_successor_state(node.get_state(), op);
-        unordered_map<int, int> succ_op_count =
-            state_registry.lookup_op_count(succ_state.get_id());
         SearchNode succ_node = search_space.get_node(succ_state);
 
-        if (state_registry.lookup_op_count(node.get_state_id())
-                    .count(appop.get_index()) == 0 &&
+        if (state_registry.lookup_op_count(
+                node.get_state_id())[appop.get_index()] == 0 &&
             (succ_node.is_new() ||
              succ_node.get_g() > node.get_g() + get_adjusted_cost(op))) {
             fully_expanded = false;

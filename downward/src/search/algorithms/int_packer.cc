@@ -24,54 +24,39 @@ static IntPacker::Bin get_bit_mask(int from, int to) {
 
 static int get_bit_size_for_range(int range) {
     int num_bits = 0;
-    while ((1U << num_bits) < static_cast<unsigned int>(range))
-        ++num_bits;
+    while ((1U << num_bits) < static_cast<unsigned int>(range)) ++num_bits;
     return num_bits;
 }
 
-class IntPacker::VariableInfo {
-    int range;
-    int bin_index;
-    int shift;
-    Bin read_mask;
-    Bin clear_mask;
-public:
-    VariableInfo(int range_, int bin_index_, int shift_)
-        : range(range_),
-          bin_index(bin_index_),
-          shift(shift_) {
-        int bit_size = get_bit_size_for_range(range);
-        read_mask = get_bit_mask(shift, shift + bit_size);
-        clear_mask = ~read_mask;
-    }
+IntPacker::VariableInfo::VariableInfo(int range_, int bin_index_, int shift_)
+    : range(range_), bin_index(bin_index_), shift(shift_) {
+    int bit_size = get_bit_size_for_range(range);
+    read_mask = get_bit_mask(shift, shift + bit_size);
+    clear_mask = ~read_mask;
+}
 
-    VariableInfo()
-        : bin_index(-1), shift(0), read_mask(0), clear_mask(0) {
-        // Default constructor needed for resize() in pack_bins.
-    }
+IntPacker::VariableInfo::VariableInfo()
+    : bin_index(-1), shift(0), read_mask(0), clear_mask(0) {
+    // Default constructor needed for resize() in pack_bins.
+}
 
-    ~VariableInfo() {
-    }
+IntPacker::VariableInfo::~VariableInfo() {}
 
-    int get(const Bin *buffer) const {
-        return (buffer[bin_index] & read_mask) >> shift;
-    }
+int IntPacker::VariableInfo::get(const Bin *buffer) const {
+    return (buffer[bin_index] & read_mask) >> shift;
+}
 
-    void set(Bin *buffer, int value) const {
-        assert(value >= 0 && value < range);
-        Bin &bin = buffer[bin_index];
-        bin = (bin & clear_mask) | (value << shift);
-    }
-};
+void IntPacker::VariableInfo::set(Bin *buffer, int value) const {
+    assert(value >= 0 && value < range);
+    Bin &bin = buffer[bin_index];
+    bin = (bin & clear_mask) | (value << shift);
+}
 
-
-IntPacker::IntPacker(const vector<int> &ranges)
-    : num_bins(0) {
+IntPacker::IntPacker(const vector<int> &ranges) : num_bins(0) {
     pack_bins(ranges);
 }
 
-IntPacker::~IntPacker() {
-}
+IntPacker::~IntPacker() {}
 
 int IntPacker::get(const Bin *buffer, int var) const {
     return var_infos[var].get(buffer);
@@ -118,8 +103,7 @@ int IntPacker::pack_one_bin(const vector<int> &ranges,
     while (true) {
         // Determine size of largest variable that still fits into the bin.
         int bits = BITS_PER_BIN - used_bits;
-        while (bits > 0 && bits_to_vars[bits].empty())
-            --bits;
+        while (bits > 0 && bits_to_vars[bits].empty()) --bits;
 
         if (bits == 0) {
             // No more variables fit into the bin.
@@ -138,4 +122,4 @@ int IntPacker::pack_one_bin(const vector<int> &ranges,
         ++num_vars_in_bin;
     }
 }
-}
+}  // namespace int_packer

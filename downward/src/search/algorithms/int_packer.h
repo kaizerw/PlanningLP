@@ -19,7 +19,27 @@
 */
 namespace int_packer {
 class IntPacker {
-    class VariableInfo;
+   public:
+    typedef unsigned int Bin;
+
+    class VariableInfo {
+        int range;
+        int bin_index;
+        int shift;
+        Bin read_mask;
+        Bin clear_mask;
+
+       public:
+        VariableInfo(int range_, int bin_index_, int shift_);
+
+        VariableInfo();
+
+        ~VariableInfo();
+
+        int get(const Bin *buffer) const;
+
+        void set(Bin *buffer, int value) const;
+    };
 
     std::vector<VariableInfo> var_infos;
     int num_bins;
@@ -27,8 +47,6 @@ class IntPacker {
     int pack_one_bin(const std::vector<int> &ranges,
                      std::vector<std::vector<int>> &bits_to_vars);
     void pack_bins(const std::vector<int> &ranges);
-public:
-    typedef unsigned int Bin;
 
     /*
       The constructor takes the range for each variable. The domain of
@@ -42,8 +60,8 @@ public:
     int get(const Bin *buffer, int var) const;
     void set(Bin *buffer, int var, int value) const;
 
-    int get_num_bins() const {return num_bins;}
+    int get_num_bins() const { return num_bins; }
 };
-}
+}  // namespace int_packer
 
 #endif

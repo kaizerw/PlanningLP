@@ -159,25 +159,31 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     struct SOCStateIDSemanticHash {
         const segmented_vector::SegmentedArrayVector<PackedStateBin>
             &state_data_pool;
-        const vector<unordered_map<int, int>> &op_count_pool;
+        const shared_ptr<segmented_vector::SegmentedArrayVector<PackedStateBin>>
+            &op_count_pool;
         int state_size;
+        int oc_size;
         SOCStateIDSemanticHash(
             const segmented_vector::SegmentedArrayVector<PackedStateBin>
                 &state_data_pool,
-            const vector<unordered_map<int, int>> &op_count_pool,
-            int state_size)
+            const shared_ptr<
+                segmented_vector::SegmentedArrayVector<PackedStateBin>>
+                &op_count_pool,
+            int state_size, int oc_size)
             : state_data_pool(state_data_pool),
               op_count_pool(op_count_pool),
-              state_size(state_size) {}
+              state_size(state_size),
+              oc_size(oc_size) {}
 
         int_hash_set::HashType operator()(int id) const {
-            const PackedStateBin *data = state_data_pool[id];
+            const PackedStateBin *state = state_data_pool[id];
+            const PackedStateBin *op_count = (*op_count_pool)[id];
             utils::HashState hash_state;
             for (int i = 0; i < state_size; ++i) {
-                hash_state.feed(data[i]);
+                hash_state.feed(state[i]);
             }
-            for (const pair<int, int> &i : op_count_pool[id]) {
-                hash_state.feed(get<0>(i) * get<1>(i));
+            for (int i = 0; i < oc_size; ++i) {
+                hash_state.feed(op_count[i]);
             }
             return hash_state.get_hash32();
         }
@@ -186,26 +192,32 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     struct SOCStateIDSemanticEqual {
         const segmented_vector::SegmentedArrayVector<PackedStateBin>
             &state_data_pool;
-        const vector<unordered_map<int, int>> &op_count_pool;
+        const shared_ptr<segmented_vector::SegmentedArrayVector<PackedStateBin>>
+            &op_count_pool;
         int state_size;
+        int oc_size;
         SOCStateIDSemanticEqual(
             const segmented_vector::SegmentedArrayVector<PackedStateBin>
                 &state_data_pool,
-            const vector<unordered_map<int, int>> &op_count_pool,
-            int state_size)
+            const shared_ptr<
+                segmented_vector::SegmentedArrayVector<PackedStateBin>>
+                &op_count_pool,
+            int state_size, int oc_size)
             : state_data_pool(state_data_pool),
               op_count_pool(op_count_pool),
-              state_size(state_size) {}
+              state_size(state_size),
+              oc_size(oc_size) {}
 
         bool operator()(int lhs, int rhs) const {
-            const PackedStateBin *lhs_data = state_data_pool[lhs];
-            const PackedStateBin *rhs_data = state_data_pool[rhs];
-            bool states_are_equal =
-                equal(lhs_data, lhs_data + state_size, rhs_data);
-            bool op_counts_are_equal =
-                (op_count_pool[lhs] == op_count_pool[rhs]);
-
-            return states_are_equal && op_counts_are_equal;
+            const PackedStateBin *lhs_state = state_data_pool[lhs];
+            const PackedStateBin *rhs_state = state_data_pool[rhs];
+            const PackedStateBin *lhs_op_count = (*op_count_pool)[lhs];
+            const PackedStateBin *rhs_op_count = (*op_count_pool)[rhs];
+            bool equal_states =
+                equal(lhs_state, lhs_state + state_size, rhs_state);
+            bool equal_op_counts =
+                equal(lhs_op_count, lhs_op_count + oc_size, rhs_op_count);
+            return equal_states && equal_op_counts;
         }
     };
 
@@ -223,23 +235,29 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     const int_packer::IntPacker &state_packer;
     AxiomEvaluator &axiom_evaluator;
     const int num_variables;
+    const int num_operators;
 
     segmented_vector::SegmentedArrayVector<PackedStateBin> state_data_pool;
     StateIDSet registered_states;
 
-    vector<unordered_map<int, int>> op_count_pool;
-    SOCStateIDSet soc_registered_states;
+    shared_ptr<int_packer::IntPacker> op_count_packer;
+    int op_count_bins;
+    shared_ptr<segmented_vector::SegmentedArrayVector<PackedStateBin>>
+        op_count_pool;
+    shared_ptr<SOCStateIDSet> soc_registered_states;
 
     GlobalState *cached_initial_state;
 
     StateID insert_id_or_pop_state();
     int get_bins_per_state() const;
 
-   public:
     bool soc = false;
     vector<int> op_count;
 
+   public:
     explicit StateRegistry(const TaskProxy &task_proxy);
+    explicit StateRegistry(const TaskProxy &task_proxy, bool soc,
+                           vector<int> op_count);
     ~StateRegistry();
 
     const TaskProxy &get_task_proxy() const { return task_proxy; }
@@ -277,7 +295,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     */
     size_t size() const {
         if (soc) {
-            return soc_registered_states.size();
+            return soc_registered_states->size();
         }
         return registered_states.size();
     }

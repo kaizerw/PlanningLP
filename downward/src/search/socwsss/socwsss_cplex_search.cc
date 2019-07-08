@@ -85,8 +85,8 @@ SearchStatus SOCWSSSCplexSearch::step() {
 
     // Print out custom attributes
     benders->printer_plots->show_data(
-        benders->seq, benders->cplex.getBestObjValue(),
-        benders->repeated_sequencings, benders->restarts);
+        benders->seq, benders->cplex.getBestObjValue(), benders->repeated_seqs,
+        benders->restarts);
 
     if (benders->cplex.getStatus() == IloAlgorithm::Status::Infeasible ||
         benders->cplex.getStatus() ==
@@ -123,9 +123,9 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("use_seq_constraints",
                             "if use SEQ constraints or not", "true");
     parser.add_option<bool>("use_lmcut_constraints",
-                            "if use lmcut constraints or not", "true");
+                            "if use lmcut constraints or not", "false");
     parser.add_option<bool>("use_dynamic_merging_constraints",
-                            "if use dynamic merging or not", "true");
+                            "if use dynamic merging or not", "false");
     parser.add_option<bool>("use_delete_relaxation_constraints",
                             "if use delete relaxation constraints or not",
                             "false");
@@ -148,7 +148,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<int>("max_seqs", "maximum attempts to sequence solution",
                            "-1");
     parser.add_option<shared_ptr<Evaluator>>("eval", "evaluator for h-value",
-                                             "lmcut()");
+                                             "blind()");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);

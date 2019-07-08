@@ -12,17 +12,43 @@ StateRegistry::StateRegistry(const TaskProxy &task_proxy)
       state_packer(task_properties::g_state_packers[task_proxy]),
       axiom_evaluator(g_axiom_evaluators[task_proxy]),
       num_variables(task_proxy.get_variables().size()),
+      num_operators(task_proxy.get_operators().size()),
       state_data_pool(get_bins_per_state()),
       registered_states(
           StateIDSemanticHash(state_data_pool, get_bins_per_state()),
           StateIDSemanticEqual(state_data_pool, get_bins_per_state())),
-      op_count_pool(),
-      soc_registered_states(
-          SOCStateIDSemanticHash(state_data_pool, op_count_pool,
-                                 get_bins_per_state()),
-          SOCStateIDSemanticEqual(state_data_pool, op_count_pool,
-                                  get_bins_per_state())),
       cached_initial_state(0) {}
+
+StateRegistry::StateRegistry(const TaskProxy &task_proxy, bool soc,
+                             vector<int> op_count)
+    : task_proxy(task_proxy),
+      state_packer(task_properties::g_state_packers[task_proxy]),
+      axiom_evaluator(g_axiom_evaluators[task_proxy]),
+      num_variables(task_proxy.get_variables().size()),
+      num_operators(task_proxy.get_operators().size()),
+      state_data_pool(get_bins_per_state()),
+      registered_states(
+          StateIDSemanticHash(state_data_pool, get_bins_per_state()),
+          StateIDSemanticEqual(state_data_pool, get_bins_per_state())),
+      cached_initial_state(0),
+      soc(soc),
+      op_count(op_count) {
+    vector<int> ranges;
+    transform(op_count.begin(), op_count.end(), back_inserter(ranges),
+              [](int count) { return max(count + 1, 2); });
+    this->op_count_packer = make_shared<int_packer::IntPacker>(ranges);
+    this->op_count_bins = this->op_count_packer->get_num_bins();
+
+    this->op_count_pool =
+        make_shared<segmented_vector::SegmentedArrayVector<PackedStateBin>>(
+            this->op_count_bins);
+
+    this->soc_registered_states = make_shared<SOCStateIDSet>(
+        SOCStateIDSemanticHash(state_data_pool, op_count_pool,
+                               get_bins_per_state(), this->op_count_bins),
+        SOCStateIDSemanticEqual(state_data_pool, op_count_pool,
+                                get_bins_per_state(), this->op_count_bins));
+}
 
 StateRegistry::~StateRegistry() { delete cached_initial_state; }
 
@@ -34,17 +60,17 @@ StateID StateRegistry::insert_id_or_pop_state() {
       state data pool.
     */
     if (soc) {
-        StateID id(state_data_pool.size() - 1);
-        pair<int, bool> result = soc_registered_states.insert(id.value);
+        StateID id(this->state_data_pool.size() - 1);
+        pair<int, bool> result = this->soc_registered_states->insert(id.value);
         bool is_new_entry = result.second;
         if (!is_new_entry) {
-            state_data_pool.pop_back();
-            op_count_pool.pop_back();
+            this->state_data_pool.pop_back();
+            this->op_count_pool->pop_back();
         }
-        assert(soc_registered_states.size() ==
-               static_cast<int>(state_data_pool.size()));
-        assert(soc_registered_states.size() ==
-               static_cast<int>(op_count_pool.size()));
+        assert(this->soc_registered_states->size() ==
+               static_cast<int>(this->state_data_pool.size()));
+        assert(this->soc_registered_states->size() ==
+               static_cast<int>(this->op_count_pool->size()));
         return StateID(result.first);
     } else {
         StateID id(state_data_pool.size() - 1);
@@ -78,13 +104,17 @@ const GlobalState &StateRegistry::get_initial_state() {
         delete[] buffer;
 
         if (soc) {
-            unordered_map<int, int> op_count_map;
-            for (size_t op_id = 0; op_id < this->op_count.size(); ++op_id) {
-                if (op_count[op_id] > 0) {
-                    op_count_map[op_id] = this->op_count[op_id];
-                }
+            PackedStateBin *op_count_buffer =
+                new PackedStateBin[this->op_count_bins];
+            fill_n(op_count_buffer, this->op_count_bins, 0);
+
+            for (int op_id = 0; op_id < this->num_operators; ++op_id) {
+                this->op_count_packer->set(op_count_buffer, op_id,
+                                           this->op_count[op_id]);
             }
-            op_count_pool.push_back(op_count_map);
+
+            this->op_count_pool->push_back(op_count_buffer);
+            delete[] op_count_buffer;
         }
 
         StateID id = insert_id_or_pop_state();
@@ -94,9 +124,8 @@ const GlobalState &StateRegistry::get_initial_state() {
 }
 
 // TODO it would be nice to move the actual state creation (and operator
-// application)
-//     out of the StateRegistry. This could for example be done by global
-//     functions operating on state buffers (PackedStateBin *).
+// application) out of the StateRegistry. This could for example be done by
+// global functions operating on state buffers (PackedStateBin *).
 GlobalState StateRegistry::get_successor_state(const GlobalState &predecessor,
                                                const OperatorProxy &op) {
     assert(!op.is_axiom());
@@ -111,15 +140,13 @@ GlobalState StateRegistry::get_successor_state(const GlobalState &predecessor,
     axiom_evaluator.evaluate(buffer, state_packer);
 
     if (soc) {
-        unordered_map<int, int> succ_op_count = lookup_op_count(predecessor.id);
-        if (succ_op_count.count(op.get_id()) > 0) {
-            succ_op_count[op.get_id()] -= 1;
-
-            if (succ_op_count[op.get_id()] == 0) {
-                succ_op_count.erase(op.get_id());
-            }
-        }
-        op_count_pool.push_back(succ_op_count);
+        this->op_count_pool->push_back(
+            (*this->op_count_pool)[predecessor.id.value]);
+        PackedStateBin *op_count_buffer =
+            (*this->op_count_pool)[this->op_count_pool->size() - 1];
+        int oc = this->op_count_packer->get(op_count_buffer, op.get_id());
+        this->op_count_packer->set(op_count_buffer, op.get_id(),
+                                   max(oc - 1, 0));
     }
 
     StateID id = insert_id_or_pop_state();
@@ -137,12 +164,18 @@ int StateRegistry::get_state_size_in_bytes() const {
 void StateRegistry::print_statistics() const {
     cout << "Number of registered states: " << size() << endl;
     if (soc) {
-        soc_registered_states.print_statistics();
+        soc_registered_states->print_statistics();
     } else {
         registered_states.print_statistics();
     }
 }
 
 unordered_map<int, int> StateRegistry::lookup_op_count(StateID id) {
-    return this->op_count_pool[id.value];
+    unordered_map<int, int> map_op_count;
+    const PackedStateBin *op_count_buffer = (*this->op_count_pool)[id.value];
+    for (int op_id = 0; op_id < this->num_operators; ++op_id) {
+        map_op_count[op_id] =
+            this->op_count_packer->get(op_count_buffer, op_id);
+    }
+    return map_op_count;
 }

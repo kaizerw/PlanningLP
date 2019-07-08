@@ -87,7 +87,7 @@ struct Benders {
     StateRegistry& state_registry;
 
     bool restart = false;
-    int restarts = 0, seq = 0, repeated_sequencings = 0;
+    int restarts = 0, seq = 0, repeated_seqs = 0;
     double infinity = IloInfinity;
     int n_ops, n_vars;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;
