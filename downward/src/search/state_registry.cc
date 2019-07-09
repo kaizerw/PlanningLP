@@ -20,7 +20,7 @@ StateRegistry::StateRegistry(const TaskProxy &task_proxy)
       cached_initial_state(0) {}
 
 StateRegistry::StateRegistry(const TaskProxy &task_proxy, bool soc,
-                             vector<int> op_count)
+                             OperatorCount initial_op_count)
     : task_proxy(task_proxy),
       state_packer(task_properties::g_state_packers[task_proxy]),
       axiom_evaluator(g_axiom_evaluators[task_proxy]),
@@ -32,9 +32,10 @@ StateRegistry::StateRegistry(const TaskProxy &task_proxy, bool soc,
           StateIDSemanticEqual(state_data_pool, get_bins_per_state())),
       cached_initial_state(0),
       soc(soc),
-      op_count(op_count) {
+      initial_op_count(initial_op_count) {
     vector<int> ranges;
-    transform(op_count.begin(), op_count.end(), back_inserter(ranges),
+    transform(initial_op_count.begin(), initial_op_count.end(),
+              back_inserter(ranges),
               [](int count) { return max(count + 1, 2); });
     this->op_count_packer = make_shared<int_packer::IntPacker>(ranges);
     this->op_count_bins = this->op_count_packer->get_num_bins();
@@ -110,7 +111,7 @@ const GlobalState &StateRegistry::get_initial_state() {
 
             for (int op_id = 0; op_id < this->num_operators; ++op_id) {
                 this->op_count_packer->set(op_count_buffer, op_id,
-                                           this->op_count[op_id]);
+                                           this->initial_op_count[op_id]);
             }
 
             this->op_count_pool->push_back(op_count_buffer);
@@ -170,12 +171,12 @@ void StateRegistry::print_statistics() const {
     }
 }
 
-unordered_map<int, int> StateRegistry::lookup_op_count(StateID id) {
-    unordered_map<int, int> map_op_count;
+OperatorCount StateRegistry::lookup_op_count(StateID id) {
+    OperatorCount op_count;
     const PackedStateBin *op_count_buffer = (*this->op_count_pool)[id.value];
     for (int op_id = 0; op_id < this->num_operators; ++op_id) {
-        map_op_count[op_id] =
-            this->op_count_packer->get(op_count_buffer, op_id);
+        op_count.emplace_back(
+            this->op_count_packer->get(op_count_buffer, op_id));
     }
-    return map_op_count;
+    return op_count;
 }

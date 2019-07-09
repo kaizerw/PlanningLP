@@ -21,10 +21,11 @@ tuple<double, vector<double>> CustomCallback::extract_sol(const Context &c) {
     return make_tuple(o_z, o_x);
 }
 
-tuple<int, vector<int>> CustomCallback::round_sol(const Context &c, double o_z,
-                                                  vector<double> &o_x) {
+tuple<int, OperatorCount> CustomCallback::round_sol(const Context &c,
+                                                    double o_z,
+                                                    vector<double> &o_x) {
     int r_z = 0;
-    vector<int> r_x;
+    OperatorCount r_x;
 
     if (c.inRelaxation()) {
         r_z = round(o_z);
@@ -40,7 +41,8 @@ tuple<int, vector<int>> CustomCallback::round_sol(const Context &c, double o_z,
 }
 
 bool CustomCallback::test_card(const Context &c, double o_z,
-                               vector<double> &o_x, int r_z, vector<int> &r_x) {
+                               vector<double> &o_x, int r_z,
+                               OperatorCount &r_x) {
     // We call our SAT sequencing procedure inside the python callback
     // interface of Gurobi 5.6 if both the cardinality and objective of the
     // rounded up operator count is within 20% of the linear count
@@ -66,7 +68,7 @@ bool CustomCallback::test_incumbent(const Context &c, int r_z) {
 }
 
 bool CustomCallback::test_relaxation(const Context &c, int r_z,
-                                     vector<int> &r_x) {
+                                     OperatorCount &r_x) {
     bool status = true;
     if (c.inRelaxation()) {
         status = (r_z >= 0) &&
@@ -76,7 +78,7 @@ bool CustomCallback::test_relaxation(const Context &c, int r_z,
 }
 
 void CustomCallback::sequence(const Context &c, double o_z, vector<double> &o_x,
-                              int r_z, vector<int> &r_x) {
+                              int r_z, OperatorCount &r_x) {
     this->benders->printer_plots->show_data(
         this->benders->seq, this->benders->cplex.getBestObjValue(),
         this->benders->repeated_seqs, this->benders->restarts);
@@ -168,7 +170,7 @@ void CustomCallback::invoke(const Context &c) {
         tie(o_z, o_x) = this->extract_sol(c);
 
         int r_z;
-        vector<int> r_x;
+        OperatorCount r_x;
         tie(r_z, r_x) = this->round_sol(c, o_z, o_x);
 
         if (this->test_card(c, o_z, o_x, r_z, r_x) &&

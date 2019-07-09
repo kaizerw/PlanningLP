@@ -37,8 +37,8 @@ void SOCWSSSCplexSearch::initialize() {
     cout << "Initializing SOCWSSS CPLEX search..." << endl;
 
     // Test PlanToMinisat
-    // vector<int> op_counts({0, 1, 0, 1, 1, 1, 1, 0, 1, 0});
-    // vector<int> op_counts({0, 1, 1, 0, 1, 0});
+    // OperatorCount op_counts({0, 1, 0, 1, 1, 1, 1, 0, 1, 0});
+    // OperatorCount op_counts({0, 1, 1, 0, 1, 0});
     // int n_layers = accumulate(op_counts.begin(), op_counts.end(), 0);
     // PlanToMinisat(make_shared<TaskProxy>(this->task_proxy), n_layers,
     //              op_counts)();
@@ -98,11 +98,11 @@ SearchStatus SOCWSSSCplexSearch::step() {
     // Get final plan
     if (benders->cplex.getStatus() == IloAlgorithm::Status::Optimal) {
         status = SOLVED;
-        vector<int> op_counts;
+        OperatorCount op_counts;
         for (IloInt i = 0; i < benders->n_ops; ++i) {
             op_counts.emplace_back(abs(benders->cplex.getValue(benders->x[i])));
         }
-        this->set_plan(get<2>(benders->all_op_counts[op_counts]));
+        this->set_plan(get<2>(benders->cache_op_counts[op_counts]));
     }
 
     return status;

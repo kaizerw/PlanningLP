@@ -269,7 +269,7 @@ tuple<int, vector<IloExpr>> Benders::get_cuts(
 
 void Benders::update_and_prints(int seq, double original_lp_h_oc, int lp_h_oc,
                                 vector<double> original_solution,
-                                vector<int> rounded_solution,
+                                OperatorCount rounded_solution,
                                 vector<shared_ptr<GLC>> last_learned_glcs) {
     // Clean new variables and new/updated constraints vectors
     this->new_lp_variables.clear();
@@ -398,11 +398,12 @@ void Benders::get_domain_constraints(int op_id, int current_bound,
     }
 }
 
-tuple<bool, tuple<bool, vector<shared_ptr<GLC>>, Plan, int>>
-Benders::get_sequence(int h_oc, vector<int> op_count) {
-    if (this->use_sequencing_cache && this->all_op_counts.count(op_count) > 0) {
+tuple<bool, SequenceInfo> Benders::get_sequence(int h_oc,
+                                                OperatorCount op_count) {
+    if (this->use_sequencing_cache &&
+        this->cache_op_counts.count(op_count) > 0) {
         this->repeated_seqs++;
-        return make_tuple(true, this->all_op_counts[op_count]);
+        return make_tuple(true, this->cache_op_counts[op_count]);
     }
 
     bool status = false;
@@ -417,7 +418,7 @@ Benders::get_sequence(int h_oc, vector<int> op_count) {
 
     this->seq++;
 
-    //cout.setstate(ios_base::failbit);
+    // cout.setstate(ios_base::failbit);
 
     // Setup A* search
     Options opts;
@@ -435,7 +436,7 @@ Benders::get_sequence(int h_oc, vector<int> op_count) {
     opts.set("preferred", preferred_list);
 
     // Custom options
-    opts.set("op_count", op_count);
+    opts.set("initial_op_count", op_count);
     opts.set("h_oc", h_oc);
     opts.set("constraint_type", this->constraint_type);
     opts.set("seq", this->seq);
@@ -479,9 +480,9 @@ Benders::get_sequence(int h_oc, vector<int> op_count) {
         status = false;
     }
 
-    auto ret = make_tuple(status, learned_glcs, plan, plan_cost);
+    SequenceInfo ret = make_tuple(status, learned_glcs, plan, plan_cost);
     if (this->use_sequencing_cache || status) {
-        this->all_op_counts[op_count] = ret;
+        this->cache_op_counts.add(op_count, ret);
     }
     return make_tuple(false, ret);
 }
@@ -551,7 +552,7 @@ void Benders::fn_print_lp_changes(int seq) {
 
 void Benders::fn_print_current_oc(int seq, double original_lp_h_oc, int lp_h_oc,
                                   vector<double> &original_solution,
-                                  vector<int> &rounded_solution) {
+                                  OperatorCount &rounded_solution) {
     if (this->print_current_oc) {
         unordered_map<int, string> ids_to_names;
         ids_to_names[this->yt_index] = "Y_T";

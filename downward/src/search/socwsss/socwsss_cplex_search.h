@@ -23,8 +23,11 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <vector>
 
 using namespace std;
+
+using OperatorCount = vector<int>;
 
 class Evaluator;
 class Heuristic;

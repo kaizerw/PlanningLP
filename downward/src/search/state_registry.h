@@ -13,12 +13,12 @@
 #include "utils/hash.h"
 
 #include <set>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
 using namespace std;
+
+using OperatorCount = vector<int>;
 
 /*
   Overview of classes relevant to storing and working with registered states.
@@ -252,12 +252,12 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     int get_bins_per_state() const;
 
     bool soc = false;
-    vector<int> op_count;
+    OperatorCount initial_op_count;
 
    public:
     explicit StateRegistry(const TaskProxy &task_proxy);
     explicit StateRegistry(const TaskProxy &task_proxy, bool soc,
-                           vector<int> op_count);
+                           OperatorCount initial_op_count);
     ~StateRegistry();
 
     const TaskProxy &get_task_proxy() const { return task_proxy; }
@@ -343,7 +343,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
 
     const_iterator end() const { return const_iterator(*this, size()); }
 
-    unordered_map<int, int> lookup_op_count(StateID id);
+    OperatorCount lookup_op_count(StateID id);
 };
 
 #endif

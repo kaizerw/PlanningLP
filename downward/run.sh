@@ -34,9 +34,9 @@ opts="socwsss_cplex(constraint_type=1, \
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p04.sas --search "$opts"
 # T1: memout
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p14.sas --search "$opts"
-./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem05-half.sas --search "$opts"
+#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem05-half.sas --search "$opts"
 # T1: not optimal solution: 1216561 x 1216462
-#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
+./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
 ################################################################################
 # Test Dynamic Merging
 #opts="astar(operatorcounting(constraint_generators=[state_equation_constraints()]))"

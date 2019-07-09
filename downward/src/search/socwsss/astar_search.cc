@@ -35,7 +35,7 @@ vector<int> intersect(vector<set<int>> &sets) {
 namespace soc_astar_search {
 SOCAStarSearch::SOCAStarSearch(const Options &opts)
     : EagerSearch(opts),
-      op_count(opts.get<vector<int>>("op_count")),
+      initial_op_count(opts.get<OperatorCount>("initial_op_count")),
       h_oc(opts.get<int>("h_oc")),
       constraint_type(opts.get<int>("constraint_type")),
       seq(opts.get<int>("seq")),
@@ -44,7 +44,7 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       ops_learned_constraint(task_proxy.get_operators().size(),
                              (this->constraint_type == 1)),
       yt_learned_constraint(false),
-      state_registry(task_proxy, true, op_count),
+      state_registry(task_proxy, true, initial_op_count),
       search_space(state_registry) {
     cout << "Initializing SOC A* search..." << endl;
 }
@@ -135,7 +135,7 @@ void SOCAStarSearch::print_statistics() const {
 
 SearchStatus SOCAStarSearch::step() {
     tl::optional<SearchNode> node;
-    unordered_map<int, int> s_op_count;
+    OperatorCount s_op_count;
     while (true) {
         if (open_list->empty()) {
             ////////////////////////////////////////////////////////////////////
@@ -415,12 +415,13 @@ void SOCAStarSearch::generate_constraint() {
     GLC new_glc;
     for (size_t op_id = 0; op_id < task_proxy.get_operators().size(); ++op_id) {
         if (this->ops_learned_constraint[op_id]) {
-            new_glc.add_op_bound(op_id, this->op_count[op_id] + 1);
+            new_glc.add_op_bound(op_id, this->initial_op_count[op_id] + 1);
         }
     }
     if (this->yt_learned_constraint || new_glc.ops_bounds.size() == 0) {
-        new_glc.yt_bound =
-            accumulate(this->op_count.begin(), this->op_count.end(), 0) + 1;
+        new_glc.yt_bound = accumulate(this->initial_op_count.begin(),
+                                      this->initial_op_count.end(), 0) +
+                           1;
     }
     this->learned_glcs.emplace_back(make_shared<GLC>(new_glc));
 
@@ -444,11 +445,12 @@ void SOCAStarSearch::generate_constraint() {
 
             for (StateID &state_id : this->collected_states) {
                 GlobalState state = state_registry.lookup_state(state_id);
-                unordered_map<int, int> state_op_count =
+                OperatorCount state_op_count =
                     state_registry.lookup_op_count(state_id);
 
                 if (state_op_count[landmark] == 0) {
-                    min_new_oc = min(min_new_oc, this->op_count[landmark] + 1);
+                    min_new_oc =
+                        min(min_new_oc, this->initial_op_count[landmark] + 1);
                     break;
                 }
             }
@@ -519,7 +521,7 @@ void SOCAStarSearch::print_node(SearchNode &node) {
 
         GlobalState node_state =
             state_registry.lookup_state(node.get_state_id());
-        unordered_map<int, int> node_op_count =
+        OperatorCount node_op_count =
             state_registry.lookup_op_count(node.get_state_id());
 
         for (OperatorID appop : appops) {
@@ -530,10 +532,7 @@ void SOCAStarSearch::print_node(SearchNode &node) {
         cout << endl << "ACTION LANDMARKS:" << endl;
         for (int op_id : this->compute_action_landmarks(node.get_state())) {
             cout << task_proxy.get_operators()[op_id].get_name();
-            int oc = 0;
-            if (node_op_count.count(op_id) > 0) {
-                oc = node_op_count[op_id];
-            }
+            int oc = node_op_count[op_id];
             cout << " x" << oc << endl;
         }
 
@@ -542,9 +541,9 @@ void SOCAStarSearch::print_node(SearchNode &node) {
             cout << endl << "MIP PRIMAL:" << endl;
             for (size_t op_id = 0; op_id < task_proxy.get_operators().size();
                  ++op_id) {
-                if (this->op_count[op_id] > 0) {
+                if (this->initial_op_count[op_id] > 0) {
                     cout << task_proxy.get_operators()[op_id].get_name() << " x"
-                         << this->op_count[op_id] << endl;
+                         << this->initial_op_count[op_id] << endl;
                 }
             }
         }
@@ -583,7 +582,7 @@ void SOCAStarSearch::print_node(SearchNode &node, OperatorProxy &op,
 
         GlobalState node_state =
             state_registry.lookup_state(node.get_state_id());
-        unordered_map<int, int> node_op_count =
+        OperatorCount node_op_count =
             state_registry.lookup_op_count(node.get_state_id());
 
         cout << "APPLICABLE OPS:" << endl;
@@ -601,10 +600,7 @@ void SOCAStarSearch::print_node(SearchNode &node, OperatorProxy &op,
         for (int op_id :
              this->compute_action_landmarks(succ_node.get_state())) {
             cout << task_proxy.get_operators()[op_id].get_name();
-            int oc = 0;
-            if (node_op_count.count(op_id) > 0) {
-                oc = node_op_count[op_id];
-            }
+            int oc = node_op_count[op_id];
             if (op_id == op.get_id()) {
                 cout << " x" << (oc - 1) << endl;
             } else {

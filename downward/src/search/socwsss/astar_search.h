@@ -10,18 +10,18 @@
 #include "glc.h"
 #include "hmax_heuristic.h"
 
-#include <unordered_map>
 #include "../ext/optional.hh"
 
 using eager_search::EagerSearch;
 using soc_hmax_heuristic::SOCHMaxHeuristic;
+using OperatorCount = vector<int>;
 
 using namespace std;
 
 namespace soc_astar_search {
 struct SOCAStarSearch : public EagerSearch {
     ////////////////////////////////////////////////////////////////////////////
-    vector<int> op_count;
+    OperatorCount initial_op_count;
     int h_oc;
     int constraint_type;
     int seq;

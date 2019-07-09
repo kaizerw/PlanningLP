@@ -40,6 +40,8 @@
 using lm_cut_heuristic::LandmarkCutLandmarks;
 using operator_counting::ConstraintGenerator;
 using operator_counting::LMCutConstraints;
+using OperatorCount = vector<int>;
+using SequenceInfo = tuple<bool, vector<shared_ptr<GLC>>, Plan, int>;
 
 using namespace std;
 
@@ -50,13 +52,40 @@ namespace options {
 class Options;
 }
 
-struct HashOpCount {
-    size_t operator()(const vector<int>& v) const {
-        size_t key = v.size();
-        for (auto& i : v) {
-            key ^= i + 0x9e3779b9 + (key << 6) + (key >> 2);
+struct CacheOperatorCounts {
+    struct Hash {
+        size_t operator()(const unordered_map<int, int>& v) const {
+            size_t key = v.size();
+            for (auto& i : v) {
+                key ^= ((i.first + 1) * i.second) + 0x9e3779b9 + (key << 6) +
+                       (key >> 2);
+            }
+            return key;
         }
-        return key;
+    };
+
+    unordered_map<unordered_map<int, int>, SequenceInfo, Hash> cache;
+
+    int count(OperatorCount& op_count) {
+        return this->cache.count(this->convert(op_count));
+    }
+
+    SequenceInfo operator[](OperatorCount& op_count) {
+        return this->cache[this->convert(op_count)];
+    }
+
+    void add(OperatorCount op_count, SequenceInfo info) {
+        this->cache[this->convert(op_count)] = info;
+    }
+
+    unordered_map<int, int> convert(OperatorCount& op_count) {
+        unordered_map<int, int> map_op_count;
+        for (size_t op_id = 0; op_id < op_count.size(); ++op_id) {
+            if (op_count[op_id] > 0) {
+                map_op_count[op_id] = op_count[op_id];
+            }
+        }
+        return map_op_count;
     }
 };
 
@@ -102,10 +131,7 @@ struct Benders {
     vector<vector<int>> bounds_literals;
     vector<tuple<int, int>> c23_ops;
 
-    unordered_map<vector<int>,
-                  tuple<bool, vector<shared_ptr<GLC>>, Plan, double>,
-                  HashOpCount>
-        all_op_counts;
+    CacheOperatorCounts cache_op_counts;
 
     IloEnv env;
     IloModel model;
@@ -120,16 +146,15 @@ struct Benders {
     tuple<int, vector<IloExpr>> get_cuts(vector<shared_ptr<GLC>>& learned_glcs);
     void update_and_prints(int seq, double original_lp_h_oc, int lp_h_oc,
                            vector<double> original_solution,
-                           vector<int> rounded_solution,
+                           OperatorCount rounded_solution,
                            vector<shared_ptr<GLC>> last_learned_glcs);
     void get_domain_constraints(int op_id, int current_bound,
                                 int previous_bound);
-    tuple<bool, tuple<bool, vector<shared_ptr<GLC>>, Plan, int>> get_sequence(
-        int h_oc, vector<int> op_count);
+    tuple<bool, SequenceInfo> get_sequence(int h_oc, OperatorCount op_count);
     void fn_print_lp_changes(int seq);
     void fn_print_current_oc(int seq, double original_lp_h_oc, int lp_h_oc,
                              vector<double>& original_solution,
-                             vector<int>& rounded_solution);
+                             OperatorCount& rounded_solution);
     void fn_print_learned_constraints(int seq,
                                       vector<double>& original_solution);
 };
