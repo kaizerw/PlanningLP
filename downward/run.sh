@@ -17,7 +17,7 @@ opts="socwsss_cplex(constraint_type=1, \
                     use_seq_constraints=true, \
                     use_lmcut_constraints=false, \
                     use_dynamic_merging_constraints=false, \
-                    use_delete_relaxation_constraints=true, \
+                    use_delete_relaxation_constraints=false, \
                     use_flow_constraints=false, \
                     use_sequencing_cache=true, \
                     print_current_oc=false, \
@@ -27,20 +27,16 @@ opts="socwsss_cplex(constraint_type=1, \
                     max_seqs=-1, \
                     eval=blind())"
 
-#./fast-downward.py $DOWNWARD_BENCHMARKS/gripper_1hand_2balls/prob01.sas --search "$opts"
-#./fast-downward.py $DOWNWARD_BENCHMARKS/gripper_2hands_4balls/prob01.sas --search "$opts"
-# T3
-#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p07.sas --search "$opts"
-#valgrind ./builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p07.sas
-# T3: not optimal
-#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p03.sas --search "$opts"
-#valgrind ./builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p03.sas --search "$opts"
-#./fast-downward.py --overall-memory-limit 1024M $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
-# T1 seq landmarks dm hmax: overflow x538
-#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p14.sas --search "$opts"
-# IntPacker
+# test op_count bitstring
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
-valgrind ./builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas
+#valgrind ./builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas
+# T1: repeated seqs >>> seqs and seqs = 1
+#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p04.sas --search "$opts"
+# T1: memout
+#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p14.sas --search "$opts"
+./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem05-half.sas --search "$opts"
+# T1: not optimal solution: 1216561 x 1216462
+#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
 ################################################################################
 # Test Dynamic Merging
 #opts="astar(operatorcounting(constraint_generators=[state_equation_constraints()]))"

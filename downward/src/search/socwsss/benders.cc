@@ -417,7 +417,7 @@ Benders::get_sequence(int h_oc, vector<int> op_count) {
 
     this->seq++;
 
-    cout.setstate(ios_base::failbit);
+    //cout.setstate(ios_base::failbit);
 
     // Setup A* search
     Options opts;

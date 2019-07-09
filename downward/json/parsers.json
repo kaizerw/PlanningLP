@@ -34,12 +34,12 @@
         "type": "int",
         "summary": "sum"
     },
-    "best_bound": {
+    "quality_score": {
         "regex": "Best bound found: (.*)",
         "type": "float",
         "summary": "sum"
     },
-    "quality_score": {
+    "best_bound": {
         "regex": "Best bound found: (.*)",
         "type": "float",
         "summary": "sum"

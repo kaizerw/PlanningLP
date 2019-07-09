@@ -45,7 +45,9 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
                              (this->constraint_type == 1)),
       yt_learned_constraint(false),
       state_registry(task_proxy, true, op_count),
-      search_space(state_registry) {}
+      search_space(state_registry) {
+    cout << "Initializing SOC A* search..." << endl;
+}
 
 bool SOCAStarSearch::check_goal_and_set_plan(const GlobalState &state) {
     if (task_properties::is_goal_state(task_proxy, state)) {
