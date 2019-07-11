@@ -1,37 +1,5 @@
 #include "astar_search.h"
 
-vector<int> intersect(vector<set<int>> &sets) {
-    vector<int> result;
-
-    if (sets.empty()) {
-        return result;
-    }
-
-    if (sets.size() == 1) {
-        result.assign(sets.front().begin(), sets.front().end());
-        return result;
-    }
-
-    set_intersection(sets[0].begin(), sets[0].end(), sets[1].begin(),
-                     sets[1].end(), back_inserter(result));
-
-    if (sets.size() == 2) {
-        return result;
-    }
-
-    vector<int> buffer;
-    for (size_t i = 2; i < sets.size(); ++i) {
-        buffer.clear();
-
-        set_intersection(result.begin(), result.end(), sets[i].begin(),
-                         sets[i].end(), back_inserter(buffer));
-
-        swap(result, buffer);
-    }
-
-    return result;
-}
-
 namespace soc_astar_search {
 SOCAStarSearch::SOCAStarSearch(const Options &opts)
     : EagerSearch(opts),
@@ -140,7 +108,6 @@ SearchStatus SOCAStarSearch::step() {
         if (open_list->empty()) {
             ////////////////////////////////////////////////////////////////////
             this->generate_constraint();
-            this->print_statistics();
             ////////////////////////////////////////////////////////////////////
             cout << "Completely explored state space -- no solution!" << endl;
             return FAILED;
@@ -204,29 +171,16 @@ SearchStatus SOCAStarSearch::step() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    this->print_node(*node);
+
     // Use this->h_oc to bound search
     EvaluationContext eval_context2(node->get_state(), node->get_g(), false,
                                     &statistics);
     int node_f = eval_context2.get_evaluator_value(f_evaluator.get());
-
-    this->print_node(*node);
-
-    if (this->constraint_type == 3 && node_f > this->h_oc) {
-        this->yt_learned_constraint = true;
-    }
-
-    if (this->constraint_type == 4) {
-        if (node_f > this->h_oc || !this->is_fully_expanded(*node)) {
-            this->collected_states.emplace_back(node->get_state_id());
-        }
-        if (node_f > this->h_oc) {
-            this->yt_learned_constraint = true;
-        }
-    }
-
     if (node_f > this->h_oc) {
         return IN_PROGRESS;
     }
+
     // Update this->max_f_found
     this->max_f_found = max((double)node_f, this->max_f_found);
     ////////////////////////////////////////////////////////////////////////////
@@ -305,26 +259,6 @@ SearchStatus SOCAStarSearch::step() {
                     } else {
                         this->yt_learned_constraint = true;
                     }
-                }
-                // 4. Use intersection of action landmarks in N2, N3 and N4
-            } else if (this->constraint_type == 4) {
-                // Calculate new_succ_g and new_succ_f
-                int new_succ_g = node->get_g() + get_adjusted_cost(op);
-                EvaluationContext eval_context2(succ_node.get_state(),
-                                                new_succ_g, false, &statistics);
-                int new_succ_f =
-                    eval_context2.get_evaluator_value(f_evaluator.get());
-
-                if (succ_node.is_new()) {
-                    if (new_succ_f <= this->h_oc) {
-                        this->ops_learned_constraint[op.get_id()] = true;
-                        this->collected_states.emplace_back(
-                            succ_node.get_state_id());
-                    } else {
-                        this->yt_learned_constraint = true;
-                    }
-                    this->print_edge(*node, op, succ_node);
-                    this->print_node(*node, op, succ_node);
                 }
             }
 
@@ -411,73 +345,19 @@ SearchStatus SOCAStarSearch::step() {
 }
 
 void SOCAStarSearch::generate_constraint() {
-    // Create new GLC
-    GLC new_glc;
+    this->learned_glc = make_shared<GLC>();
     for (size_t op_id = 0; op_id < task_proxy.get_operators().size(); ++op_id) {
         if (this->ops_learned_constraint[op_id]) {
-            new_glc.add_op_bound(op_id, this->initial_op_count[op_id] + 1);
+            this->learned_glc->add_op_bound(op_id,
+                                            this->initial_op_count[op_id] + 1);
         }
     }
-    if (this->yt_learned_constraint || new_glc.ops_bounds.size() == 0) {
-        new_glc.yt_bound = accumulate(this->initial_op_count.begin(),
-                                      this->initial_op_count.end(), 0) +
-                           1;
-    }
-    this->learned_glcs.emplace_back(make_shared<GLC>(new_glc));
-
-    if (this->constraint_type == 4) {
-        vector<tuple<StateID, vector<int>>> collected_states_landmarks;
-        for (StateID &state_id : this->collected_states) {
-            const GlobalState &state = state_registry.lookup_state(state_id);
-            collected_states_landmarks.emplace_back(
-                make_tuple(state_id, this->compute_action_landmarks(state)));
-        }
-
-        vector<set<int>> sets;
-        for (tuple<StateID, vector<int>> &v : collected_states_landmarks) {
-            vector<int> &landmarks = get<1>(v);
-            sets.emplace_back(set<int>(landmarks.begin(), landmarks.end()));
-        }
-        vector<int> intersection = intersect(sets);
-
-        for (int landmark : intersection) {
-            int min_new_oc = numeric_limits<int>::max();
-
-            for (StateID &state_id : this->collected_states) {
-                GlobalState state = state_registry.lookup_state(state_id);
-                OperatorCount state_op_count =
-                    state_registry.lookup_op_count(state_id);
-
-                if (state_op_count[landmark] == 0) {
-                    min_new_oc =
-                        min(min_new_oc, this->initial_op_count[landmark] + 1);
-                    break;
-                }
-            }
-
-            if (min_new_oc != numeric_limits<int>::max()) {
-                GLC new_glc;
-                new_glc.add_op_bound(landmark, min_new_oc);
-                this->learned_glcs.emplace_back(make_shared<GLC>(new_glc));
-            }
-        }
-
-        /*
-        cout << string(80, '-') << endl;
-        cout << "SEQ: " << this->seq << endl;
-        cout << "states";
-        for (StateID &node_id : this->collected_states) {
-            cout << "\t" << node_id << " ";
-        }
-        cout << endl;
-        cout << "inter";
-        for (int landmark : intersection) {
-            cout << "\t" << task_proxy.get_operators()[landmark].get_name() << "
-        ";
-        }
-        cout << endl;
-        cout << string(80, '-') << endl;
-        */
+    if (this->yt_learned_constraint ||
+        this->learned_glc->ops_bounds.size() == 0) {
+        this->learned_glc->yt_bound =
+            accumulate(this->initial_op_count.begin(),
+                       this->initial_op_count.end(), 0) +
+            1;
     }
 }
 

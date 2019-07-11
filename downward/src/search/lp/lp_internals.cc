@@ -11,25 +11,31 @@
 #pragma GCC diagnostic ignored "-Woverflow"
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wregister"
 #if __GNUC__ >= 6
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#pragma GCC diagnostic ignored "-Wregister"
 #endif
 #endif
 #ifdef __clang__
 #pragma GCC diagnostic ignored "-Wconstant-conversion"
+#pragma GCC diagnostic ignored "-Wregister"
 #endif
 #include <OsiSolverInterface.hpp>
 
 #ifdef COIN_HAS_CLP
+#pragma GCC diagnostic ignored "-Wregister"
 #include <OsiClpSolverInterface.hpp>
 #endif
 
 #ifdef COIN_HAS_CPX
+#pragma GCC diagnostic ignored "-Wregister"
 #include <OsiCpxSolverInterface.hpp>
 #include <cplex.h>
 #endif
 
 #ifdef COIN_HAS_GRB
+#pragma GCC diagnostic ignored "-Wregister"
 #include <OsiGrbSolverInterface.hpp>
 #endif
 

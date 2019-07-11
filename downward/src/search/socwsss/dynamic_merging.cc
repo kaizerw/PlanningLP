@@ -397,8 +397,8 @@ void DynamicMerging::dynamic_merging() {
                         if (this->pres[op_id][pre_var_id] != -1) {
                             int prev_value = this->prevails[op_id][prev_var_id];
                             int pre_value = this->pres[op_id][pre_var_id];
-                            tuple<int, int, int, int> merge = make_tuple(
-                                prev_var_id, prev_value, pre_var_id, pre_value);
+                            tuple<int, int, int, int> merge = {
+                                prev_var_id, prev_value, pre_var_id, pre_value};
 
                             if (this->merges_set.count(merge) > 0) {
                                 continue;
@@ -464,8 +464,7 @@ void DynamicMerging::explicate_merges() {
     OperatorsProxy ops = this->task_proxy->get_operators();
 
     for (size_t merge_id = 0; merge_id < this->merges.size(); ++merge_id) {
-        int var1, val1, var2, val2;
-        tie(var1, val1, var2, val2) = this->merges[merge_id];
+        auto [var1, val1, var2, val2] = this->merges[merge_id];
 
         vector<int> dtg_var1, dtg_var2;
         dtg_var1 = this->create_dtg(var1, val1, var2, val2);
@@ -559,8 +558,7 @@ void DynamicMerging::create_link_constraints() {
 
 void DynamicMerging::create_flow_constraints() {
     for (size_t merge_id = 0; merge_id < this->merges.size(); ++merge_id) {
-        int var1, val1, var2, val2;
-        tie(var1, val1, var2, val2) = this->merges[merge_id];
+        auto [var1, val1, var2, val2] = this->merges[merge_id];
 
         double lower_bound = 0;
         if (this->initial_state[var1] == val1 &&

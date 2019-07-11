@@ -9,10 +9,11 @@ macro(fast_downward_set_compiler_flags)
         check_cxx_compiler_flag( "-std=c++11" CXX11_FOUND )
         if(CXX11_FOUND)
              set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
         else()
             message(FATAL_ERROR "${CMAKE_CXX_COMPILER} does not support C++11, please use a different compiler")
         endif()
-
+        
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wnon-virtual-dtor")
 

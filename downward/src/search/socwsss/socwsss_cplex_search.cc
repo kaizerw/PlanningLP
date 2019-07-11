@@ -36,16 +36,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
 void SOCWSSSCplexSearch::initialize() {
     cout << "Initializing SOCWSSS CPLEX search..." << endl;
 
-    // Test PlanToMinisat
-    // OperatorCount op_counts({0, 1, 0, 1, 1, 1, 1, 0, 1, 0});
-    // OperatorCount op_counts({0, 1, 1, 0, 1, 0});
-    // int n_layers = accumulate(op_counts.begin(), op_counts.end(), 0);
-    // PlanToMinisat(make_shared<TaskProxy>(this->task_proxy), n_layers,
-    //              op_counts)();
-    // exit(0);
-
-    this->benders = make_shared<Benders>(opts, this->task_proxy, this->task,
-                                         this->state_registry);
+    this->benders = make_shared<Benders>(opts, this->task_proxy, this->task);
 
     this->custom_callback = make_shared<CustomCallback>(this->benders);
 
@@ -76,6 +67,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
         }
 
         if (benders->restart) {
+            cout << "RESTARTING..." << endl;
             benders->restarts++;
             benders->restart = false;
         } else {
@@ -100,7 +92,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
         status = SOLVED;
         OperatorCount op_counts;
         for (IloInt i = 0; i < benders->n_ops; ++i) {
-            op_counts.emplace_back(abs(benders->cplex.getValue(benders->x[i])));
+            op_counts.emplace_back(benders->cplex.getValue(benders->x[i]));
         }
         this->set_plan(get<2>(benders->cache_op_counts[op_counts]));
     }

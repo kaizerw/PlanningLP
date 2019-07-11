@@ -31,6 +31,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <utility>
 
 using namespace std;
 using lm_cut_heuristic::LandmarkCutLandmarks;
@@ -76,7 +77,7 @@ struct SOCWSSSSearch : public SearchEngine {
     int yt_index;
     vector<int> op_count;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;
-    vector<shared_ptr<GLC>> last_learned_glcs;
+    shared_ptr<GLC> last_learned_glc;
     double total_solve_time;
     int best_bound_found = 0;
     shared_ptr<PrinterPlots> printer_plots;
@@ -97,7 +98,7 @@ struct SOCWSSSSearch : public SearchEngine {
     // Generator for variables ids
     int gen_var_ids = 0;
     // Store constraints (2) e (3) for each operator
-    vector<tuple<int, int>> c23_ops;
+    vector<pair<int, int>> c23_ops;
 
     virtual void initialize() override;
     virtual SearchStatus step() override;

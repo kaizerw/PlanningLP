@@ -12,5 +12,5 @@ GLC::GLC(const GLC& other) {
 }
 
 void GLC::add_op_bound(int op_id, int op_bound) {
-    ops_bounds.push_back(make_pair(op_id, op_bound));
+    ops_bounds.emplace_back(op_id, op_bound);
 }

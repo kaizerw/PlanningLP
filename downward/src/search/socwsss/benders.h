@@ -41,7 +41,7 @@ using lm_cut_heuristic::LandmarkCutLandmarks;
 using operator_counting::ConstraintGenerator;
 using operator_counting::LMCutConstraints;
 using OperatorCount = vector<int>;
-using SequenceInfo = tuple<bool, vector<shared_ptr<GLC>>, Plan, int>;
+using SequenceInfo = tuple<bool, shared_ptr<GLC>, Plan, int>;
 
 using namespace std;
 
@@ -113,7 +113,6 @@ struct Benders {
     shared_ptr<TaskProxy> task_proxy;
     shared_ptr<AbstractTask> task;
     chrono::time_point<chrono::system_clock> start;
-    StateRegistry& state_registry;
 
     bool restart = false;
     int restarts = 0, seq = 0, repeated_seqs = 0;
@@ -121,15 +120,11 @@ struct Benders {
     int n_ops, n_vars;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;
     shared_ptr<PrinterPlots> printer_plots;
-    int gen_var_ids = 0;
-    int yt_index;
-    vector<lp::LPVariable> all_lp_variables;
-    vector<lp::LPConstraint> all_lp_constraints;
-    vector<int> new_lp_variables;
-    vector<int> new_lp_constraints;
-    vector<int> updated_lp_constraints;
+
+    vector<lp::LPVariable> lp_variables;
+    vector<lp::LPConstraint> lp_constraints;
     vector<vector<int>> bounds_literals;
-    vector<tuple<int, int>> c23_ops;
+    vector<pair<int, int>> c23_ops;
 
     CacheOperatorCounts cache_op_counts;
 
@@ -141,17 +136,15 @@ struct Benders {
     IloCplex cplex;
 
     Benders(const Options& opts, TaskProxy& task_proxy,
-            shared_ptr<AbstractTask> task, StateRegistry& state_registry);
+            shared_ptr<AbstractTask> task, int k_prealloc_bounds = 2);
     void initialize();
-    tuple<int, vector<IloExpr>> get_cuts(vector<shared_ptr<GLC>>& learned_glcs);
-    void update_and_prints(int seq, double original_lp_h_oc, int lp_h_oc,
-                           vector<double> original_solution,
-                           OperatorCount rounded_solution,
-                           vector<shared_ptr<GLC>> last_learned_glcs);
+    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
     void get_domain_constraints(int op_id, int current_bound,
                                 int previous_bound);
-    tuple<bool, SequenceInfo> get_sequence(int h_oc, OperatorCount op_count);
-    void fn_print_lp_changes(int seq);
+    pair<bool, SequenceInfo> get_sequence(int h_oc, OperatorCount op_count);
+    void update_and_prints(int seq, double original_lp_h_oc, int lp_h_oc,
+                           vector<double> original_solution,
+                           OperatorCount rounded_solution);
     void fn_print_current_oc(int seq, double original_lp_h_oc, int lp_h_oc,
                              vector<double>& original_solution,
                              OperatorCount& rounded_solution);

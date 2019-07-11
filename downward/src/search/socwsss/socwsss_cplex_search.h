@@ -18,7 +18,6 @@
 
 #include "benders.h"
 #include "callbacks.h"
-#include "sat_seq.h"
 
 #include <chrono>
 #include <memory>

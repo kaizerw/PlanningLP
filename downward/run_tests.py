@@ -14,26 +14,12 @@ import re
 import shutil
 import subprocess
 
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib import pyplot
-
-
-def is_float(value):
-    try:
-        float(value)
-        return True
-    except ValueError:
-        return False
-
 
 class Slave:
 
-    def __init__(self, parsers, all_fieldnames, notplot_fieldnames, plot_fieldnames, config, domain, instance, args, infos):
+    def __init__(self, parsers, all_fieldnames, config, domain, instance, args, infos):
         self.parsers = parsers
         self.all_fieldnames = all_fieldnames
-        self.notplot_fieldnames = notplot_fieldnames
-        self.plot_fieldnames = plot_fieldnames
         self.config = config
         self.domain = domain
         self.instance = instance
@@ -43,124 +29,79 @@ class Slave:
     def __call__(self):
         try:
             self.execute().parse().save()
-            if self.args.plots:
-                self.plot()
         except Exception as e:
-            print(self.config, self.domain, self.instance)
+            print(getattr(e, 'message', repr(e)), flush=True)
+            print(self.config['name'], self.domain, self.instance, flush=True)
             raise e
 
     def execute(self):
+        if Slave.executed(self.config['name'], self.domain, self.instance):
+            return self
+        
+        name = os.path.join(self.config['name'], self.domain, self.instance)
+        output_folder = os.path.join('.', 'OUTPUT', name)
         try:
             command = [os.path.join('.', 'fast-downward.py')]
             command += ["--overall-time-limit", f"{self.args.max_time}m", "--overall-memory-limit", f"{self.args.max_memory}M"]
             command += [os.path.join(os.environ['DOWNWARD_BENCHMARKS'], self.domain, self.instance + '.sas')]
             command += ['--search', self.config['search']]
-            self.raw_output = subprocess.run(command, capture_output=True).stdout.decode('utf-8')
+            
+            pathlib.Path(output_folder).mkdir(parents=True)
+            with open(os.path.join(output_folder, 'output.txt'), 'w') as output_file:
+                subprocess.run(command, stdout=output_file)
+            
+            print(f'Test {name} saved', flush=True)
+            send_email(self.args.name, f'Test {name} saved')
         except Exception as e:
-            print(self.config, self.domain, self.instance)
+            shutil.rmtree(output_folder, ignore_errors=True)
             raise e
+            
         return self
 
     def parse(self):
-        self.parsed_output = {}
-        self.parsed_output['instance'] = os.path.join(self.config['name'], self.domain, self.instance)
+        try:
+            self.parsed_output = {parser: '' for parser in self.parsers}
+            self.parsed_output['instance'] = os.path.join(self.config['name'], self.domain, self.instance)
 
-        lb = self.infos.loc[(self.domain, self.instance), 'lower_bound']
+            lb = self.infos.loc[(self.domain, self.instance), 'lower_bound']
+            
+            with open(os.path.join('.', 'OUTPUT', self.parsed_output['instance'], 'output.txt')) as file:
+                for line in file:
+                    for name, parser in self.parsers.items():
+                        match = re.findall(parser['regex'], line.strip())
+                        attr = match[0] if match else ''
 
-        for name, parser in self.parsers.items():
-            attr = re.findall(parser['regex'], self.raw_output)
+                        if attr and parser['type'] in ['int', 'float']:
+                            attr = round(float(attr), 10)
+                            attr = int(attr) if parser['type'] == 'int' else attr
+                            
+                            if   name == 'solved':          attr = int(attr == 0)
+                            elif name == 'optimal':         attr = int(attr == lb)
+                            elif name == 'infeasible':      attr = int(attr == 13)
+                            elif name == 'timeout':         attr = int(attr == 23)
+                            elif name == 'memout':          attr = int(attr == 22)
+                            elif name == 'cplex_exception': attr = int(attr == 25)
+                            elif name == 'other_error':     attr = int(attr not in [0, 13, 23, 22, 25])
+                            elif name == 'quality_score':   attr = round(attr / lb, 10) if lb > 0 else 0.0
 
-            if len(attr) == 0:
-                if 'plot' in name:
-                    self.parsed_output[name] = ''
-                else:
-                    self.parsed_output[name] = 0
-                continue
-
-            if parser['type'] == 'int':
-                attr = [i for i in attr if is_float(i)]
-                attr = attr[-1] if len(attr) > 0 else '0'
-                attr = int(float(attr))
-            elif parser['type'] == 'float':
-                attr = [i for i in attr if is_float(i)]
-                attr = attr[-1] if len(attr) > 0 else '0'
-                attr = round(float(attr), 10)
-            else:
-                attr = attr[-1] if len(attr) > 0 else ''
-
-            if   name == 'solved':          attr = int(attr == 0)
-            elif name == 'optimal':         attr = int(attr == lb)
-            elif name == 'infeasible':      attr = int(attr == 13)
-            elif name == 'timeout':         attr = int(attr == 23)
-            elif name == 'memout':          attr = int(attr == 22)
-            elif name == 'cplex_exception': attr = int(attr == 25)
-            elif name == 'other_error':     attr = int(attr not in [0, 13, 23, 22, 25])
-            elif name == 'quality_score':   attr = round(attr / lb, 10) if lb > 0 else 0.0
-
-            self.parsed_output[name] = attr
+                        self.parsed_output[name] = attr if attr != '' else self.parsed_output[name]
+        except Exception as e:
+            raise e
 
         return self
 
     def save(self):
-        name = os.path.join(self.config['name'], self.domain, self.instance)
-        print(f'Saving {name}', flush=True)
-        send_email(self.args.name, f'Saving {name}')
+        try:
+            filename = os.path.join('.', 'OUTPUT', self.config['name'], self.domain, self.instance, 'parsed.xlsx')
+            pandas.DataFrame([self.parsed_output]).to_excel(filename, columns=['instance'] + self.all_fieldnames, index=False)
+        except Exception as e:
+            raise e
 
-        name = os.path.join('.', 'OUTPUT', name)
-        notplot_filename = os.path.join(name, 'notplot.xlsx')
-        plot_filename = os.path.join(name, 'plot.xlsx')
-
-        pathlib.Path(name).mkdir(parents=True)
-        pandas.DataFrame([self.parsed_output]).to_excel(notplot_filename, columns=['instance'] + self.notplot_fieldnames, index=False)
-        pandas.DataFrame([self.parsed_output]).to_excel(plot_filename, columns=['instance'] + self.plot_fieldnames, index=False)
-
-        if self.args.save_raw_output:
-            raw_output_filename = os.path.join(name, 'raw_output.txt')
-            with open(raw_output_filename, 'w') as file:
-                file.write(self.raw_output)
         return self
-
-    def plot(self):
-        print('Plotting', os.path.join(self.config['name'], self.domain, self.instance), flush=True)
-
-        df = pandas.read_excel(os.path.join('.', 'OUTPUT', self.config['name'], self.domain, self.instance, 'plot.xlsx'))
-        _, data = list(df.iterrows())[0]
-        data = dict(data)
-
-        for parser in list(data.keys()):
-            if parser.startswith('plot_line'):
-                y = str(data[parser]).split(';')
-                if y != '' and len(y) > 0:
-                    y = [round(float(i), 10) for i in y]
-
-                    fig = pyplot.figure()
-                    ax = fig.add_subplot(111)
-                    ax.set_title(f"{self.config['name']} - {self.domain} - {self.instance} - {parser}")
-                    ax.plot(y)
-                    fig.savefig(os.path.join('.', 'OUTPUT', self.config['name'], self.domain, self.instance, parser + '.png'), dpi=300)
-                    pyplot.close(fig)
-
-            if parser.startswith('plot_bar'):
-                y = str(data[parser]).split(';')[:-1]
-                if y != '' and len(data) > 0:
-                    x = [i.split('|')[0] for i in y]
-                    with open(os.path.join('.', 'OUTPUT', self.config['name'], self.domain, self.instance, 'ops_names.txt'), 'w') as opsfile:
-                        for i, xi in enumerate(x):
-                            opsfile.write(f'{i} = {xi}\n')
-
-                    x = [str(i) for i, _ in enumerate(x)]
-                    y = [round(float(i.split('|')[1]), 10) for i in y]
-
-                    fig = pyplot.figure()
-                    ax = fig.add_subplot(111)
-                    ax.set_title(f"{self.config['name']} - {self.domain} - {self.instance} - {parser}")
-                    ax.bar(x, y)
-                    fig.savefig(os.path.join('.', 'OUTPUT', self.config['name'], self.domain, self.instance, parser + '.png'), dpi=300)
-                    pyplot.close(fig)
 
     @staticmethod
     def executed(name, domain, instance):
-        return pathlib.Path(os.path.join('.', 'OUTPUT', name, domain, instance)).exists()
+        return pathlib.Path(os.path.join('.', 'OUTPUT', name, domain, instance, 'output.txt')).exists()
 
 
 class Master:
@@ -171,8 +112,6 @@ class Master:
         # Read in json parsers
         self.parsers = json.load(open(os.path.join('./json', 'parsers.json')))
         self.all_fieldnames = list(self.parsers.keys())
-        self.notplot_fieldnames = [i for i in self.all_fieldnames if not i.startswith('plot_')]
-        self.plot_fieldnames = [i for i in self.all_fieldnames if i.startswith('plot_')]
 
         # Fetch and translate instances for all available domains
         self.all_domains = ['_airport', '_blocks', '_depot', '_gripper2hands', '_gripper1hand', 'barman-opt11-strips', 'elevators-opt11-strips', 'nomystery-opt11-strips',
@@ -188,17 +127,17 @@ class Master:
         # Read in json configs
         self.args.configs = json.load(open(self.args.configs))
 
-        # Collect all distinct tests
+        # Collect all tests
         self.all_tests = []
         for config in self.args.configs:
             for domain in config['domains']:
                 for instance in self.all_instances[domain]:
-                    if not Slave.executed(config['name'], domain, instance):
-                        self.all_tests.append(Slave(self.parsers, self.all_fieldnames, self.notplot_fieldnames, self.plot_fieldnames, config, domain, instance, self.args, self.infos))
+                    self.all_tests.append(Slave(self.parsers, self.all_fieldnames, config, domain, instance, self.args, self.infos))
         random.shuffle(self.all_tests)
 
-        estimated_time = math.ceil(len(self.all_tests) / ((60 / self.args.max_time) * self.args.n_procs))
-        print(f'Executing {len(self.all_tests)} tests', flush=True)
+        tests_to_execute = sum(not Slave.executed(i.config['name'], i.domain, i.instance) for i in self.all_tests)
+        estimated_time = math.ceil(tests_to_execute / ((60 / self.args.max_time) * self.args.n_procs))
+        print(f'Executing {tests_to_execute} tests', flush=True)
         print(f'Estimated time: {estimated_time} hours', flush=True)
         print(f"ESTIMATED END: {(pandas.to_datetime('today') + pandas.to_timedelta(f'{estimated_time}h')).strftime('%d/%m/%Y %H:%M')}", flush=True)
 
@@ -221,18 +160,19 @@ class Master:
             print('Merging...', flush=True)
             self.merge()
 
-            # Perform several checks
+            # Perform checks
             print('Checking...', flush=True)
             self.check()
         except Exception as e:
+            print(getattr(e, 'message', repr(e)), flush=True)
             raise e
 
         print(f"END: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}", flush=True)
 
     def merge(self):
         funcs = {'sum': numpy.sum, 'mean': numpy.mean}
-        out_columns = ['instance'] + self.notplot_fieldnames
-        blank_line = pandas.DataFrame({name: '' for name in self.notplot_fieldnames}, index=[0])
+        out_columns = ['instance'] + self.all_fieldnames
+        blank_line = pandas.DataFrame({name: '' for name in self.all_fieldnames}, index=[0])
         header = pandas.DataFrame({column: column for column in out_columns}, index=[0])
 
         # Merging by each domain
@@ -240,10 +180,10 @@ class Master:
             name = config['name']
             for domain in config['domains']:
                 basename = os.path.join('.', 'OUTPUT', name, domain)
-                dfs = [pandas.read_excel(os.path.join(basename, instance, 'notplot.xlsx')) for instance in self.all_instances[domain]]
+                dfs = [pandas.read_excel(os.path.join(basename, instance, 'parsed.xlsx')) for instance in self.all_instances[domain]]
                 df = pandas.concat(dfs, ignore_index=True)
 
-                summary = df.apply({name: funcs[self.parsers[name]['summary']] for name in self.notplot_fieldnames})
+                summary = df.apply({name: funcs[self.parsers[name]['summary']] for name in self.all_fieldnames})
                 summary['instance'] = 'Summary'
                 df = df.append([summary], ignore_index=True)
                 df.to_excel(os.path.join(basename, name + '_' + domain + '.xlsx'), columns=out_columns, index=False)
@@ -275,7 +215,7 @@ class Master:
                 summaries.append(summary)
 
             df = pandas.concat(summaries, ignore_index=True)
-            summary = df.apply({name: funcs[self.parsers[name]['summary']] for name in self.notplot_fieldnames})
+            summary = df.apply({name: funcs[self.parsers[name]['summary']] for name in self.all_fieldnames})
             summary['instance'] = 'Summary'
             df = df.append(summary, ignore_index=True)
             dfs.append(header)
@@ -287,22 +227,24 @@ class Master:
             for name, df in dfs_configs:
                 df.to_excel(writer, columns=out_columns, index=False, header=False, sheet_name=name)
 
-
     def check(self):
-        infeasibles, not_optimals = [], []
+        infeasibles, not_optimals, other_errors = [], [], []
 
         for config in self.args.configs:
             name = config['name']
             for domain in config['domains']:
                 basename = os.path.join('.', 'OUTPUT', name, domain)
                 for instance in self.all_instances[domain]:
-                    df = pandas.read_excel(os.path.join(basename, instance, 'notplot.xlsx'))
+                    df = pandas.read_excel(os.path.join(basename, instance, 'parsed.xlsx'))
 
                     infeasible = (df['infeasible'] == 1).all()
                     if infeasible:  infeasibles.append(os.path.join(name, domain, instance))
 
                     not_optimal = ((df['solved'] == 1).all() and (df['plan_cost'] != self.infos.loc[(domain, instance), 'lower_bound']).all())
                     if not_optimal: not_optimals.append(os.path.join(name, domain, instance))
+                    
+                    other_error = (df['other_error'] == 1).all()
+                    if other_error:  other_errors.append(os.path.join(name, domain, instance))
 
         print('INFEASIBLES:', flush=True)
         for infeasible in infeasibles:
@@ -310,6 +252,9 @@ class Master:
         print('\nNOT OPTIMALS:', flush=True)
         for not_optimal in not_optimals:
             print('\t', not_optimal, flush=True)
+        print('\nOTHER ERRORS:', flush=True)
+        for other_error in other_errors:
+            print('\t', other_error, flush=True)
 
     @staticmethod
     def bridge(args):
@@ -339,10 +284,14 @@ def send_email(subject, text):
     message = f'Subject: {subject}\n'
     message += text
 
-    context = ssl.create_default_context()
-    with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
-        server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, message)
+    try:
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, message)
+    except Exception as e:
+        print(getattr(e, 'message', repr(e)), flush=True)
+        print('FAILED TO SEND EMAIL', flush=True)
 
 
 if __name__ == '__main__':
@@ -355,14 +304,17 @@ if __name__ == '__main__':
     parser.add_argument('--n_procs', help='Number of CPUS.', type=int, default=os.cpu_count())
 
     parser.add_argument('--name', help='Experiment name.', type=str, default=os.getcwd().split('/')[-1])
-    parser.add_argument('--plots', help='If save plots.', action='store_true')
-    parser.add_argument('--save_raw_output', help='If save raw output.', action='store_true')
 
     args = parser.parse_args()
 
-    print(args)
+    print(args, flush=True)
     send_email(args.name, str(args))
     try:
         Master(args)()
     finally:
-        send_email(args.name, ''.join(open('nohup.out').readlines()))
+        try:
+            send_email(args.name, ''.join(open('nohup.out').readlines()))
+        except Exception as e:
+            print(getattr(e, 'message', repr(e)), flush=True)
+            print('FAILED TO SEND nohup.out', flush=True)
+            

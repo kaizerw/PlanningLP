@@ -34,8 +34,8 @@ void SOCWSSSSearch::initialize() {
         double lower_bound = 0;
         double upper_bound = infinity;
         double objective_coefficient = op.get_cost();
-        this->all_lp_variables.push_back(lp::LPVariable(
-            lower_bound, upper_bound, objective_coefficient, this->mip));
+        this->all_lp_variables.emplace_back(lower_bound, upper_bound,
+                                            objective_coefficient, this->mip);
         this->gen_var_ids++;
     }
 
@@ -44,8 +44,7 @@ void SOCWSSSSearch::initialize() {
                      task_proxy.get_initial_state());
 
     // Create variable Y_T
-    this->all_lp_variables.push_back(
-        lp::LPVariable(0.0, infinity, 0.0, this->mip));
+    this->all_lp_variables.emplace_back(0.0, infinity, 0.0, this->mip);
     this->yt_index = this->gen_var_ids++;
 
     // Create constraint:
@@ -55,18 +54,16 @@ void SOCWSSSSearch::initialize() {
         constraint_yt.insert(op.get_id(), 1.0);
     }
     constraint_yt.insert(this->yt_index, -1.0);
-    this->all_lp_constraints.push_back(constraint_yt);
+    this->all_lp_constraints.emplace_back(constraint_yt);
 
     // Initialize this->c23_ops
-    this->c23_ops =
-        vector<tuple<int, int>>(this->n_ops + 1, make_tuple(-1, -1));
+    this->c23_ops = vector<pair<int, int>>(this->n_ops + 1, {-1, -1});
 
     // Initialize this->bounds_literals
     this->bounds_literals = vector<vector<int>>(this->n_ops + 1, vector<int>());
     for (int op_id = 0; op_id < this->n_ops + 1; ++op_id) {
-        this->bounds_literals[op_id].push_back(this->gen_var_ids++);
-        this->all_lp_variables.push_back(
-            lp::LPVariable(0.0, 1.0, 0.0, this->mip));
+        this->bounds_literals[op_id].emplace_back(this->gen_var_ids++);
+        this->all_lp_variables.emplace_back(0.0, 1.0, 0.0, this->mip);
     }
 
     // Add lmcut landmark constraints with bounds literals
@@ -82,7 +79,7 @@ void SOCWSSSSearch::initialize() {
                     landmark_constraint.insert(this->bounds_literals[op_id][1],
                                                1.0);
                 }
-                this->all_lp_constraints.push_back(landmark_constraint);
+                this->all_lp_constraints.emplace_back(landmark_constraint);
             });
 
     // Compute dynamic merging
@@ -189,35 +186,29 @@ void SOCWSSSSearch::get_op_count() {
     this->updated_lp_constraints.clear();
 
     // Create new variables and constraints for the last learned constraints
-    for (shared_ptr<GLC> new_glc : this->last_learned_glcs) {
-        this->glcs->push_back(new_glc);
-        int yt_bound = new_glc->yt_bound;
-        int last_yt_bound = this->bounds_literals[this->yt_index].size() - 1;
-        int right_side_coeff = new_glc->right_side_coeff;
+    this->glcs->emplace_back(last_learned_glc);
+    int yt_bound = last_learned_glc->yt_bound;
+    int last_yt_bound = this->bounds_literals[this->yt_index].size() - 1;
+    int right_side_coeff = last_learned_glc->right_side_coeff;
 
-        lp::LPConstraint constraint_last_glc(right_side_coeff, infinity);
-        if (yt_bound > last_yt_bound) {
-            this->get_domain_constraints(this->yt_index, yt_bound,
-                                         last_yt_bound);
-        }
-        if (yt_bound > 0) {
-            constraint_last_glc.insert(
-                this->bounds_literals[this->yt_index][yt_bound], 1.0);
-        }
-        for (pair<int, int> &bound_literal : new_glc->ops_bounds) {
-            int op_id = bound_literal.first;
-            int op_bound = bound_literal.second;
-            int last_op_bound = this->bounds_literals[op_id].size() - 1;
-
-            if (op_bound > last_op_bound) {
-                this->get_domain_constraints(op_id, op_bound, last_op_bound);
-            }
-            constraint_last_glc.insert(this->bounds_literals[op_id][op_bound],
-                                       1.0);
-        }
-        this->all_lp_constraints.push_back(constraint_last_glc);
-        this->new_lp_constraints.push_back(this->all_lp_constraints.size() - 1);
+    lp::LPConstraint constraint_last_glc(right_side_coeff, infinity);
+    if (yt_bound > last_yt_bound) {
+        this->get_domain_constraints(this->yt_index, yt_bound, last_yt_bound);
     }
+    if (yt_bound > 0) {
+        constraint_last_glc.insert(
+            this->bounds_literals[this->yt_index][yt_bound], 1.0);
+    }
+    for (auto &[op_id, op_bound] : last_learned_glc->ops_bounds) {
+        int last_op_bound = this->bounds_literals[op_id].size() - 1;
+
+        if (op_bound > last_op_bound) {
+            this->get_domain_constraints(op_id, op_bound, last_op_bound);
+        }
+        constraint_last_glc.insert(this->bounds_literals[op_id][op_bound], 1.0);
+    }
+    this->all_lp_constraints.emplace_back(constraint_last_glc);
+    this->new_lp_constraints.emplace_back(this->all_lp_constraints.size() - 1);
 
     // Create new LP solver
     lp::LPSolver lp_solver(this->lp_solver_type);
@@ -229,7 +220,7 @@ void SOCWSSSSearch::get_op_count() {
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
                                       chrono::system_clock::now() - start)
                                       .count();
-    this->printer_plots->plot_pre_lp_time.push_back(elapsed_microseconds);
+    this->printer_plots->plot_pre_lp_time.emplace_back(elapsed_microseconds);
 
     // Print out added lp variables and constraints
     this->fn_print_lp_changes();
@@ -272,20 +263,20 @@ void SOCWSSSSearch::get_op_count() {
         accumulate(rounded_solution.begin(), rounded_solution.end(), 0);
 
     // Store values to plots
-    this->printer_plots->plot_lp_added_constraints.push_back(
+    this->printer_plots->plot_lp_added_constraints.emplace_back(
         this->new_lp_constraints.size());
-    this->printer_plots->plot_lp_added_variables.push_back(
+    this->printer_plots->plot_lp_added_variables.emplace_back(
         this->new_lp_variables.size());
-    this->printer_plots->plot_lp_updated_constraints.push_back(
+    this->printer_plots->plot_lp_updated_constraints.emplace_back(
         this->updated_lp_constraints.size());
-    this->printer_plots->plot_lp_all_constraints.push_back(
+    this->printer_plots->plot_lp_all_constraints.emplace_back(
         lp_solver.get_num_constraints());
-    this->printer_plots->plot_lp_all_variables.push_back(
+    this->printer_plots->plot_lp_all_variables.emplace_back(
         lp_solver.get_num_variables());
-    this->printer_plots->plot_lp_time.push_back(elapsed_microseconds);
-    this->printer_plots->plot_lp_oc_solution.push_back(lp_h_oc);
-    this->printer_plots->plot_lp_rounded_oc_solution.push_back(rounded_h_oc);
-    this->printer_plots->plot_max_op_count.push_back(*max_element(
+    this->printer_plots->plot_lp_time.emplace_back(elapsed_microseconds);
+    this->printer_plots->plot_lp_oc_solution.emplace_back(lp_h_oc);
+    this->printer_plots->plot_lp_rounded_oc_solution.emplace_back(rounded_h_oc);
+    this->printer_plots->plot_max_op_count.emplace_back(*max_element(
         rounded_solution.begin(),
         rounded_solution.begin() + task_proxy.get_operators().size()));
 
@@ -343,9 +334,9 @@ SearchStatus SOCWSSSSearch::get_sequence() {
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
                                       chrono::system_clock::now() - start)
                                       .count();
-    this->printer_plots->plot_max_f_found.push_back(astar->max_f_found);
-    this->printer_plots->plot_astar_time.push_back(elapsed_microseconds);
-    this->printer_plots->plot_nodes_expanded.push_back(
+    this->printer_plots->plot_max_f_found.emplace_back(astar->max_f_found);
+    this->printer_plots->plot_astar_time.emplace_back(elapsed_microseconds);
+    this->printer_plots->plot_nodes_expanded.emplace_back(
         astar->get_statistics().get_expanded());
 
     if (astar->found_solution()) {
@@ -371,7 +362,7 @@ SearchStatus SOCWSSSSearch::get_sequence() {
             status = SOLVED;
         }
     } else {
-        this->last_learned_glcs = astar->learned_glcs;
+        this->last_learned_glc = astar->learned_glc;
 
         status = FAILED;
     }
@@ -383,10 +374,9 @@ void SOCWSSSSearch::get_domain_constraints(int op_id, int current_bound,
                                            int previous_bound) {
     // Create binary variables
     for (int i = previous_bound + 1; i <= current_bound; ++i) {
-        this->bounds_literals[op_id].push_back(this->gen_var_ids++);
-        this->all_lp_variables.push_back(
-            lp::LPVariable(0.0, 1.0, 0.0, this->mip));
-        this->new_lp_variables.push_back(this->all_lp_variables.size() - 1);
+        this->bounds_literals[op_id].emplace_back(this->gen_var_ids++);
+        this->all_lp_variables.emplace_back(0.0, 1.0, 0.0, this->mip);
+        this->new_lp_variables.emplace_back(this->all_lp_variables.size() - 1);
     }
 
     // Create constraints (1): [Yo >= k] - [Yo >= k - 1] <= 0
@@ -399,8 +389,9 @@ void SOCWSSSSearch::get_domain_constraints(int op_id, int current_bound,
         c1.insert(id_k, 1.0);
         c1.insert(id_k_minus_1, -1.0);
 
-        this->all_lp_constraints.push_back(c1);
-        this->new_lp_constraints.push_back(this->all_lp_constraints.size() - 1);
+        this->all_lp_constraints.emplace_back(c1);
+        this->new_lp_constraints.emplace_back(this->all_lp_constraints.size() -
+                                              1);
     }
 
     // Create constraint (2): sum([Yo >= i], i=1...k) - Yo <= 0
@@ -418,26 +409,27 @@ void SOCWSSSSearch::get_domain_constraints(int op_id, int current_bound,
     c3.insert(this->bounds_literals[op_id][current_bound], -M);
 
     // Update constraints 2 and 3 of this operator
-    int ix2, ix3;
-    tie(ix2, ix3) = this->c23_ops[op_id];
+    auto [ix2, ix3] = this->c23_ops[op_id];
     if (ix2 == -1 && ix3 == -1) {
         // If constraints 2 and 3 don't exist for this operator then create them
-        this->all_lp_constraints.push_back(c2);
-        this->all_lp_constraints.push_back(c3);
+        this->all_lp_constraints.emplace_back(c2);
+        this->all_lp_constraints.emplace_back(c3);
 
-        this->new_lp_constraints.push_back(this->all_lp_constraints.size() - 2);
-        this->new_lp_constraints.push_back(this->all_lp_constraints.size() - 1);
+        this->new_lp_constraints.emplace_back(this->all_lp_constraints.size() -
+                                              2);
+        this->new_lp_constraints.emplace_back(this->all_lp_constraints.size() -
+                                              1);
 
-        this->c23_ops[op_id] = make_tuple(this->all_lp_constraints.size() - 2,
-                                          this->all_lp_constraints.size() - 1);
+        this->c23_ops[op_id] = {this->all_lp_constraints.size() - 2,
+                                this->all_lp_constraints.size() - 1};
     } else {
         // If constraints 2 and 3 already exist for this operator then update
         // them
         this->all_lp_constraints[ix2] = c2;
         this->all_lp_constraints[ix3] = c3;
 
-        this->updated_lp_constraints.push_back(ix2);
-        this->updated_lp_constraints.push_back(ix3);
+        this->updated_lp_constraints.emplace_back(ix2);
+        this->updated_lp_constraints.emplace_back(ix3);
     }
 }
 
@@ -571,9 +563,7 @@ void SOCWSSSSearch::fn_print_learned_constraints(
             }
             cout << endl;
 
-            for (pair<int, int> &bound_literal : glc->ops_bounds) {
-                int op_id = bound_literal.first;
-                int bound = bound_literal.second;
+            for (auto &[op_id, bound] : glc->ops_bounds) {
                 string name = task_proxy.get_operators()[op_id].get_name();
                 int var_id = this->bounds_literals[op_id][bound];
                 cout << "\t + "
@@ -591,12 +581,8 @@ void SOCWSSSSearch::fn_get_op_count_from_bounds(
     vector<double> &original_solution, vector<int> &rounded_solution) {
     rounded_solution.assign(task_proxy.get_operators().size(), 0);
 
-    for (size_t glc_id = 0; glc_id < this->glcs->size(); ++glc_id) {
-        shared_ptr<GLC> glc = this->glcs->at(glc_id);
-        for (pair<int, int> &bound_literal : glc->ops_bounds) {
-            int op_id = bound_literal.first;
-            int bound = bound_literal.second;
-
+    for (auto &glc : (*this->glcs)) {
+        for (auto &[op_id, bound] : glc->ops_bounds) {
             int var_id = this->bounds_literals[op_id][bound];
             double lp_solution = original_solution[var_id];
 

@@ -760,20 +760,19 @@ fast_downward_plugin(
     NAME SOCWSSS_SEARCH
     HELP "SOCWSSS search algorithm"
     SOURCES
-        socwsss/glc
-        socwsss/relaxation_heuristic
-        socwsss/hmax_heuristic
-        socwsss/astar_search
-        socwsss/printer_plots
-        socwsss/dynamic_merging
+        socwsss/hmax/relaxation_heuristic
+        socwsss/hmax/hmax_heuristic
         socwsss/Florian/delete_relaxation_constraints
         socwsss/Florian/flow_constraint_internals
         socwsss/Florian/flow_constraints
+        socwsss/glc
+        socwsss/astar_search
+        socwsss/printer_plots
+        socwsss/dynamic_merging
         socwsss/benders
         socwsss/callbacks
         socwsss/seq_constraints
         socwsss/socwsss_search
-        socwsss/sat_seq
         socwsss/socwsss_cplex_search
     DEPENDS OPERATOR_COUNTING PRIORITY_QUEUES SEARCH_COMMON LP_SOLVER NULL_PRUNING_METHOD ORDERED_SET SUCCESSOR_GENERATOR
 )
