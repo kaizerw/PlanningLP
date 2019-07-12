@@ -51,16 +51,20 @@ Benders::Benders(const Options &opts, TaskProxy &task_proxy,
     this->lp_constraints.emplace_back(constraint_yt);
 
     // Initialize this->c23_ops
-    this->c23_ops = vector<pair<int, int>>(this->n_ops + 1, {-1, -1});
+    this->c23_ops = vector(this->n_ops + 1, pair(-1, -1));
 
     // Initialize this->bounds_literals
-    this->bounds_literals = vector<vector<int>>(this->n_ops + 1, vector<int>());
+    this->bounds_literals = vector(this->n_ops + 1, vector<int>());
     for (int op_id = 0; op_id < this->n_ops + 1; ++op_id) {
         this->bounds_literals[op_id].emplace_back(this->lp_variables.size());
         this->lp_variables.emplace_back(0, 1, 0, true);
         this->get_domain_constraints(op_id, k_prealloc_bounds, 0);
     }
 
+    this->create_base_constraints();
+}
+
+void Benders::create_base_constraints() {
     // Create state-equation constraints
     if (this->use_seq_constraints) {
         cout << "Using SEQ constraints" << endl;
@@ -289,9 +293,12 @@ pair<bool, SequenceInfo> Benders::get_sequence(int h_oc,
         return {false, {status, learned_glc, plan, plan_cost}};
     }
 
+    this->printer_plots->show_data(this->seq, this->cplex.getBestObjValue(),
+                                   this->repeated_seqs, this->restarts);
+
     this->seq++;
 
-    cout.setstate(ios_base::failbit);
+    // cout.setstate(ios_base::failbit);
 
     // Setup A* search
     Options opts;
@@ -315,11 +322,9 @@ pair<bool, SequenceInfo> Benders::get_sequence(int h_oc,
     opts.set("seq", this->seq);
     opts.set("print_search_tree", this->print_search_tree);
 
-    shared_ptr<soc_astar_search::SOCAStarSearch> astar =
-        make_shared<soc_astar_search::SOCAStarSearch>(opts);
+    auto astar = make_shared<soc_astar_search::SOCAStarSearch>(opts);
 
-    chrono::time_point<chrono::system_clock> start =
-        chrono::system_clock::now();
+    auto start = chrono::system_clock::now();
 
     // Perform A* search
     astar->search();

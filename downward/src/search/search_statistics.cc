@@ -42,12 +42,6 @@ void SearchStatistics::print_f_line() const {
         cout << "f = " << lastjump_f_value << " [";
         print_basic_statistics();
         cout << "]" << endl;
-
-        ////////////////////////////////////////////////////////////////////////
-        cout << "Last nodes expanded: " << expanded_states << endl;
-        cout << "Max f found: " << lastjump_f_value << endl;
-        cout << "Total solve time: " << utils::g_timer << endl;
-        ////////////////////////////////////////////////////////////////////////
     }
 }
 

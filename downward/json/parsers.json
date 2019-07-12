@@ -75,7 +75,7 @@
         "summary": "mean"
     },
     "total_solve_time": {
-        "regex": "Total solve time: (\\d+\\.?\\d*)s",
+        "regex": "Total solve time: (\\d+\\.?\\d*)s|t=(\\d+\\.?\\d*)s",
         "type": "float",
         "summary": "mean"
     },
@@ -85,7 +85,7 @@
         "summary": "mean"
     },
     "last_nodes_expanded": {
-        "regex": "Last nodes expanded: (\\d+\\.?\\d*)",
+        "regex": "Last nodes expanded: (\\d+\\.?\\d*)|(\\d+\\.?\\d*) expanded",
         "type": "int",
         "summary": "mean"
     },
@@ -110,7 +110,7 @@
         "summary": "mean"
     },
     "max_f_found": {
-        "regex": "Max f found: (\\d+\\.?\\d*)",
+        "regex": "Max f found: (\\d+\\.?\\d*)|f = (\\d+\\.?\\d*)",
         "type": "float",
         "summary": "mean"
     },

@@ -62,7 +62,12 @@ class Slave:
             with open(os.path.join('.', 'OUTPUT', self.parsed_output['instance'], 'output.txt')) as file:
                 for line in file:
                     for name, parser in self.parsers.items():
-                        match = re.findall(parser['regex'], line.strip())
+                        match = []
+                        for i in re.findall(parser['regex'], line.strip()):
+                            if isinstance(i, tuple):
+                                match.extend([j for j in i if j])
+                            else:
+                                match.append(i)
                         attr = match[0] if match else ''
 
                         if attr and parser['type'] in ['int', 'float']:
@@ -127,8 +132,8 @@ class Master:
 
         tests_to_execute = sum(not Slave.executed(i.config['name'], i.domain, i.instance) for i in self.all_tests)
         estimated_time = math.ceil(tests_to_execute / ((60 / self.args.max_time) * self.args.n_procs))
-        print(f'Executing {tests_to_execute} tests', flush=True)
-        print(f'Estimated time: {estimated_time} hours', flush=True)
+        print(f'Executing {tests_to_execute} test(s)', flush=True)
+        print(f'Estimated time: {estimated_time} hour(s)', flush=True)
         print(f"ESTIMATED END: {(pandas.to_datetime('today') + pandas.to_timedelta(f'{estimated_time}h')).strftime('%d/%m/%Y %H:%M')}", flush=True)
 
     def __call__(self):

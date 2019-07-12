@@ -96,9 +96,9 @@ void SOCAStarSearch::initialize() {
 }
 
 void SOCAStarSearch::print_statistics() const {
-    statistics.print_detailed_statistics();
-    search_space.print_statistics();
-    pruning_method->print_statistics();
+    // statistics.print_detailed_statistics();
+    // search_space.print_statistics();
+    // pruning_method->print_statistics();
 }
 
 SearchStatus SOCAStarSearch::step() {
@@ -293,7 +293,9 @@ SearchStatus SOCAStarSearch::step() {
 
             open_list->insert(succ_eval_context, succ_state.get_id());
             if (search_progress.check_progress(succ_eval_context)) {
-                statistics.print_checkpoint_line(succ_node.get_g());
+                ////////////////////////////////////////////////////////////////
+                // statistics.print_checkpoint_line(succ_node.get_g());
+                ////////////////////////////////////////////////////////////////
                 reward_progress();
             }
         } else if (succ_node.get_g() > node->get_g() + get_adjusted_cost(op)) {

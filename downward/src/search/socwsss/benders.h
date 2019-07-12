@@ -137,6 +137,7 @@ struct Benders {
 
     Benders(const Options& opts, TaskProxy& task_proxy,
             shared_ptr<AbstractTask> task, int k_prealloc_bounds = 2);
+    void create_base_constraints();
     void initialize();
     pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
     void get_domain_constraints(int op_id, int current_bound,

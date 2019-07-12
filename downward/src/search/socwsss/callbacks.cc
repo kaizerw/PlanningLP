@@ -78,10 +78,6 @@ bool CustomCallback::test_card(const Context &c, double o_z,
 
 void CustomCallback::sequence(const Context &c, double o_z, vector<double> &o_x,
                               int r_z, OperatorCount &r_x) {
-    this->benders->printer_plots->show_data(
-        this->benders->seq, this->benders->cplex.getBestObjValue(),
-        this->benders->repeated_seqs, this->benders->restarts);
-
     // Try to sequence current solution
     auto [found_in_cache, info] = this->benders->get_sequence(r_z, r_x);
     auto [status, learned_glc, plan, plan_cost] = info;

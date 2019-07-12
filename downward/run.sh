@@ -100,3 +100,5 @@ opts="socwsss_cplex(constraint_type=1, \
 # SAT SEQUENCING
 #./fast-downward.py $DOWNWARD_BENCHMARKS/simplegripper/prob03.pddl --search "$opts"
 ################################################################################
+
+rm sas_plan

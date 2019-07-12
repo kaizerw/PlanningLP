@@ -101,46 +101,31 @@ SearchStatus SOCWSSSCplexSearch::step() {
 }
 
 void SOCWSSSCplexSearch::print_statistics() const {
-    statistics.print_detailed_statistics();
-    search_space.print_statistics();
+    // statistics.print_detailed_statistics();
+    // search_space.print_statistics();
     // pruning_method->print_statistics();
 }
 
 static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.document_synopsis("SOCWSSS CPLEX Search", "SOCWSSS CPLEX Search");
 
-    parser.add_option<int>("constraint_type", "constraint type added on fail",
-                           "1");
+    parser.add_option<int>("constraint_type", "", "1");
 
-    parser.add_option<bool>("use_seq_constraints",
-                            "if use SEQ constraints or not", "true");
-    parser.add_option<bool>("use_lmcut_constraints",
-                            "if use lmcut constraints or not", "false");
-    parser.add_option<bool>("use_dynamic_merging_constraints",
-                            "if use dynamic merging or not", "false");
-    parser.add_option<bool>("use_delete_relaxation_constraints",
-                            "if use delete relaxation constraints or not",
-                            "false");
-    parser.add_option<bool>("use_flow_constraints",
-                            "if use flow constraints or not", "false");
+    parser.add_option<bool>("use_seq_constraints", "", "true");
+    parser.add_option<bool>("use_lmcut_constraints", "", "false");
+    parser.add_option<bool>("use_dynamic_merging_constraints", "", "false");
+    parser.add_option<bool>("use_delete_relaxation_constraints", "", "false");
+    parser.add_option<bool>("use_flow_constraints", "", "false");
 
-    parser.add_option<bool>("use_sequencing_cache", "if use sequencing cache",
-                            "true");
+    parser.add_option<bool>("use_sequencing_cache", "", "true");
 
-    parser.add_option<bool>("print_current_oc",
-                            "if print current oc in each iteration", "false");
-    parser.add_option<bool>("print_learned_constraints",
-                            "if print learned generalized landmark "
-                            "constraints in each iteration",
-                            "false");
-    parser.add_option<bool>("print_lp_changes", "if print lp changes", "false");
-    parser.add_option<bool>("print_search_tree", "if print search tree",
-                            "false");
+    parser.add_option<bool>("print_current_oc", "", "false");
+    parser.add_option<bool>("print_learned_constraints", "", "false");
+    parser.add_option<bool>("print_lp_changes", "", "false");
+    parser.add_option<bool>("print_search_tree", "", "false");
 
-    parser.add_option<int>("max_seqs", "maximum attempts to sequence solution",
-                           "-1");
-    parser.add_option<shared_ptr<Evaluator>>("eval", "evaluator for h-value",
-                                             "blind()");
+    parser.add_option<int>("max_seqs", "", "-1");
+    parser.add_option<shared_ptr<Evaluator>>("eval", "", "blind()");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);
