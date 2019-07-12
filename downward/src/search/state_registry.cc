@@ -34,9 +34,17 @@ StateRegistry::StateRegistry(const TaskProxy &task_proxy, bool soc,
       soc(soc),
       initial_op_count(initial_op_count) {
     vector<int> ranges;
-    transform(initial_op_count.begin(), initial_op_count.end(),
-              back_inserter(ranges),
-              [](int count) { return max(count + 1, 2); });
+    int mapped_ops_ids = 0;
+    for (int op_id = 0; op_id < this->num_operators; ++op_id) {
+        int count = this->initial_op_count[op_id];
+        if (count > 0) {
+            ranges.emplace_back(count + 1);
+            this->map_op_ids.emplace_back(mapped_ops_ids++);
+        } else {
+            this->map_op_ids.emplace_back(-1);
+        }
+    }
+
     this->op_count_packer = make_shared<int_packer::IntPacker>(ranges);
     this->op_count_bins = this->op_count_packer->get_num_bins();
 
@@ -61,18 +69,13 @@ StateID StateRegistry::insert_id_or_pop_state() {
       state data pool.
     */
     if (soc) {
-        StateID id(this->state_data_pool.size() - 1);
-        pair<int, bool> result = this->soc_registered_states->insert(id.value);
-        bool is_new_entry = result.second;
+        auto [id, is_new_entry] = this->soc_registered_states->insert(
+            this->state_data_pool.size() - 1);
         if (!is_new_entry) {
             this->state_data_pool.pop_back();
             this->op_count_pool->pop_back();
         }
-        assert(this->soc_registered_states->size() ==
-               static_cast<int>(this->state_data_pool.size()));
-        assert(this->soc_registered_states->size() ==
-               static_cast<int>(this->op_count_pool->size()));
-        return StateID(result.first);
+        return StateID(id);
     } else {
         StateID id(state_data_pool.size() - 1);
         pair<int, bool> result = registered_states.insert(id.value);
@@ -110,8 +113,11 @@ const GlobalState &StateRegistry::get_initial_state() {
             fill_n(op_count_buffer, this->op_count_bins, 0);
 
             for (int op_id = 0; op_id < this->num_operators; ++op_id) {
-                this->op_count_packer->set(op_count_buffer, op_id,
-                                           this->initial_op_count[op_id]);
+                int idx = this->map_op_ids[op_id];
+                if (idx >= 0) {
+                    this->op_count_packer->set(op_count_buffer, idx,
+                                               this->initial_op_count[op_id]);
+                }
             }
 
             this->op_count_pool->push_back(op_count_buffer);
@@ -145,9 +151,11 @@ GlobalState StateRegistry::get_successor_state(const GlobalState &predecessor,
             (*this->op_count_pool)[predecessor.id.value]);
         PackedStateBin *op_count_buffer =
             (*this->op_count_pool)[this->op_count_pool->size() - 1];
-        int oc = this->op_count_packer->get(op_count_buffer, op.get_id());
-        this->op_count_packer->set(op_count_buffer, op.get_id(),
-                                   max(oc - 1, 0));
+        int idx = this->map_op_ids[op.get_id()];
+        if (idx >= 0) {
+            int oc = this->op_count_packer->get(op_count_buffer, idx);
+            this->op_count_packer->set(op_count_buffer, idx, max(oc - 1, 0));
+        }
     }
 
     StateID id = insert_id_or_pop_state();
@@ -175,8 +183,13 @@ OperatorCount StateRegistry::lookup_op_count(StateID id) {
     OperatorCount op_count;
     const PackedStateBin *op_count_buffer = (*this->op_count_pool)[id.value];
     for (int op_id = 0; op_id < this->num_operators; ++op_id) {
-        op_count.emplace_back(
-            this->op_count_packer->get(op_count_buffer, op_id));
+        int idx = this->map_op_ids[op_id];
+        if (idx >= 0) {
+            int oc = this->op_count_packer->get(op_count_buffer, idx);
+            op_count.emplace_back(oc);
+        } else {
+            op_count.emplace_back(0);
+        }
     }
     return op_count;
 }

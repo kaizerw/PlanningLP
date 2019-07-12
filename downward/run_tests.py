@@ -26,14 +26,6 @@ class Slave:
         self.args = args
         self.infos = infos
 
-    def __call__(self):
-        try:
-            self.execute().parse().save()
-        except Exception as e:
-            print(getattr(e, 'message', repr(e)), flush=True)
-            print(self.config['name'], self.domain, self.instance, flush=True)
-            raise e
-
     def execute(self):
         if Slave.executed(self.config['name'], self.domain, self.instance):
             return self
@@ -54,11 +46,13 @@ class Slave:
             send_email(self.args.name, f'Test {name} saved')
         except Exception as e:
             shutil.rmtree(output_folder, ignore_errors=True)
+            print(getattr(e, 'message', repr(e)), flush=True)
+            print(self.config['name'], self.domain, self.instance, flush=True)
             raise e
             
         return self
 
-    def parse(self):
+    def parse_and_save(self):
         try:
             self.parsed_output = {parser: '' for parser in self.parsers}
             self.parsed_output['instance'] = os.path.join(self.config['name'], self.domain, self.instance)
@@ -85,16 +79,12 @@ class Slave:
                             elif name == 'quality_score':   attr = round(attr / lb, 10) if lb > 0 else 0.0
 
                         self.parsed_output[name] = attr if attr != '' else self.parsed_output[name]
-        except Exception as e:
-            raise e
-
-        return self
-
-    def save(self):
-        try:
+                        
             filename = os.path.join('.', 'OUTPUT', self.config['name'], self.domain, self.instance, 'parsed.xlsx')
             pandas.DataFrame([self.parsed_output]).to_excel(filename, columns=['instance'] + self.all_fieldnames, index=False)
         except Exception as e:
+            print(getattr(e, 'message', repr(e)), flush=True)
+            print(self.config['name'], self.domain, self.instance, flush=True)
             raise e
 
         return self
@@ -151,7 +141,11 @@ class Master:
 
             print('Executing tests...', flush=True)
             with multiprocessing.Pool(self.args.n_procs) as pool:
-                pool.map(self.bridge, self.all_tests)
+                pool.map(self.execute_bridge, self.all_tests)
+                
+            print('Parsing outputs...', flush=True)
+            with multiprocessing.Pool(self.args.n_procs) as pool:
+                pool.map(self.parse_and_save_bridge, self.all_tests)
 
             # Remove all .sas files
             [os.remove(i) for i in pathlib.Path('.').glob('*.sas')]
@@ -257,8 +251,12 @@ class Master:
             print('\t', other_error, flush=True)
 
     @staticmethod
-    def bridge(args):
-        args()
+    def execute_bridge(args):
+        args.execute()
+        
+    @staticmethod
+    def parse_and_save_bridge(args):
+        args.parse_and_save()
 
     def fetch_and_translate_files(self, domain):
         files = list(pathlib.Path(os.path.join(os.environ['DOWNWARD_BENCHMARKS'], domain)).glob('*.pddl'))

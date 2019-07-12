@@ -253,6 +253,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
 
     bool soc = false;
     OperatorCount initial_op_count;
+    vector<int> map_op_ids;
 
    public:
     explicit StateRegistry(const TaskProxy &task_proxy);

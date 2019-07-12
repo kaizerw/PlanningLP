@@ -371,6 +371,13 @@ void Benders::update_and_prints(int seq, double original_lp_h_oc, int lp_h_oc,
     this->printer_plots->plot_max_op_count.emplace_back(*max_element(
         rounded_solution.begin(),
         rounded_solution.begin() + task_proxy->get_operators().size()));
+    this->printer_plots->plot_max_num_ops.emplace_back(accumulate(
+        rounded_solution.begin(),
+        rounded_solution.begin() + task_proxy->get_operators().size(), 0));
+    this->printer_plots->plot_max_num_distinct_ops.emplace_back(
+        count_if(rounded_solution.begin(),
+                 rounded_solution.begin() + task_proxy->get_operators().size(),
+                 [](int count) { return count > 0; }));
 
     // Print out current operator counting
     this->fn_print_current_oc(seq, original_lp_h_oc, lp_h_oc, original_solution,

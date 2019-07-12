@@ -117,6 +117,18 @@ void PrinterPlots::show_data(int seq, double best_bound_found,
                                 this->plot_max_op_count.end())
                  : 0)
          << endl;
+    cout << "Max num ops: "
+         << (this->plot_max_num_ops.size() > 0
+                 ? *max_element(this->plot_max_num_ops.begin(),
+                                this->plot_max_num_ops.end())
+                 : 0)
+         << endl;
+    cout << "Max num distinct ops: "
+         << (this->plot_max_num_distinct_ops.size() > 0
+                 ? *max_element(this->plot_max_num_distinct_ops.begin(),
+                                this->plot_max_num_distinct_ops.end())
+                 : 0)
+         << endl;
     cout << "Max LP solution: "
          << (this->plot_lp_oc_solution.size() > 0
                  ? *max_element(this->plot_lp_oc_solution.begin(),

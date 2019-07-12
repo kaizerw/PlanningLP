@@ -57,8 +57,8 @@ struct CacheOperatorCounts {
         size_t operator()(const unordered_map<int, int>& v) const {
             size_t key = v.size();
             for (auto& i : v) {
-                key ^= ((i.first + 1) * i.second) + 0x9e3779b9 + (key << 6) +
-                       (key >> 2);
+                key ^= ((i.first + 1) * (i.second + 1)) + 0x9e3779b9 +
+                       (key << 6) + (key >> 2);
             }
             return key;
         }

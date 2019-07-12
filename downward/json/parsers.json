@@ -99,6 +99,16 @@
         "type": "int",
         "summary": "mean"
     },
+    "max_num_ops": {
+        "regex": "Max num ops: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "max_num_distinct_ops": {
+        "regex": "Max num distinct ops: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
     "max_f_found": {
         "regex": "Max f found: (\\d+\\.?\\d*)",
         "type": "float",

@@ -21,6 +21,8 @@ class PrinterPlots {
     chrono::time_point<chrono::system_clock> start;
 
     vector<int> plot_max_op_count;
+    vector<int> plot_max_num_ops;
+    vector<int> plot_max_num_distinct_ops;
     vector<double> plot_max_f_found;
     vector<int> plot_nodes_expanded;
 
