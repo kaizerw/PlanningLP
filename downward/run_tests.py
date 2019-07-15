@@ -301,12 +301,12 @@ def send_email(subject, text, filename=None):
     msg['From'] = fromaddr
     msg['To'] = toaddr
 
-    msg['Subject'] = f'Subject: {subject}\n'
+    msg['Subject'] = subject
     body = text
 
     try:
+        msg.attach(MIMEText(body, 'plain'))
         if filename:
-            msg.attach(MIMEText(body, 'plain'))
             attachment = open(filename, "rb")
             p = MIMEBase('application', 'octet-stream')
             p.set_payload((attachment).read())
