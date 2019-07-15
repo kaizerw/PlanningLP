@@ -74,16 +74,24 @@ class Slave:
                             attr = round(float(attr), 10)
                             attr = int(attr) if parser['type'] == 'int' else attr
                             
-                            if   name == 'solved':          attr = int(attr == 0)
-                            elif name == 'optimal':         attr = int(attr == lb)
-                            elif name == 'infeasible':      attr = int(attr == 13)
-                            elif name == 'timeout':         attr = int(attr == 23)
-                            elif name == 'memout':          attr = int(attr == 22)
-                            elif name == 'cplex_exception': attr = int(attr == 25)
-                            elif name == 'other_error':     attr = int(attr not in [0, 13, 23, 22, 25])
-                            elif name == 'quality_score':   attr = round(attr / lb, 10) if lb > 0 else 0.0
-
+                            if   name == 'solved':                         attr = int(attr == 0)
+                            elif name == 'optimal':                        attr = int(attr == lb)
+                            elif name == 'infeasible':                     attr = int(attr == 13)
+                            elif name == 'timeout':                        attr = int(attr == 23)
+                            elif name == 'memout':                         attr = int(attr == 22)
+                            elif name == 'cplex_exception':                attr = int(attr == 25)
+                            elif name == 'other_error':                    attr = int(attr not in [0, 13, 23, 22, 25])
+                            elif name == 'quality_score':                  attr = round(attr / lb, 10) if lb > 0 else 0.0
+                            elif name == 'optimal_plan_cost':              attr = lb
+                            elif name == 'max_f_equals_optimal_plan_cost': attr = int(attr == lb)
+                            
                         self.parsed_output[name] = attr if attr != '' else self.parsed_output[name]
+                            
+            self.parsed_output['max_op_count_solved'] = self.parsed_output['max_op_count_solved'] if self.parsed_output['solved'] else ''
+            self.parsed_output['max_num_ops_solved'] = self.parsed_output['max_num_ops_solved'] if self.parsed_output['solved'] else ''
+            self.parsed_output['max_num_distinct_ops_solved'] = self.parsed_output['max_num_distinct_ops_solved'] if self.parsed_output['solved'] else ''
+            self.parsed_output['seqs_solved'] = self.parsed_output['seqs_solved'] if self.parsed_output['solved'] else ''
+            self.parsed_output['repeated_seqs_solved'] = self.parsed_output['repeated_seqs_solved'] if self.parsed_output['solved'] else ''
                         
             filename = os.path.join('.', 'OUTPUT', self.config['name'], self.domain, self.instance, 'parsed.xlsx')
             pandas.DataFrame([self.parsed_output]).to_excel(filename, columns=['instance'] + self.all_fieldnames, index=False)

@@ -44,22 +44,42 @@
         "type": "float",
         "summary": "sum"
     },
-    "plan_cost": {
-        "regex": "Plan cost: (\\d+\\.?\\d*)",
-        "type": "int",
-        "summary": "mean"
-    },
     "plan_length": {
         "regex": "Plan length: (\\d+\\.?\\d*) step\\(s\\)\\.",
         "type": "int",
         "summary": "mean"
     },
-    "seqs": {
-        "regex": "Number of seqs: (\\d+\\.?\\d*)",
+    "plan_cost": {
+        "regex": "Plan cost: (\\d+\\.?\\d*)",
         "type": "int",
         "summary": "mean"
     },
+    "optimal_plan_cost": {
+        "regex": "Plan cost: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "max_f_equals_optimal_plan_cost": {
+        "regex": "Max f found: (\\d+\\.?\\d*)|f = (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "seqs": {
+        "regex": "Number of seqs: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "sum"
+    },
     "repeated_seqs": {
+        "regex": "Repeated seqs: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "seqs_solved": {
+        "regex": "Number of seqs: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "repeated_seqs_solved": {
         "regex": "Repeated seqs: (\\d+\\.?\\d*)",
         "type": "int",
         "summary": "sum"
@@ -105,6 +125,21 @@
         "summary": "mean"
     },
     "max_num_distinct_ops": {
+        "regex": "Max num distinct ops: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "max_op_count_solved": {
+        "regex": "Max op count: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "max_num_ops_solved": {
+        "regex": "Max num ops: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "max_num_distinct_ops_solved": {
         "regex": "Max num distinct ops: (\\d+\\.?\\d*)",
         "type": "int",
         "summary": "mean"
