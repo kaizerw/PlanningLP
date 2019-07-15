@@ -17,7 +17,7 @@ opts="socwsss_cplex(constraint_type=1, \
                     use_seq_constraints=true, \
                     use_lmcut_constraints=false, \
                     use_dynamic_merging_constraints=false, \
-                    use_delete_relaxation_constraints=false, \
+                    use_delete_relaxation_constraints=true, \
                     use_flow_constraints=false, \
                     use_sequencing_cache=true, \
                     print_current_oc=false, \
@@ -35,8 +35,10 @@ opts="socwsss_cplex(constraint_type=1, \
 # T1: memout
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p14.sas --search "$opts"
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem05-half.sas --search "$opts"
-# T1: not optimal solution: 1216561 x 1216462
-./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
+# T1 seq: not optimal solution: 1216561 x 1216462
+#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
+# T1 seq h+: not optimal solution: 1215938 x 1215839
+./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
 ################################################################################
 # Test Dynamic Merging
 #opts="astar(operatorcounting(constraint_generators=[state_equation_constraints()]))"

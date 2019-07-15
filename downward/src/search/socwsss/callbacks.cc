@@ -18,6 +18,7 @@ pair<double, vector<double>> CustomCallback::extract_sol(const Context &c) {
             o_x.emplace_back(c.getCandidatePoint(this->benders->x[i]));
         }
     }
+
     return {o_z, o_x};
 }
 
@@ -47,16 +48,6 @@ bool CustomCallback::test_relaxation(const Context &c, int r_z,
                  all_of(r_x.begin(), r_x.end(), [](int c) { return c >= 0; });
     }
     return status;
-}
-
-bool CustomCallback::test_incumbent(const Context &c, int r_z) {
-    if (r_z >= c.getIncumbentObjective()) {
-        if (c.inCandidate()) {
-            c.rejectCandidate();
-        }
-        return false;
-    }
-    return true;
 }
 
 bool CustomCallback::test_card(const Context &c, double o_z,
@@ -147,7 +138,6 @@ void CustomCallback::invoke(const Context &c) {
         auto [r_z, r_x] = this->round_sol(c, o_z, o_x);
 
         if (this->test_relaxation(c, r_z, r_x) &&
-            this->test_incumbent(c, r_z) &&
             this->test_card(c, o_z, o_x, r_z, r_x)) {
             this->sequence(c, o_z, o_x, r_z, r_x);
         }

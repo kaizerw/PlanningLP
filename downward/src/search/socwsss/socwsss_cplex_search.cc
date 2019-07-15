@@ -94,7 +94,8 @@ SearchStatus SOCWSSSCplexSearch::step() {
         for (IloInt i = 0; i < benders->n_ops; ++i) {
             op_counts.emplace_back(benders->cplex.getValue(benders->x[i]));
         }
-        this->set_plan(get<2>(benders->cache_op_counts[op_counts]));
+        Plan plan = get<2>(benders->cache_op_counts[op_counts]);
+        this->set_plan(plan);
     }
 
     return status;

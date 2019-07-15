@@ -174,24 +174,7 @@ void Benders::initialize() {
     this->cplex = IloCplex(this->model);
     this->cplex.setOut(this->env.getNullStream());
     this->cplex.setWarning(this->env.getNullStream());
-    this->cplex.setParam(IloCplex::Param::MIP::Strategy::Search,
-                         IloCplex::Traditional);
     this->cplex.setParam(IloCplex::Param::Threads, 1);
-    this->cplex.setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
-    this->cplex.setParam(IloCplex::Param::Preprocessing::Reduce, 0);
-
-    // this->cplex.exportModel("model.lp");
-
-    // this->cplex.setParam(IloCplex::Param::MIP::Strategy::HeuristicFreq, -1);
-    // this->cplex.setParam(IloCplex::Param::MIP::Cuts::MIRCut, -1);
-    // this->cplex.setParam(IloCplex::Param::MIP::Cuts::Implied, -1);
-    // this->cplex.setParam(IloCplex::Param::MIP::Cuts::Gomory, -1);
-    // this->cplex.setParam(IloCplex::Param::MIP::Cuts::FlowCovers, -1);
-    // this->cplex.setParam(IloCplex::Param::MIP::Cuts::PathCut, -1);
-    // this->cplex.setParam(IloCplex::Param::MIP::Cuts::LiftProj, -1);
-    // this->cplex.setParam(IloCplex::Param::MIP::Cuts::ZeroHalfCut, -1);
-    // this->cplex.setParam(IloCplex::Param::MIP::Cuts::Cliques, -1);
-    // this->cplex.setParam(IloCplex::Param::MIP::Cuts::Covers, -1);
 }
 
 pair<int, IloExpr> Benders::get_cut(shared_ptr<GLC> learned_glc) {
@@ -344,17 +327,19 @@ pair<bool, SequenceInfo> Benders::get_sequence(int h_oc,
         plan = astar->get_plan();
 
         // Calculate plan cost
-        for (OperatorID op_id : plan) {
-            plan_cost += this->task_proxy->get_operators()[op_id].get_cost();
-        }
+        plan_cost = accumulate(
+            plan.begin(), plan.end(), 0, [&](int acc, OperatorID op_id) {
+                return acc +
+                       this->task_proxy->get_operators()[op_id].get_cost();
+            });
 
-        cout << "SEQ " << this->seq << ": SOLUTION FOUND WITH COST "
-             << plan_cost << endl;
+        cout << "SEQ " << this->seq << ": FOUND PLAN WITH COST=" << plan_cost
+             << endl;
         status = true;
     } else {
         learned_glc = astar->learned_glc;
         cout << "SEQ " << this->seq
-             << ": SOLUTION NOT FOUND WITH MAX F: " << h_oc << endl;
+             << ": NOT SEQUENCIABLE WITH F-BOUND=" << h_oc << endl;
         status = false;
     }
 
