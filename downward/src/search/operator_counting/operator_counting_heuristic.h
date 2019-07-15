@@ -18,12 +18,15 @@ class ConstraintGenerator;
 class OperatorCountingHeuristic : public Heuristic {
     std::vector<std::shared_ptr<ConstraintGenerator>> constraint_generators;
     lp::LPSolver lp_solver;
+    bool use_integer_op_counts;
+    long num_integral_solutions;
+    long num_fractional_solutions;
+    long num_integral_objective_values;
 protected:
     virtual int compute_heuristic(const GlobalState &global_state) override;
     int compute_heuristic(const State &state);
 public:
     explicit OperatorCountingHeuristic(const options::Options &opts);
-    ~OperatorCountingHeuristic();
 };
 }
 

@@ -2,19 +2,37 @@
 
 #include "../option_parser.h"
 #include "../plugin.h"
+#include "../axioms.h"
+#include "../global_state.h"
+#include "../heuristic.h"
+
+#include "../tasks/root_task.h"
+
+#include "../utils/logging.h"
+#include "../utils/rng.h"
+#include "../utils/system.h"
+#include "../utils/timer.h"
+#include "../utils/system.h"
+#include "../task_proxy.h"
 
 #include "../lp/lp_solver.h"
-#include "../task_utils/task_properties.h"
+
 #include "../utils/markup.h"
 
 using namespace std;
 
 namespace operator_counting {
 void add_indices_to_constraint(lp::LPConstraint &constraint,
-                               const set<int> &indices, double coefficient) {
+                               const set<int> &indices,
+                               double coefficient) {
     for (int index : indices) {
         constraint.insert(index, coefficient);
     }
+}
+
+StateEquationConstraints::StateEquationConstraints(const options::Options &opts)
+    : use_safety_improvement(opts.get<bool>("use_safety_improvement")),
+      use_only_upper_bounds(opts.get<bool>("use_only_upper_bounds")) {
 }
 
 void StateEquationConstraints::build_propositions(const TaskProxy &task_proxy) {
@@ -22,6 +40,10 @@ void StateEquationConstraints::build_propositions(const TaskProxy &task_proxy) {
     propositions.reserve(vars.size());
     for (VariableProxy var : vars) {
         propositions.push_back(vector<Proposition>(var.get_domain_size()));
+    }
+    is_safe.resize(vars.size(), false);
+    for (FactProxy goal : task_proxy.get_goals()) {
+        is_safe[goal.get_variable().get_id()] = true;
     }
     OperatorsProxy ops = task_proxy.get_operators();
     for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
@@ -37,13 +59,20 @@ void StateEquationConstraints::build_propositions(const TaskProxy &task_proxy) {
             int pre = precondition[var];
             int post = effect.get_value();
             assert(post != -1);
-            assert(pre != post);
 
             if (pre != -1) {
-                propositions[var][post].always_produced_by.insert(op_id);
-                propositions[var][pre].always_consumed_by.insert(op_id);
+                if (pre != post) {
+                    propositions[var][post].always_produced_by.insert(op_id);
+                    propositions[var][pre].always_consumed_by.insert(op_id);
+                }
             } else {
                 propositions[var][post].sometimes_produced_by.insert(op_id);
+                is_safe[var] = false;
+                for (int other_value = 0; other_value < effect.get_variable().get_domain_size(); ++other_value) {
+                    if (other_value != post) {
+                        propositions[var][other_value].sometimes_consumed_by.insert(op_id);
+                    }
+                }
             }
         }
     }
@@ -55,10 +84,12 @@ void StateEquationConstraints::add_constraints(
         for (Proposition &prop : var_propositions) {
             lp::LPConstraint constraint(-infinity, infinity);
             add_indices_to_constraint(constraint, prop.always_produced_by, 1.0);
-            add_indices_to_constraint(constraint, prop.sometimes_produced_by,
-                                      1.0);
-            add_indices_to_constraint(constraint, prop.always_consumed_by,
-                                      -1.0);
+            if (use_only_upper_bounds) {
+                add_indices_to_constraint(constraint, prop.sometimes_consumed_by, -1.0);
+            } else {
+                add_indices_to_constraint(constraint, prop.sometimes_produced_by, 1.0);
+            }
+            add_indices_to_constraint(constraint, prop.always_consumed_by, -1.0);
             if (!constraint.empty()) {
                 prop.constraint_index = constraints.size();
                 constraints.push_back(constraint);
@@ -68,12 +99,13 @@ void StateEquationConstraints::add_constraints(
 }
 
 void StateEquationConstraints::initialize_constraints(
-    const shared_ptr<AbstractTask> &task, vector<lp::LPConstraint> &constraints,
+    const shared_ptr<AbstractTask> task,
+    vector<lp::LPVariable> & /*variables*/, vector<lp::LPConstraint> &constraints,
     double infinity) {
     cout << "Initializing constraints from state equation." << endl;
     TaskProxy task_proxy(*task);
-    task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    //verify_no_axioms(task_proxy);
+    //verify_no_conditional_effects(task_proxy);
     build_propositions(task_proxy);
     add_constraints(constraints, infinity);
 
@@ -105,8 +137,21 @@ bool StateEquationConstraints::update_constraints(const State &state,
                 if (goal_state[var] == value) {
                     ++lower_bound;
                 }
-                lp_solver.set_constraint_lower_bound(prop.constraint_index,
-                                                     lower_bound);
+                if (use_safety_improvement && is_safe[var]) {
+                    int upper_bound = lower_bound;
+                    lp_solver.set_constraint_bounds(
+                        prop.constraint_index, lower_bound, upper_bound);
+                } else if (use_only_upper_bounds) {
+                    int upper_bound = lower_bound;
+                    if (goal_state[var] == numeric_limits<int>::max()) {
+                        ++upper_bound;
+                    }
+                    lp_solver.set_constraint_upper_bound(
+                        prop.constraint_index, upper_bound);
+                } else {
+                    lp_solver.set_constraint_lower_bound(
+                        prop.constraint_index, lower_bound);
+                }
             }
         }
     }
@@ -120,37 +165,17 @@ static shared_ptr<ConstraintGenerator> _parse(OptionParser &parser) {
         "change of the fact, i.e., the total number of times the fact is added "
         "minus the total number of times is removed. The bounds of each "
         "constraint depend on the current state and the goal state and are "
-        "updated in each state. For details, see" +
-            utils::format_conference_reference(
-                {"Menkes van den Briel", "J. Benton", "Subbarao Kambhampati",
-                 "Thomas Vossen"},
-                "An LP-based heuristic for optimal planning",
-                "http://link.springer.com/chapter/10.1007/978-3-540-74970-7_46",
-                "Proceedings of the Thirteenth International Conference on"
-                " Principles and Practice of Constraint Programming (CP 2007)",
-                "651-665", "Springer-Verlag", "2007") +
-            utils::format_conference_reference(
-                {"Blai Bonet"},
-                "An admissible heuristic for SAS+ planning obtained from the"
-                " state equation",
-                "http://ijcai.org/papers13/Papers/IJCAI13-335.pdf",
-                "Proceedings of the Twenty-Third International Joint"
-                " Conference on Artificial Intelligence (IJCAI 2013)",
-                "2268-2274", "AAAI Press", "2013") +
-            utils::format_conference_reference(
-                {"Florian Pommerening", "Gabriele Roeger", "Malte Helmert",
-                 "Blai Bonet"},
-                "LP-based Heuristics for Cost-optimal Planning",
-                "http://www.aaai.org/ocs/index.php/ICAPS/ICAPS14/paper/view/"
-                "7892/8031",
-                "Proceedings of the Twenty-Fourth International Conference"
-                " on Automated Planning and Scheduling (ICAPS 2014)",
-                "226-234", "AAAI Press", "2014"));
+        "updated in each state.");
 
-    if (parser.dry_run()) return nullptr;
-    return make_shared<StateEquationConstraints>();
+    parser.add_option<bool>("use_safety_improvement", "", "false");
+    parser.add_option<bool>("use_only_upper_bounds", "", "false");
+
+    if (parser.dry_run())
+        return nullptr;
+
+    Options opts = parser.parse();
+    return make_shared<StateEquationConstraints>(opts);
 }
 
-static Plugin<ConstraintGenerator> _plugin("state_equation_constraints",
-                                           _parse);
-}  // namespace operator_counting
+static Plugin<ConstraintGenerator> _plugin("state_equation_constraints", _parse);
+}

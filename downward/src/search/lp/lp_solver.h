@@ -124,6 +124,7 @@ class LPSolver {
     LP_METHOD(void set_objective_coefficient(int index, double coefficient))
     LP_METHOD(void set_constraint_lower_bound(int index, double bound))
     LP_METHOD(void set_constraint_upper_bound(int index, double bound))
+    LP_METHOD(void set_constraint_bounds(int index, double lower, double upper))
     LP_METHOD(void set_variable_lower_bound(int index, double bound))
     LP_METHOD(void set_variable_upper_bound(int index, double bound))
 
@@ -145,6 +146,11 @@ class LPSolver {
       solution before calling this method.
     */
     LP_METHOD(double get_objective_value() const)
+
+    /*
+      Return true iff all variables in the solution have an integer value.
+    */
+    LP_METHOD(bool is_solution_integral() const)
 
     /*
       Return the solution found after solving an LP as a vector with one entry

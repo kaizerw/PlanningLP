@@ -24,7 +24,8 @@ PhOConstraints::PhOConstraints(const Options &opts)
 }
 
 void PhOConstraints::initialize_constraints(
-    const shared_ptr<AbstractTask> &task,
+    const shared_ptr<AbstractTask> task,
+    vector<lp::LPVariable> & /*variables*/,
     vector<lp::LPConstraint> &constraints,
     double infinity) {
     assert(pattern_generator);
@@ -69,16 +70,7 @@ static shared_ptr<ConstraintGenerator> _parse(OptionParser &parser) {
     parser.document_synopsis(
         "Posthoc optimization constraints",
         "The generator will compute a PDB for each pattern and add the"
-        " constraint h(s) <= sum_{o in relevant(h)} Count_o. For details,"
-        " see" + utils::format_conference_reference(
-            {"Florian Pommerening", "Gabriele Roeger", "Malte Helmert"},
-            "Getting the Most Out of Pattern Databases for Classical Planning",
-            "http://ijcai.org/papers13/Papers/IJCAI13-347.pdf",
-            "Proceedings of the Twenty-Third International Joint"
-            " Conference on Artificial Intelligence (IJCAI 2013)",
-            "2357-2364",
-            "AAAI Press",
-            "2013"));
+        " constraint h(s) <= sum_{o in relevant(h)} Count_o.");
 
     parser.add_option<shared_ptr<pdbs::PatternCollectionGenerator>>(
         "patterns",

@@ -21,6 +21,7 @@
 #endif
 
 #include <cassert>
+#include <cmath>
 #include <memory>
 #include <numeric>
 
@@ -251,6 +252,16 @@ void LPSolver::set_constraint_upper_bound(int index, double bound) {
     is_solved = false;
 }
 
+void LPSolver::set_constraint_bounds(int index, double lower, double upper) {
+    assert(index < get_num_constraints());
+    try {
+        lp_solver->setRowBounds(index, lower, upper);
+    } catch (CoinError &error) {
+        handle_coin_error(error);
+    }
+    is_solved = false;
+}
+
 void LPSolver::set_variable_lower_bound(int index, double bound) {
     assert(index < get_num_variables());
     try {
@@ -335,6 +346,24 @@ vector<double> LPSolver::extract_solution() const {
     try {
         const double *sol = lp_solver->getColSolution();
         return vector<double>(sol, sol + get_num_variables());
+    } catch (CoinError &error) {
+        handle_coin_error(error);
+    }
+}
+
+bool LPSolver::is_solution_integral() const {
+    assert(has_optimal_solution());
+    double epsilon = 0.01;
+    try {
+        const double *sol = lp_solver->getColSolution();
+        int num_vars = get_num_variables();
+        for (int i = 0; i < num_vars; ++i) {
+            double value = sol[i];
+            if (abs(value - round(value)) > epsilon) {
+                return false;
+            }
+        }
+        return true;
     } catch (CoinError &error) {
         handle_coin_error(error);
     }

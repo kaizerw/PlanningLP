@@ -10,6 +10,9 @@ class TaskProxy;
 namespace lp {
 class LPConstraint;
 }
+namespace options {
+class Options;
+}
 
 namespace operator_counting {
 /* A proposition is an atom of the form Var = Val. It stores the index of the
@@ -19,6 +22,7 @@ struct Proposition {
     std::set<int> always_produced_by;
     std::set<int> sometimes_produced_by;
     std::set<int> always_consumed_by;
+    std::set<int> sometimes_consumed_by;
 
     Proposition() : constraint_index(-1) {
     }
@@ -26,14 +30,19 @@ struct Proposition {
 };
 
 class StateEquationConstraints : public ConstraintGenerator {
+    bool use_safety_improvement;
+    bool use_only_upper_bounds;
     std::vector<std::vector<Proposition>> propositions;
     // Map goal variables to their goal value and other variables to max int.
     std::vector<int> goal_state;
+    std::vector<bool> is_safe;
 
     void build_propositions(const TaskProxy &task_proxy);
     void add_constraints(std::vector<lp::LPConstraint> &constraints, double infinity);
 public:
-    virtual void initialize_constraints(const std::shared_ptr<AbstractTask> &task,
+    explicit StateEquationConstraints(const options::Options &opts);
+    virtual void initialize_constraints(const std::shared_ptr<AbstractTask> task,
+                                        std::vector<lp::LPVariable> &variables,
                                         std::vector<lp::LPConstraint> &constraints,
                                         double infinity);
     virtual bool update_constraints(const State &state, lp::LPSolver &lp_solver);
