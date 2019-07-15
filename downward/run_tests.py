@@ -233,6 +233,9 @@ class Master:
             pandas.concat(dfs, ignore_index=True, sort=False).to_excel(writer, columns=out_columns, index=False, header=False, sheet_name='Geral')
             for name, df in dfs_configs:
                 df.to_excel(writer, columns=out_columns, index=False, header=False, sheet_name=name)
+        
+        # Send top-level table by email
+        send_email(args.name, '', os.path.join('.', 'OUTPUT', self.args.name + '.xlsx'))
 
     def check(self):
         infeasibles, not_optimals, other_errors = [], [], []
@@ -284,22 +287,39 @@ class Master:
         return sorted(files)
 
 
-def send_email(subject, text):
-    import smtplib, ssl
+def send_email(subject, text, filename=None):
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.mime.base import MIMEBase
+    from email import encoders
 
-    port = 465
-    smtp_server = 'smtp.gmail.com'
-    sender_email = 'kield92@gmail.com'
-    receiver_email = 'kaizerwesley@gmail.com'
-    password = 'Rudiger2.'
-    message = f'Subject: {subject}\n'
-    message += text
+    fromaddr = "kield92@gmail.com"
+    toaddr = "kaizerwesley@gmail.com"
+
+    msg = MIMEMultipart()
+    msg['From'] = fromaddr
+    msg['To'] = toaddr
+
+    msg['Subject'] = f'Subject: {subject}\n'
+    body = text
 
     try:
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
-            server.login(sender_email, password)
-            server.sendmail(sender_email, receiver_email, message)
+        if filename:
+            msg.attach(MIMEText(body, 'plain'))
+            attachment = open(filename, "rb")
+            p = MIMEBase('application', 'octet-stream')
+            p.set_payload((attachment).read())
+            encoders.encode_base64(p)
+            p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+            msg.attach(p)
+
+        s = smtplib.SMTP('smtp.gmail.com', 587)
+        s.starttls()
+        s.login(fromaddr, "Rudiger2.")
+        text = msg.as_string()
+        s.sendmail(fromaddr, toaddr, text)
+        s.quit()
     except Exception as e:
         print(getattr(e, 'message', repr(e)), flush=True)
         print('FAILED TO SEND EMAIL', flush=True)
