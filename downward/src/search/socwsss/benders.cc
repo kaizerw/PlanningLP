@@ -168,6 +168,21 @@ void Benders::initialize() {
         }
     }
 
+    // Adding learned constraints
+    for (auto &glc : (*this->glcs)) {
+        int yt_bound = glc->yt_bound;
+
+        IloExpr expr(this->env);
+        if (yt_bound > 0) {
+            expr += this->x[this->bounds_literals[this->n_ops][yt_bound]];
+        }
+        for (auto &[op_id, op_bound] : glc->ops_bounds) {
+            expr += this->x[this->bounds_literals[op_id][op_bound]];
+        }
+
+        this->c.add(expr >= 1.0);
+    }
+
     this->model.add(this->obj);
     this->model.add(this->c);
 
