@@ -4,73 +4,79 @@ CustomCallback::CustomCallback(shared_ptr<Benders> benders)
     : benders(benders) {}
 
 pair<double, vector<double>> CustomCallback::extract_sol(const Context &c) {
-    double o_z = 0;
-    vector<double> o_x;
+    double original_z = 0;
+    vector<double> original_x;
 
     if (c.inRelaxation()) {
-        o_z = c.getRelaxationObjective();
+        original_z = c.getRelaxationObjective();
         for (int i = 0; i < this->benders->n_ops; ++i) {
-            o_x.emplace_back(c.getRelaxationPoint(this->benders->x[i]));
+            original_x.emplace_back(c.getRelaxationPoint(this->benders->x[i]));
         }
     } else if (c.inCandidate()) {
-        o_z = c.getCandidateObjective();
+        original_z = c.getCandidateObjective();
         for (int i = 0; i < this->benders->n_ops; ++i) {
-            o_x.emplace_back(c.getCandidatePoint(this->benders->x[i]));
+            original_x.emplace_back(c.getCandidatePoint(this->benders->x[i]));
         }
     }
 
-    return {o_z, o_x};
+    return {original_z, original_x};
 }
 
-pair<int, OperatorCount> CustomCallback::round_sol(const Context &c, double o_z,
-                                                   vector<double> &o_x) {
-    int r_z = 0;
-    OperatorCount r_x;
+pair<int, OperatorCount> CustomCallback::round_sol(const Context &c,
+                                                   double original_z,
+                                                   vector<double> &original_x) {
+    int rounded_z = 0;
+    OperatorCount rounded_x;
 
     if (c.inRelaxation()) {
-        r_z = round(o_z);
-        transform(o_x.begin(), o_x.end(), back_inserter(r_x),
-                  [](double value) { return (int)ceil(value); });
+        rounded_z = round(original_z);
+        transform(original_x.begin(), original_x.end(),
+                  back_inserter(rounded_x),
+                  [](double i) { return (int)ceil(i); });
     } else if (c.inCandidate()) {
-        r_z = (int)o_z;
-        transform(o_x.begin(), o_x.end(), back_inserter(r_x),
-                  [](double value) { return (int)value; });
+        rounded_z = (int)original_z;
+        transform(original_x.begin(), original_x.end(),
+                  back_inserter(rounded_x), [](double i) { return (int)i; });
     }
 
-    return {r_z, r_x};
+    return {rounded_z, rounded_x};
 }
 
-bool CustomCallback::test_relaxation(const Context &c, int r_z,
-                                     OperatorCount &r_x) {
+bool CustomCallback::test_relaxation(const Context &c, int rounded_z,
+                                     OperatorCount &rounded_x) {
     bool status = true;
     if (c.inRelaxation()) {
-        status = (r_z >= 0) &&
-                 all_of(r_x.begin(), r_x.end(), [](int c) { return c >= 0; });
+        status = (rounded_z >= 0) && all_of(rounded_x.begin(), rounded_x.end(),
+                                            [](int c) { return c >= 0; });
     }
     return status;
 }
 
-bool CustomCallback::test_card(const Context &c, double o_z,
-                               vector<double> &o_x, int r_z,
-                               OperatorCount &r_x) {
+bool CustomCallback::test_card(const Context &c, double original_z,
+                               vector<double> &original_x, int rounded_z,
+                               OperatorCount &rounded_x) {
     // We call our SAT sequencing procedure inside the python callback
     // interface of Gurobi 5.6 if both the cardinality and objective of the
     // rounded up operator count is within 20% of the linear count
     if (c.inRelaxation()) {
-        double o_c = accumulate(o_x.begin(), o_x.end(), 0);
-        int r_c = accumulate(r_x.begin(), r_x.end(), 0);
+        double original_card =
+            accumulate(original_x.begin(), original_x.end(), 0);
+        int rounded_card = accumulate(rounded_x.begin(), rounded_x.end(), 0);
 
-        if (r_z > (1.2 * o_z) || r_c > (1.2 * o_c)) {
+        if (rounded_z > (1.2 * original_z) ||
+            rounded_card > (1.2 * original_card)) {
             return false;
         }
     }
     return true;
 }
 
-void CustomCallback::sequence(const Context &c, double o_z, vector<double> &o_x,
-                              int r_z, OperatorCount &r_x) {
+void CustomCallback::sequence(const Context &c, double original_z,
+                              vector<double> &original_x, int rounded_z,
+                              OperatorCount &rounded_x) {
     // Try to sequence current solution
-    auto [found_in_cache, info] = this->benders->get_sequence(r_z, r_x);
+    auto [found_in_cache, info] =
+        this->benders->get_sequence(rounded_z, rounded_x);
     auto [status, learned_glc, plan, plan_cost] = info;
 
     if (status) {
@@ -117,8 +123,8 @@ void CustomCallback::sequence(const Context &c, double o_z, vector<double> &o_x,
                 c.rejectCandidate(cut >= 1.0);
             }
 
-            this->benders->update_and_prints(this->benders->seq, o_z, r_z, o_x,
-                                             r_x);
+            this->benders->update_and_prints(this->benders->seq, original_z,
+                                             rounded_z, original_x, rounded_x);
         } else {
             if (c.inCandidate()) {
                 c.rejectCandidate();
@@ -134,12 +140,13 @@ void CustomCallback::invoke(const Context &c) {
     }
 
     if (c.inRelaxation() || c.inCandidate()) {
-        auto [o_z, o_x] = this->extract_sol(c);
-        auto [r_z, r_x] = this->round_sol(c, o_z, o_x);
+        auto [original_z, original_x] = this->extract_sol(c);
+        auto [rounded_z, rounded_x] =
+            this->round_sol(c, original_z, original_x);
 
-        if (this->test_relaxation(c, r_z, r_x) &&
-            this->test_card(c, o_z, o_x, r_z, r_x)) {
-            this->sequence(c, o_z, o_x, r_z, r_x);
+        if (this->test_relaxation(c, rounded_z, rounded_x) &&
+            this->test_card(c, original_z, original_x, rounded_z, rounded_x)) {
+            this->sequence(c, original_z, original_x, rounded_z, rounded_x);
         }
     }
 }

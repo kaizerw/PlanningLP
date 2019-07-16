@@ -39,7 +39,7 @@ opts="socwsss_cplex(constraint_type=1, \
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
 # T1 seq h+: not optimal solution: 1215938 x 1215839
 #opts="astar(operatorcounting([state_equation_constraints(use_safety_improvement=true), lmcut_constraints()]))"
-opts="astar(operatorcounting([delete_relaxation_constraints(use_time_vars=true), flow_constraints(partial_merges=true)]))"
+#opts="astar(operatorcounting([delete_relaxation_constraints(use_time_vars=true), flow_constraints(partial_merges=true)]))"
 ./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
 ################################################################################
 # Test Dynamic Merging

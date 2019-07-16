@@ -146,11 +146,6 @@ struct Benders {
     void update_and_prints(int seq, double original_lp_h_oc, int lp_h_oc,
                            vector<double> original_solution,
                            OperatorCount rounded_solution);
-    void fn_print_current_oc(int seq, double original_lp_h_oc, int lp_h_oc,
-                             vector<double>& original_solution,
-                             OperatorCount& rounded_solution);
-    void fn_print_learned_constraints(int seq,
-                                      vector<double>& original_solution);
 };
 
 #endif

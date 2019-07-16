@@ -25,13 +25,16 @@ struct CustomCallback : public Function {
 
     CustomCallback(shared_ptr<Benders> benders);
     pair<double, vector<double>> extract_sol(const Context &c);
-    pair<int, OperatorCount> round_sol(const Context &c, double o_z,
-                                       vector<double> &o_x);
-    bool test_relaxation(const Context &c, int r_z, OperatorCount &r_x);
-    bool test_card(const Context &c, double o_z, vector<double> &o_x, int r_z,
-                   OperatorCount &r_x);
-    void sequence(const Context &c, double o_z, vector<double> &o_x, int r_z,
-                  OperatorCount &r_x);
+    pair<int, OperatorCount> round_sol(const Context &c, double original_z,
+                                       vector<double> &original_x);
+    bool test_relaxation(const Context &c, int rounded_z,
+                         OperatorCount &rounded_x);
+    bool test_card(const Context &c, double original_z,
+                   vector<double> &original_x, int rounded_z,
+                   OperatorCount &rounded_x);
+    void sequence(const Context &c, double original_z,
+                  vector<double> &original_x, int rounded_z,
+                  OperatorCount &rounded_x);
     void invoke(const Context &c);
 };
 
