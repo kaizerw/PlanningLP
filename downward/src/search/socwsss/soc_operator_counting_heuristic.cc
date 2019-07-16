@@ -6,7 +6,6 @@ SOCOperatorCountingHeuristic::SOCOperatorCountingHeuristic(const Options &opts)
           "constraint_generators")),
       lp_solver(lp::LPSolverType(opts.get_enum("lpsolver"))),
       use_integer_op_counts(opts.get<bool>("use_integer_op_counts")) {
-    vector<lp::LPVariable> variables;
     double infinity = lp_solver.get_infinity();
     for (OperatorProxy op : task_proxy.get_operators()) {
         int op_cost = op.get_cost();
@@ -14,14 +13,10 @@ SOCOperatorCountingHeuristic::SOCOperatorCountingHeuristic(const Options &opts)
             lp::LPVariable(0, infinity, op_cost, use_integer_op_counts));
     }
 
-    vector<lp::LPConstraint> constraints;
     for (auto generator : constraint_generators) {
         generator->initialize_constraints(task, variables, constraints,
                                           infinity);
     }
-
-    lp_solver.load_problem(lp::LPObjectiveSense::MINIMIZE, variables,
-                           constraints);
 }
 
 int SOCOperatorCountingHeuristic::compute_heuristic(
@@ -34,15 +29,6 @@ int SOCOperatorCountingHeuristic::compute_heuristic(
 
 int SOCOperatorCountingHeuristic::compute_heuristic(
     const State &state, const vector<int> & /*op_count*/) {
-    assert(!lp_solver.has_temporary_constraints());
-    for (auto generator : constraint_generators) {
-        bool dead_end = generator->update_constraints(state, lp_solver);
-        if (dead_end) {
-            lp_solver.clear_temporary_constraints();
-            return DEAD_END;
-        }
-    }
-
     vector<lp::LPConstraint> temp_constraints;
 
     // Adding all learned GLCs
@@ -90,7 +76,21 @@ int SOCOperatorCountingHeuristic::compute_heuristic(
     */
 
     // Add temp constraints to lp_solver
-    lp_solver.add_temporary_constraints(temp_constraints);
+    vector<lp::LPConstraint> all_constraints;
+    copy(constraints.begin(), constraints.end(),
+         back_inserter(all_constraints));
+    copy(temp_constraints.begin(), temp_constraints.end(),
+         back_inserter(all_constraints));
+    lp_solver.load_problem(lp::LPObjectiveSense::MINIMIZE, variables,
+                           constraints);
+
+    for (auto generator : constraint_generators) {
+        bool dead_end = generator->update_constraints(state, lp_solver);
+        if (dead_end) {
+            lp_solver.clear_temporary_constraints();
+            return DEAD_END;
+        }
+    }
 
     lp_solver.solve();
 

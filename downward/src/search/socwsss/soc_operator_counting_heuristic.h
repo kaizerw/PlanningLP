@@ -28,6 +28,9 @@ class SOCOperatorCountingHeuristic : public Heuristic {
     lp::LPSolver lp_solver;
     bool use_integer_op_counts;
 
+    vector<lp::LPVariable> variables;
+    vector<lp::LPConstraint> constraints;
+
    protected:
     virtual int compute_heuristic(const GlobalState &global_state) override;
     int compute_heuristic(const State &state, const vector<int> &op_count);
