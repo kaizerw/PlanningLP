@@ -1,5 +1,5 @@
-#ifndef BENDERS_H
-#define BENDERS_H
+#ifndef CALLBACKS_H
+#define CALLBACKS_H
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-attributes"
@@ -31,7 +31,12 @@
 #include "seq_constraints.h"
 
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <map>
+#include <memory>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -52,11 +57,16 @@ namespace options {
 class Options;
 }
 
+using Function = IloCplex::Callback::Function;
+using Context = IloCplex::Callback::Context;
+using OperatorCount = vector<int>;
+using SequenceInfo = tuple<bool, shared_ptr<GLC>, Plan, int>;
+
 struct CacheOperatorCounts {
     struct Hash {
-        size_t operator()(const unordered_map<int, int>& v) const {
+        size_t operator()(const unordered_map<int, int> &v) const {
             size_t key = v.size();
-            for (auto& i : v) {
+            for (auto &i : v) {
                 key ^= ((i.first + 1) * (i.second + 1)) + 0x9e3779b9 +
                        (key << 6) + (key >> 2);
             }
@@ -66,19 +76,19 @@ struct CacheOperatorCounts {
 
     unordered_map<unordered_map<int, int>, SequenceInfo, Hash> cache;
 
-    int count(OperatorCount& op_count) {
-        return this->cache.count(this->convert(op_count));
+    bool has(OperatorCount &op_count) {
+        return (cache.count(convert(op_count)) > 0);
     }
 
-    SequenceInfo operator[](OperatorCount& op_count) {
-        return this->cache[this->convert(op_count)];
+    SequenceInfo operator[](OperatorCount &op_count) {
+        return cache[convert(op_count)];
     }
 
     void add(OperatorCount op_count, SequenceInfo info) {
-        this->cache[this->convert(op_count)] = info;
+        cache[convert(op_count)] = info;
     }
 
-    unordered_map<int, int> convert(OperatorCount& op_count) {
+    unordered_map<int, int> convert(OperatorCount &op_count) {
         unordered_map<int, int> map_op_count;
         for (size_t op_id = 0; op_id < op_count.size(); ++op_id) {
             if (op_count[op_id] > 0) {
@@ -89,7 +99,7 @@ struct CacheOperatorCounts {
     }
 };
 
-struct Benders {
+struct SOCWSSSCallback : public Function {
     int constraint_type;
     bool use_seq_constraints;
     bool use_lmcut_constraints;
@@ -111,41 +121,38 @@ struct Benders {
     int verbosity;
 
     shared_ptr<TaskProxy> task_proxy;
-    shared_ptr<AbstractTask> task;
     chrono::time_point<chrono::system_clock> start;
+
+    shared_ptr<vector<vector<int>>> bounds_literals;
+    shared_ptr<IloEnv> env;
+    shared_ptr<IloModel> model;
+    shared_ptr<IloNumVarArray> x;
+    shared_ptr<IloRangeArray> c;
+    shared_ptr<IloObjective> obj;
+    shared_ptr<IloCplex> cplex;
 
     bool restart = false;
     int restarts = 0, seq = 0, repeated_seqs = 0;
-    double infinity = IloInfinity;
     int n_ops, n_vars;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;
     shared_ptr<PrinterPlots> printer_plots;
 
-    vector<lp::LPVariable> lp_variables;
-    vector<lp::LPConstraint> lp_constraints;
-    vector<vector<int>> bounds_literals;
-    vector<pair<int, int>> c23_ops;
-
     CacheOperatorCounts cache_op_counts;
 
-    IloEnv env;
-    IloModel model;
-    IloNumVarArray x;
-    IloRangeArray c;
-    IloObjective obj;
-    IloCplex cplex;
-
-    Benders(const Options& opts, TaskProxy& task_proxy,
-            shared_ptr<AbstractTask> task, int k_prealloc_bounds = 2);
-    void create_base_constraints();
-    void initialize();
+    SOCWSSSCallback(const Options &opts, shared_ptr<TaskProxy> task_proxy);
+    pair<double, vector<double>> extract_sol(const Context &ctxt);
+    pair<int, OperatorCount> round_sol(const Context &ctxt, double original_z,
+                                       vector<double> &original_x);
+    bool test_relaxation(const Context &ctxt, int rounded_z,
+                         OperatorCount &rounded_x);
+    bool test_card(const Context &ctxt, double original_z,
+                   vector<double> &original_x, int rounded_z,
+                   OperatorCount &rounded_x);
     pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
-    void get_domain_constraints(int op_id, int current_bound,
-                                int previous_bound);
-    pair<bool, SequenceInfo> get_sequence(int h_oc, OperatorCount op_count);
-    void update_and_prints(int seq, double original_lp_h_oc, int lp_h_oc,
-                           vector<double> original_solution,
-                           OperatorCount rounded_solution);
+    pair<bool, SequenceInfo> get_astar_sequence(int h_oc,
+                                                OperatorCount op_count);
+    void sequence(const Context &ctxt, int rounded_z, OperatorCount &rounded_x);
+    void invoke(const Context &ctxt);
 };
 
 #endif

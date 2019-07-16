@@ -772,8 +772,7 @@ fast_downward_plugin(
         socwsss/astar_search
         socwsss/printer_plots
         socwsss/dynamic_merging
-        socwsss/benders
-        socwsss/callbacks
+        socwsss/socwssscallback
         socwsss/seq_constraints
         socwsss/socwsss_search
         socwsss/socwsss_cplex_search

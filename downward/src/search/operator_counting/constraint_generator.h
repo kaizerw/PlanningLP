@@ -11,7 +11,7 @@ namespace lp {
 class LPConstraint;
 class LPSolver;
 class LPVariable;
-}
+}  // namespace lp
 
 namespace operator_counting {
 /*
@@ -29,7 +29,7 @@ namespace operator_counting {
       using the LM-Cut method.
 */
 class ConstraintGenerator {
-public:
+   public:
     /*
       Called upon initialization for the given task. Use this to add permanent
       constraints and perform other initialization. The parameter "infinity"
@@ -39,8 +39,7 @@ public:
     virtual void initialize_constraints(
         const std::shared_ptr<AbstractTask> task,
         std::vector<lp::LPVariable> &variables,
-        std::vector<lp::LPConstraint> &constraints,
-        double infinity);
+        std::vector<lp::LPConstraint> &constraints, double infinity);
 
     /*
       Called before evaluating a state. Use this to add temporary constraints
@@ -51,7 +50,9 @@ public:
     */
     virtual bool update_constraints(const State &state,
                                     lp::LPSolver &lp_solver) = 0;
+
+    virtual ~ConstraintGenerator() = default;
 };
-}
+}  // namespace operator_counting
 
 #endif

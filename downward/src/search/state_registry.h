@@ -319,7 +319,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
 
         const_iterator(const StateRegistry &registry, size_t start)
             : registry(registry), pos(start) {
-            utils::unused_variable(this->registry);
+            utils::unused_variable(registry);
         }
 
        public:

@@ -43,6 +43,21 @@ int PrinterPlots::compute_times_made_progress() {
     return times_made_progress;
 }
 
+void PrinterPlots::update(int lp_h_oc, vector<int> rounded_solution, int c_size,
+                          int x_size) {
+    // Store values to plots
+    this->plot_lp_all_constraints.emplace_back(c_size);
+    this->plot_lp_all_variables.emplace_back(x_size);
+    this->plot_lp_oc_solution.emplace_back(lp_h_oc);
+    this->plot_max_op_count.emplace_back(*max_element(
+        rounded_solution.begin(), rounded_solution.begin() + this->n_ops));
+    this->plot_max_num_ops.emplace_back(accumulate(
+        rounded_solution.begin(), rounded_solution.begin() + this->n_ops, 0));
+    this->plot_max_num_distinct_ops.emplace_back(count_if(
+        rounded_solution.begin(), rounded_solution.begin() + this->n_ops,
+        [](int count) { return count > 0; }));
+}
+
 void PrinterPlots::show_data(int seq, double best_bound_found,
                              int repeated_sequencings, int restarts) {
     double total_solve_time = chrono::duration_cast<chrono::microseconds>(
