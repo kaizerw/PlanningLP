@@ -177,7 +177,7 @@ void StateRegistry::print_statistics() const {
     }
 }
 
-OperatorCount StateRegistry::lookup_op_count(StateID id) {
+OperatorCount StateRegistry::lookup_op_count(StateID id) const {
     OperatorCount op_count;
     const PackedStateBin *op_count_buffer = (*op_count_pool)[id.value];
     for (int op_id = 0; op_id < num_operators; ++op_id) {

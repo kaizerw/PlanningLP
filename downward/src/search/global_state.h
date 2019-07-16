@@ -12,6 +12,8 @@ namespace soc_astar_search {
 class SOCAStarSearch;
 }
 
+class SOCOperatorCounting;
+
 using PackedStateBin = int_packer::IntPacker::Bin;
 
 // For documentation on classes relevant to storing and working with registered
@@ -20,6 +22,7 @@ class GlobalState {
     friend class StateRegistry;
     friend class SOCStateRegistry;
     friend class soc_astar_search::SOCAStarSearch;
+    friend class SOCOperatorCountingHeuristic;
     template <typename Entry>
     friend class PerStateInformation;
     template <typename>

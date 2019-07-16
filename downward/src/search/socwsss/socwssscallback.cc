@@ -1,7 +1,7 @@
 #include "socwssscallback.h"
 
 SOCWSSSCallback::SOCWSSSCallback(const Options &opts,
-                               shared_ptr<TaskProxy> task_proxy)
+                                 shared_ptr<TaskProxy> task_proxy)
     : constraint_type(opts.get<int>("constraint_type")),
       use_seq_constraints(opts.get<bool>("use_seq_constraints")),
       use_lmcut_constraints(opts.get<bool>("use_lmcut_constraints")),
@@ -50,9 +50,8 @@ pair<double, vector<double>> SOCWSSSCallback::extract_sol(const Context &ctxt) {
     return {original_z, original_x};
 }
 
-pair<int, OperatorCount> SOCWSSSCallback::round_sol(const Context &ctxt,
-                                                   double original_z,
-                                                   vector<double> &original_x) {
+pair<int, OperatorCount> SOCWSSSCallback::round_sol(
+    const Context &ctxt, double original_z, vector<double> &original_x) {
     int rounded_z = 0;
     OperatorCount rounded_x;
 
@@ -71,7 +70,7 @@ pair<int, OperatorCount> SOCWSSSCallback::round_sol(const Context &ctxt,
 }
 
 bool SOCWSSSCallback::test_relaxation(const Context &ctxt, int rounded_z,
-                                     OperatorCount &rounded_x) {
+                                      OperatorCount &rounded_x) {
     bool status = true;
     if (ctxt.inRelaxation()) {
         status = (rounded_z >= 0) && all_of(rounded_x.begin(), rounded_x.end(),
@@ -81,8 +80,8 @@ bool SOCWSSSCallback::test_relaxation(const Context &ctxt, int rounded_z,
 }
 
 bool SOCWSSSCallback::test_card(const Context &ctxt, double original_z,
-                               vector<double> &original_x, int rounded_z,
-                               OperatorCount &rounded_x) {
+                                vector<double> &original_x, int rounded_z,
+                                OperatorCount &rounded_x) {
     // We call our SAT sequencing procedure inside the python callback
     // interface of Gurobi 5.6 if both the cardinality and objective of the
     // rounded up operator count is within 20% of the linear count
@@ -152,6 +151,13 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
 
     // cout.setstate(ios_base::failbit);
 
+    // Set eval properties for SOCOperatorCountingHeuristic
+    eval->lp_variables = lp_variables;
+    eval->lp_constraints = lp_constraints;
+    eval->glcs = glcs;
+    eval->bounds_literals = bounds_literals;
+    eval->initial_op_count = op_count;
+
     // Setup A* search
     Options opts;
     opts.set("eval", eval);
@@ -218,7 +224,7 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
 }
 
 void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
-                              OperatorCount &rounded_x) {
+                               OperatorCount &rounded_x) {
     // Try to sequence current solution
     auto [found_in_cache, info] = get_astar_sequence(rounded_z, rounded_x);
     auto [status, learned_glc, plan, plan_cost] = info;

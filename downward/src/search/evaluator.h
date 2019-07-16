@@ -3,7 +3,14 @@
 
 #include "evaluation_result.h"
 
+#include "lp/lp_solver.h"
+#include "socwsss/glc.h"
+
+#include <memory>
 #include <set>
+#include <vector>
+
+using namespace std;
 
 class EvaluationContext;
 class GlobalState;
@@ -14,12 +21,20 @@ class Evaluator {
     const bool use_for_boosting;
     const bool use_for_counting_evaluations;
 
-public:
-    Evaluator(
-        const std::string &description = "<none>",
-        bool use_for_reporting_minima = false,
-        bool use_for_boosting = false,
-        bool use_for_counting_evaluations = false);
+   public:
+    ////////////////////////////////////////////////////////////////////////////
+    // Properties for SOCOperatorCountingHeuristic
+    shared_ptr<vector<lp::LPVariable>> lp_variables;
+    shared_ptr<vector<lp::LPConstraint>> lp_constraints;
+    shared_ptr<vector<shared_ptr<GLC>>> glcs;
+    shared_ptr<vector<vector<int>>> bounds_literals;
+    vector<int> initial_op_count;
+    ////////////////////////////////////////////////////////////////////////////
+
+    Evaluator(const std::string &description = "<none>",
+              bool use_for_reporting_minima = false,
+              bool use_for_boosting = false,
+              bool use_for_counting_evaluations = false);
     virtual ~Evaluator() = default;
 
     /*
@@ -43,15 +58,11 @@ public:
     virtual void get_path_dependent_evaluators(
         std::set<Evaluator *> &evals) = 0;
 
+    virtual void notify_initial_state(const GlobalState & /*initial_state*/) {}
 
-    virtual void notify_initial_state(const GlobalState & /*initial_state*/) {
-    }
-
-    virtual void notify_state_transition(
-        const GlobalState & /*parent_state*/,
-        OperatorID /*op_id*/,
-        const GlobalState & /*state*/) {
-    }
+    virtual void notify_state_transition(const GlobalState & /*parent_state*/,
+                                         OperatorID /*op_id*/,
+                                         const GlobalState & /*state*/) {}
 
     /*
       compute_result should compute the estimate and possibly

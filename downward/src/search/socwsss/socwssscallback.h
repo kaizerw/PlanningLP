@@ -130,6 +130,8 @@ struct SOCWSSSCallback : public Function {
     shared_ptr<IloRangeArray> c;
     shared_ptr<IloObjective> obj;
     shared_ptr<IloCplex> cplex;
+    shared_ptr<vector<lp::LPVariable>> lp_variables;
+    shared_ptr<vector<lp::LPConstraint>> lp_constraints;
 
     bool restart = false;
     int restarts = 0, seq = 0, repeated_seqs = 0;

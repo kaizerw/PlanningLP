@@ -60,13 +60,16 @@ void SOCWSSSCplexSearch::initialize() {
     n_ops = task_proxy.get_operators().size();
     n_vars = task_proxy.get_variables().size();
 
+    lp_variables = make_shared<vector<lp::LPVariable>>();
+    lp_constraints = make_shared<vector<lp::LPConstraint>>();
+
     // Create initial variables for LP
     for (OperatorProxy op : task_proxy.get_operators()) {
-        lp_variables.emplace_back(0, infinity, op.get_cost(), true);
+        lp_variables->emplace_back(0, infinity, op.get_cost(), true);
     }
 
     // Create variable Y_T
-    lp_variables.emplace_back(0, infinity, 0, true);
+    lp_variables->emplace_back(0, infinity, 0, true);
 
     // Create constraint:
     // 0 <= sum(Yo, o in O) - Y_T <= 0
@@ -75,7 +78,7 @@ void SOCWSSSCplexSearch::initialize() {
         constraint_yt.insert(op.get_id(), 1.0);
     }
     constraint_yt.insert(n_ops, -1.0);
-    lp_constraints.emplace_back(constraint_yt);
+    lp_constraints->emplace_back(constraint_yt);
 
     // Initialize c23_ops
     c23_ops = vector(n_ops + 1, pair(-1, -1));
@@ -84,8 +87,8 @@ void SOCWSSSCplexSearch::initialize() {
     bounds_literals =
         make_shared<vector<vector<int>>>(n_ops + 1, vector<int>());
     for (int op_id = 0; op_id < n_ops + 1; ++op_id) {
-        (*bounds_literals)[op_id].emplace_back(lp_variables.size());
-        lp_variables.emplace_back(0, 1, 0, true);
+        (*bounds_literals)[op_id].emplace_back(lp_variables->size());
+        lp_variables->emplace_back(0, 1, 0, true);
         get_domain_constraints(op_id, k_prealloc_bounds, 0);
     }
 
@@ -102,7 +105,7 @@ void SOCWSSSCplexSearch::create_base_constraints() {
     // Create state-equation constraints
     if (use_seq_constraints) {
         cout << "Using SEQ constraints" << endl;
-        SEQConstraints()(task, lp_constraints, infinity,
+        SEQConstraints()(task, (*lp_constraints), infinity,
                          task_proxy.get_initial_state());
     }
 
@@ -118,7 +121,7 @@ void SOCWSSSCplexSearch::create_base_constraints() {
                         landmark_constraint.insert((*bounds_literals)[op_id][1],
                                                    1.0);
                     }
-                    lp_constraints.emplace_back(landmark_constraint);
+                    lp_constraints->emplace_back(landmark_constraint);
                 });
     }
 
@@ -126,13 +129,14 @@ void SOCWSSSCplexSearch::create_base_constraints() {
     if (use_dynamic_merging_constraints) {
         cout << "Using dynamic merging constraints" << endl;
         DynamicMerging dm(lp_solver_type, make_shared<TaskProxy>(task_proxy),
-                          infinity, lp_variables.size(), lp_constraints.size());
+                          infinity, lp_variables->size(),
+                          lp_constraints->size());
 
         // Copy dynamic merging constraints and variables
         copy(dm.lp_variables.begin(), dm.lp_variables.end(),
-             back_inserter(lp_variables));
+             back_inserter((*lp_variables)));
         copy(dm.lp_constraints.begin(), dm.lp_constraints.end(),
-             back_inserter(lp_constraints));
+             back_inserter((*lp_constraints)));
     }
 
     // Florian delete relaxation constraints
@@ -140,14 +144,14 @@ void SOCWSSSCplexSearch::create_base_constraints() {
         cout << "Using delete relaxation constraints" << endl;
         FlorianDeleteRelaxationConstraints(make_shared<TaskProxy>(task_proxy),
                                            infinity)(
-            lp_variables, lp_constraints, task_proxy.get_initial_state());
+            (*lp_variables), (*lp_constraints), task_proxy.get_initial_state());
     }
 
     // Florian flow constraints
     if (use_flow_constraints) {
         cout << "Using flow constraints" << endl;
-        FlorianFlowConstraints()(task, lp_variables, lp_constraints, infinity,
-                                 task_proxy.get_initial_state());
+        FlorianFlowConstraints()(task, (*lp_variables), (*lp_constraints),
+                                 infinity, task_proxy.get_initial_state());
     }
 }
 
@@ -178,8 +182,8 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     }
 
     // Create variables
-    for (size_t vi = 0; vi < lp_variables.size(); ++vi) {
-        const lp::LPVariable &variable = lp_variables[vi];
+    for (size_t vi = 0; vi < lp_variables->size(); ++vi) {
+        const lp::LPVariable &variable = (*lp_variables)[vi];
         double lb = variable.lower_bound;
         double ub = variable.upper_bound;
         x->add(IloNumVar((*env), lb, ub, ILOINT));
@@ -187,8 +191,8 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     }
 
     // Create constraints
-    for (size_t ci = 0; ci < lp_constraints.size(); ++ci) {
-        const lp::LPConstraint &constraint = lp_constraints[ci];
+    for (size_t ci = 0; ci < lp_constraints->size(); ++ci) {
+        const lp::LPConstraint &constraint = (*lp_constraints)[ci];
         double lb = constraint.get_lower_bound();
         double ub = constraint.get_upper_bound();
 
@@ -233,14 +237,16 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     socwsss_callback->c = c;
     socwsss_callback->obj = obj;
     socwsss_callback->cplex = cplex;
+    socwsss_callback->lp_variables = lp_variables;
+    socwsss_callback->lp_constraints = lp_constraints;
 }
 
 void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
                                                 int previous_bound) {
     // Create binary variables
     for (int i = previous_bound + 1; i <= current_bound; ++i) {
-        (*bounds_literals)[op_id].emplace_back(lp_variables.size());
-        lp_variables.emplace_back(0, 1, 0, true);
+        (*bounds_literals)[op_id].emplace_back(lp_variables->size());
+        lp_variables->emplace_back(0, 1, 0, true);
     }
 
     // Create constraints (1): [Yo >= k] - [Yo >= k - 1] <= 0
@@ -253,7 +259,7 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
         c1.insert(id_k, 1.0);
         c1.insert(id_k_minus_1, -1.0);
 
-        lp_constraints.emplace_back(c1);
+        lp_constraints->emplace_back(c1);
     }
 
     // Create constraint (2): sum([Yo >= i], i=1...k) - Yo <= 0
@@ -274,15 +280,16 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
     auto [ix2, ix3] = c23_ops[op_id];
     if (ix2 == -1 && ix3 == -1) {
         // If constraints 2 and 3 don't exist for this operator then create them
-        lp_constraints.emplace_back(c2);
-        lp_constraints.emplace_back(c3);
+        lp_constraints->emplace_back(c2);
+        lp_constraints->emplace_back(c3);
 
-        c23_ops[op_id] = {lp_constraints.size() - 2, lp_constraints.size() - 1};
+        c23_ops[op_id] = {lp_constraints->size() - 2,
+                          lp_constraints->size() - 1};
     } else {
         // If constraints 2 and 3 already exist for this operator then update
         // them
-        lp_constraints[ix2] = c2;
-        lp_constraints[ix3] = c3;
+        (*lp_constraints)[ix2] = c2;
+        (*lp_constraints)[ix3] = c3;
     }
 }
 
