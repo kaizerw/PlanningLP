@@ -18,7 +18,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       print_lp_changes(opts.get<bool>("print_lp_changes")),
       print_search_tree(opts.get<bool>("print_search_tree")),
       max_seqs(opts.get<int>("max_seqs")),
-      eval(opts.get<shared_ptr<Evaluator>>("eval")),
+      eval(opts.get<string>("eval")),
       lp_solver_type(lp::LPSolverType(opts.get_enum("lpsolver"))),
       cost_type(opts.get<int>("cost_type")),
       max_time(opts.get<double>("max_time")),
@@ -44,7 +44,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
     this->opts.set("print_lp_changes", opts.get<bool>("print_lp_changes"));
     this->opts.set("print_search_tree", opts.get<bool>("print_search_tree"));
     this->opts.set("max_seqs", opts.get<int>("max_seqs"));
-    this->opts.set("eval", opts.get<shared_ptr<Evaluator>>("eval"));
+    this->opts.set("eval", opts.get<string>("eval"));
     this->opts.set("lp_solver_type",
                    lp::LPSolverType(opts.get_enum("lpsolver")));
     this->opts.set("cost_type", opts.get<int>("cost_type"));
@@ -94,8 +94,8 @@ void SOCWSSSCplexSearch::initialize() {
 
     create_base_constraints();
 
-    socwsss_callback =
-        make_shared<SOCWSSSCallback>(opts, make_shared<TaskProxy>(task_proxy));
+    socwsss_callback = make_shared<SOCWSSSCallback>(
+        opts, make_shared<TaskProxy>(task_proxy), task);
 
     socwsss_callback_mask |= IloCplex::Callback::Context::Id::Relaxation;
     socwsss_callback_mask |= IloCplex::Callback::Context::Id::Candidate;
@@ -373,7 +373,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("print_search_tree", "", "false");
 
     parser.add_option<int>("max_seqs", "", "-1");
-    parser.add_option<shared_ptr<Evaluator>>("eval", "", "blind()");
+    parser.add_option<string>("eval", "", "blind");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);

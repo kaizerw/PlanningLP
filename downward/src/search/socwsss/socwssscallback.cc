@@ -1,7 +1,8 @@
 #include "socwssscallback.h"
 
 SOCWSSSCallback::SOCWSSSCallback(const Options &opts,
-                                 shared_ptr<TaskProxy> task_proxy)
+                                 shared_ptr<TaskProxy> task_proxy,
+                                 shared_ptr<AbstractTask> task)
     : constraint_type(opts.get<int>("constraint_type")),
       use_seq_constraints(opts.get<bool>("use_seq_constraints")),
       use_lmcut_constraints(opts.get<bool>("use_lmcut_constraints")),
@@ -16,7 +17,7 @@ SOCWSSSCallback::SOCWSSSCallback(const Options &opts,
       print_lp_changes(opts.get<bool>("print_lp_changes")),
       print_search_tree(opts.get<bool>("print_search_tree")),
       max_seqs(opts.get<int>("max_seqs")),
-      eval(opts.get<shared_ptr<Evaluator>>("eval")),
+      eval(opts.get<string>("eval")),
       lp_solver_type(opts.get<lp::LPSolverType>("lp_solver_type")),
       cost_type(opts.get<int>("cost_type")),
       max_time(opts.get<double>("max_time")),
@@ -24,6 +25,7 @@ SOCWSSSCallback::SOCWSSSCallback(const Options &opts,
       pruning(opts.get<shared_ptr<PruningMethod>>("pruning")),
       verbosity(opts.get<int>("verbosity")),
       task_proxy(task_proxy),
+      task(task),
       start(chrono::system_clock::now()) {
     n_ops = task_proxy->get_operators().size();
     n_vars = task_proxy->get_variables().size();
@@ -151,16 +153,98 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
 
     // cout.setstate(ios_base::failbit);
 
-    // Set eval properties for SOCOperatorCountingHeuristic
-    eval->lp_variables = lp_variables;
-    eval->lp_constraints = lp_constraints;
-    eval->glcs = glcs;
-    eval->bounds_literals = bounds_literals;
-    eval->initial_op_count = op_count;
-
     // Setup A* search
     Options opts;
-    opts.set("eval", eval);
+    shared_ptr<Evaluator> h;
+
+    if (eval.find("blind") != string::npos) {
+        cout << "USING BLIND HEURISTIC" << endl;
+        Options opts_h;
+        opts_h.set("transform", task);
+        opts_h.set("cache_estimates", true);
+        h = make_shared<BlindSearchHeuristic>(opts_h);
+    } else if (eval.find("lmcut") != string::npos) {
+        cout << "USING LMCUT HEURISTIC" << endl;
+        Options opts_h;
+        opts_h.set("transform", task);
+        opts_h.set("cache_estimates", true);
+        h = make_shared<LandmarkCutHeuristic>(opts_h);
+    } else if (eval.find("operatorcounting") != string::npos) {
+        cout << "USING OPERATOR COUNT HEURISTIC" << endl;
+        vector<shared_ptr<ConstraintGenerator>> cs;
+
+        if (eval.find("seq") != string::npos) {
+            cout << "USING SEQ CONSTRAINT GENERATOR" << endl;
+            Options o;
+            o.set("use_safety_improvement", true);
+            o.set("use_only_upper_bounds", false);
+            shared_ptr<ConstraintGenerator> c =
+                make_shared<StateEquationConstraints>(o);
+            cs.emplace_back(c);
+        }
+        if (eval.find("landmarks") != string::npos) {
+            cout << "USING LANDMARK CONSTRAINT GENERATOR" << endl;
+            shared_ptr<ConstraintGenerator> c = make_shared<LMCutConstraints>();
+            cs.emplace_back(c);
+        }
+        if (eval.find("h+") != string::npos) {
+            cout << "USING H+ CONSTRAINT GENERATOR" << endl;
+            Options o;
+            o.set("use_time_vars", true);
+            o.set("use_integer_vars", false);
+            shared_ptr<ConstraintGenerator> c =
+                make_shared<DeleteRelaxationConstraints>(o);
+            cs.emplace_back(c);
+        }
+        if (eval.find("flow") != string::npos) {
+            cout << "USING FLOW CONSTRAINT GENERATOR" << endl;
+            Options o_p;
+            o_p.set("pattern_max_size", 1);
+            o_p.set("only_interesting_patterns", true);
+            shared_ptr<PatternCollectionGenerator> patterns =
+                make_shared<PatternCollectionGeneratorSystematic>(o_p);
+            Options o;
+            o.set("patterns", patterns);
+            o.set("remove_dead_states", true);
+            o.set("single_transition_optimization", true);
+            o.set("self_loop_optimization", true);
+            o.set("weak_linking_constraints", true);
+            o.set("use_mutexes", true);
+            o.set("partial_merges", true);
+            o.set("max_merge_feature_size", 2);
+            o.set("partial_merge_time_limit",
+                  numeric_limits<double>::infinity());
+            o.set("merge_lp_solve_time_limit",
+                  numeric_limits<double>::infinity());
+            shared_ptr<ConstraintGenerator> c = make_shared<FlowConstraints>(o);
+            cs.emplace_back(c);
+        }
+
+        if (cs.empty()) {
+            cout << "CONSTRAINT GENERATORS NOT FOUND" << endl;
+            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        }
+
+        Options opts_h;
+        opts_h.set("constraint_generators", cs);
+        opts_h.set("lpsolver", 1);
+        opts_h.set("use_integer_op_counts", false);
+        opts_h.set("transform", task);
+        opts_h.set("cache_estimates", true);
+        h = make_shared<OperatorCountingHeuristic>(opts_h);
+    } else {
+        cout << "HEURISTIC " << eval << " NOT FOUND" << endl;
+        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+    }
+
+    // Set eval properties for SOCOperatorCountingHeuristic
+    h->lp_variables = lp_variables;
+    h->lp_constraints = lp_constraints;
+    h->glcs = glcs;
+    h->bounds_literals = bounds_literals;
+    h->initial_op_count = op_count;
+
+    opts.set("eval", h);
     opts.set("cost_type", cost_type);
     opts.set("max_time", max_time);
     opts.set("bound", bound);

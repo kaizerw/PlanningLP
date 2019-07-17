@@ -19,12 +19,29 @@
 #include "../search_engines/search_common.h"
 #include "../task_utils/successor_generator.h"
 
-#include "../heuristics/lm_cut_landmarks.h"
+#include "../heuristics/blind_search_heuristic.h"
+#include "../heuristics/lm_cut_heuristic.h"
+#include "../operator_counting/delete_relaxation_constraints.h"
+#include "../operator_counting/flow_constraints.h"
 #include "../operator_counting/lm_cut_constraints.h"
+#include "../operator_counting/operator_counting_heuristic.h"
+#include "../operator_counting/state_equation_constraints.h"
+#include "../pdbs/pattern_collection_generator_systematic.h"
+
+using blind_search_heuristic::BlindSearchHeuristic;
+using lm_cut_heuristic::LandmarkCutHeuristic;
+using operator_counting::ConstraintGenerator;
+using operator_counting::DeleteRelaxationConstraints;
+using operator_counting::FlowConstraints;
+using operator_counting::LMCutConstraints;
+using operator_counting::OperatorCountingHeuristic;
+using operator_counting::StateEquationConstraints;
+using pdbs::PatternCollectionGenerator;
+using pdbs::PatternCollectionGeneratorSystematic;
+
+#include "../heuristics/lm_cut_landmarks.h"
 #include "astar_search.h"
 
-#include "Florian/delete_relaxation_constraints.h"
-#include "Florian/flow_constraints.h"
 #include "dynamic_merging.h"
 #include "glc.h"
 #include "printer_plots.h"
@@ -43,8 +60,6 @@
 #include <vector>
 
 using lm_cut_heuristic::LandmarkCutLandmarks;
-using operator_counting::ConstraintGenerator;
-using operator_counting::LMCutConstraints;
 using OperatorCount = vector<int>;
 using SequenceInfo = tuple<bool, shared_ptr<GLC>, Plan, int>;
 
@@ -112,7 +127,7 @@ struct SOCWSSSCallback : public Function {
     bool print_lp_changes;
     bool print_search_tree;
     int max_seqs;
-    shared_ptr<Evaluator> eval;
+    string eval;
     lp::LPSolverType lp_solver_type;
     int cost_type;
     double max_time;
@@ -121,6 +136,7 @@ struct SOCWSSSCallback : public Function {
     int verbosity;
 
     shared_ptr<TaskProxy> task_proxy;
+    shared_ptr<AbstractTask> task;
     chrono::time_point<chrono::system_clock> start;
 
     shared_ptr<vector<vector<int>>> bounds_literals;
@@ -141,7 +157,8 @@ struct SOCWSSSCallback : public Function {
 
     CacheOperatorCounts cache_op_counts;
 
-    SOCWSSSCallback(const Options &opts, shared_ptr<TaskProxy> task_proxy);
+    SOCWSSSCallback(const Options &opts, shared_ptr<TaskProxy> task_proxy,
+                    shared_ptr<AbstractTask> task);
     pair<double, vector<double>> extract_sol(const Context &ctxt);
     pair<int, OperatorCount> round_sol(const Context &ctxt, double original_z,
                                        vector<double> &original_x);

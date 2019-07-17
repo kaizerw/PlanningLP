@@ -16,6 +16,8 @@
 #include "../search_engines/search_common.h"
 #include "../task_utils/successor_generator.h"
 
+#include "Florian/delete_relaxation_constraints.h"
+#include "Florian/flow_constraints.h"
 #include "socwssscallback.h"
 
 #include <chrono>
@@ -50,7 +52,7 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     bool print_lp_changes;
     bool print_search_tree;
     int max_seqs;
-    shared_ptr<Evaluator> eval;
+    string eval;
     lp::LPSolverType lp_solver_type;
     int cost_type;
     double max_time;
