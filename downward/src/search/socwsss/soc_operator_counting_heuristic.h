@@ -33,7 +33,8 @@ class SOCOperatorCountingHeuristic : public Heuristic {
 
    protected:
     virtual int compute_heuristic(const GlobalState &global_state) override;
-    int compute_heuristic(const State &state, const vector<int> &op_count);
+    int compute_heuristic(const State &state,
+                          const vector<int> &state_op_count);
 
    public:
     explicit SOCOperatorCountingHeuristic(const options::Options &opts);

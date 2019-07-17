@@ -306,7 +306,7 @@ static shared_ptr<ConstraintGenerator> _parse(OptionParser &parser) {
     parser.add_option<bool>(
         "partial_merges",
         "incremental detection of partial merges",
-        "false");
+        "true");
 
     parser.add_option<int>(
         "max_merge_feature_size",

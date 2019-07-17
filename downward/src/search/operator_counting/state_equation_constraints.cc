@@ -167,7 +167,7 @@ static shared_ptr<ConstraintGenerator> _parse(OptionParser &parser) {
         "constraint depend on the current state and the goal state and are "
         "updated in each state.");
 
-    parser.add_option<bool>("use_safety_improvement", "", "false");
+    parser.add_option<bool>("use_safety_improvement", "", "true");
     parser.add_option<bool>("use_only_upper_bounds", "", "false");
 
     if (parser.dry_run())

@@ -22,67 +22,60 @@ SOCOperatorCountingHeuristic::SOCOperatorCountingHeuristic(const Options &opts)
 int SOCOperatorCountingHeuristic::compute_heuristic(
     const GlobalState &global_state) {
     State state = convert_global_state(global_state);
-    vector<int> op_count =
+    vector<int> state_op_count =
         global_state.get_registry().lookup_op_count(global_state.id);
-    return compute_heuristic(state, op_count);
+    return compute_heuristic(state, state_op_count);
 }
 
 int SOCOperatorCountingHeuristic::compute_heuristic(
-    const State &state, const vector<int> & /*op_count*/) {
-    vector<lp::LPConstraint> temp_constraints;
+    const State &state, const vector<int> &state_op_count) {
+    // Calculate difference between initial_op_count and state_op_count
+    vector<int> diff;
+    transform(initial_op_count.begin(), initial_op_count.end(),
+              state_op_count.begin(), back_inserter(diff),
+              [](int i, int j) { return i - j; });
+    int diff_sum = accumulate(diff.begin(), diff.end(), 0);
 
-    // Adding all learned GLCs
+    // Adding updated learned GLCs
+    vector<lp::LPConstraint> glcs_constraints;
     int n_ops = task_proxy.get_operators().size();
     for (auto &glc : (*glcs)) {
         int yt_bound = glc->yt_bound;
         int last_yt_bound = (*bounds_literals)[n_ops].size() - 1;
+        int new_yt_bound = yt_bound - diff_sum;
 
-        lp::LPConstraint constraint(1.0, lp_solver.get_infinity());
-        if (yt_bound > 0) {
-            if (yt_bound <= last_yt_bound) {
-                constraint.insert((*bounds_literals)[n_ops][yt_bound], 1.0);
+        lp::LPConstraint c(1.0, lp_solver.get_infinity());
+        if (new_yt_bound > 0) {
+            if (new_yt_bound <= last_yt_bound) {
+                c.insert((*bounds_literals)[n_ops][new_yt_bound], 1.0);
             } else {
-                constraint.insert(n_ops, (1.0 / yt_bound));
+                c.insert(n_ops, (1.0 / new_yt_bound));
             }
         }
         for (auto &[op_id, op_bound] : glc->ops_bounds) {
             int last_op_bound = (*bounds_literals)[op_id].size() - 1;
+            int new_op_bound = op_bound - diff[op_id];
 
-            if (op_bound <= last_op_bound) {
-                constraint.insert((*bounds_literals)[op_id][op_bound], 1.0);
-            } else {
-                constraint.insert(op_id, (1.0 / op_bound));
+            if (new_op_bound > 0) {
+                if (new_op_bound <= last_op_bound) {
+                    c.insert((*bounds_literals)[op_id][new_op_bound], 1.0);
+                } else {
+                    c.insert(op_id, (1.0 / new_op_bound));
+                }
             }
         }
 
-        temp_constraints.emplace_back(constraint);
+        glcs_constraints.emplace_back(c);
     }
 
-    // Add path constraint
-    /*
-    vector<int> diff_op_count;
-    transform(initial_op_count.begin(), initial_op_count.end(),
-              op_count.begin(), back_inserter(diff_op_count),
-              [](int i, int j) { return i - j; });
-    lp::LPConstraint path_constraint(1.0, lp_solver.get_infinity());
-    for (int op_id = 0; op_id < n_ops; ++op_id) {
-        int diff = diff_op_count[op_id];
-
-        if (diff > 0) {
-            path_constraint.insert((*bounds_literals)[op_id][diff], 1.0);
-        }
-    }
-    temp_constraints.emplace_back(path_constraint);
-    */
-
-    // Add temp constraints to lp_solver
+    // Add glcs_constraints to lp_solver
     vector<lp::LPConstraint> all_constraints;
     copy(constraints.begin(), constraints.end(),
          back_inserter(all_constraints));
-    copy(temp_constraints.begin(), temp_constraints.end(),
+    copy(glcs_constraints.begin(), glcs_constraints.end(),
          back_inserter(all_constraints));
     lp_solver.load_problem(lp::LPObjectiveSense::MINIMIZE, variables,
-                           constraints);
+                           all_constraints);
 
     for (auto generator : constraint_generators) {
         bool dead_end = generator->update_constraints(state, lp_solver);

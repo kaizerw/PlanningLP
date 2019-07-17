@@ -25,13 +25,13 @@ opts="socwsss_cplex(constraint_type=1, \
                     print_lp_changes=false, \
                     print_search_tree=false, \
                     max_seqs=-1, \
-                    eval=blind())"
+                    eval=socoperatorcounting([state_equation_constraints(), lmcut_constraints()]))"
 
 # T1 seq: not optimal solution: 1216561 x 1216462
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
 # T1 seq h+: not optimal solution: 1215938 x 1215839
-#opts="astar(operatorcounting([state_equation_constraints(use_safety_improvement=true), lmcut_constraints()]))"
-#opts="astar(operatorcounting([delete_relaxation_constraints(use_time_vars=true), flow_constraints(partial_merges=true)]))"
+#opts="astar(operatorcounting([state_equation_constraints(), lmcut_constraints()]))"
+#opts="astar(operatorcounting([delete_relaxation_constraints(), flow_constraints()]))"
 ./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
 ################################################################################
 # OpSeq domain-by-domain
