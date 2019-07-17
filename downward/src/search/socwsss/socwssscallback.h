@@ -27,12 +27,14 @@
 #include "../operator_counting/operator_counting_heuristic.h"
 #include "../operator_counting/state_equation_constraints.h"
 #include "../pdbs/pattern_collection_generator_systematic.h"
+#include "glcs_constraints.h"
 
 using blind_search_heuristic::BlindSearchHeuristic;
 using lm_cut_heuristic::LandmarkCutHeuristic;
 using operator_counting::ConstraintGenerator;
 using operator_counting::DeleteRelaxationConstraints;
 using operator_counting::FlowConstraints;
+using operator_counting::GLCSConstraints;
 using operator_counting::LMCutConstraints;
 using operator_counting::OperatorCountingHeuristic;
 using operator_counting::StateEquationConstraints;

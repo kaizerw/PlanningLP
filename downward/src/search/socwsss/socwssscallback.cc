@@ -219,6 +219,12 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
             shared_ptr<ConstraintGenerator> c = make_shared<FlowConstraints>(o);
             cs.emplace_back(c);
         }
+        if (eval.find("glcs") != string::npos) {
+            cout << "USING GLCS CONSTRAINT GENERATOR" << endl;
+            shared_ptr<ConstraintGenerator> c = make_shared<GLCSConstraints>(
+                lp_variables, lp_constraints, glcs, bounds_literals, op_count);
+            cs.emplace_back(c);
+        }
 
         if (cs.empty()) {
             cout << "CONSTRAINT GENERATORS NOT FOUND" << endl;
@@ -236,13 +242,6 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
         cout << "HEURISTIC " << eval << " NOT FOUND" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
-
-    // Set eval properties for SOCOperatorCountingHeuristic
-    h->lp_variables = lp_variables;
-    h->lp_constraints = lp_constraints;
-    h->glcs = glcs;
-    h->bounds_literals = bounds_literals;
-    h->initial_op_count = op_count;
 
     opts.set("eval", h);
     opts.set("cost_type", cost_type);

@@ -25,7 +25,7 @@ opts="socwsss_cplex(constraint_type=1, \
                     print_lp_changes=false, \
                     print_search_tree=false, \
                     max_seqs=-1, \
-                    eval=operatorcounting_seq_landmarks)"
+                    eval=operatorcounting_seq_landmarks_glcs)"
 
 # T1 seq: not optimal solution: 1216561 x 1216462
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"

@@ -3,13 +3,8 @@
 
 #include "evaluation_result.h"
 
-#include "lp/lp_solver.h"
-#include "socwsss/glc.h"
-
 #include <memory>
 #include <set>
-#include <vector>
-
 using namespace std;
 
 class EvaluationContext;
@@ -22,15 +17,6 @@ class Evaluator {
     const bool use_for_counting_evaluations;
 
    public:
-    ////////////////////////////////////////////////////////////////////////////
-    // Properties for SOCOperatorCountingHeuristic
-    shared_ptr<vector<lp::LPVariable>> lp_variables;
-    shared_ptr<vector<lp::LPConstraint>> lp_constraints;
-    shared_ptr<vector<shared_ptr<GLC>>> glcs;
-    shared_ptr<vector<vector<int>>> bounds_literals;
-    vector<int> initial_op_count;
-    ////////////////////////////////////////////////////////////////////////////
-
     Evaluator(const std::string &description = "<none>",
               bool use_for_reporting_minima = false,
               bool use_for_boosting = false,

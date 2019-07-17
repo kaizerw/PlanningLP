@@ -80,8 +80,10 @@ void SOCWSSSCplexSearch::initialize() {
     constraint_yt.insert(n_ops, -1.0);
     lp_constraints->emplace_back(constraint_yt);
 
-    // Initialize c23_ops
-    c23_ops = vector(n_ops + 1, pair(-1, -1));
+    // Initialize c1_ops and c23_ops
+    c1_ops = make_shared<vector<vector<int>>>(n_ops + 1, vector<int>());
+    c23_ops =
+        make_shared<vector<pair<int, int>>>(vector(n_ops + 1, pair(-1, -1)));
 
     // Initialize bounds_literals
     bounds_literals =
@@ -259,6 +261,7 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
         c1.insert(id_k, 1.0);
         c1.insert(id_k_minus_1, -1.0);
 
+        (*c1_ops)[op_id].emplace_back(lp_constraints->size());
         lp_constraints->emplace_back(c1);
     }
 
@@ -277,14 +280,14 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
     c3.insert((*bounds_literals)[op_id][current_bound], -M);
 
     // Update constraints 2 and 3 of this operator
-    auto [ix2, ix3] = c23_ops[op_id];
+    auto [ix2, ix3] = (*c23_ops)[op_id];
     if (ix2 == -1 && ix3 == -1) {
         // If constraints 2 and 3 don't exist for this operator then create them
         lp_constraints->emplace_back(c2);
         lp_constraints->emplace_back(c3);
 
-        c23_ops[op_id] = {lp_constraints->size() - 2,
-                          lp_constraints->size() - 1};
+        (*c23_ops)[op_id] = {lp_constraints->size() - 2,
+                             lp_constraints->size() - 1};
     } else {
         // If constraints 2 and 3 already exist for this operator then update
         // them
