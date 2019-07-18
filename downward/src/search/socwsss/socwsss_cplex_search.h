@@ -41,18 +41,8 @@ namespace SOCWSSS_cplex_search {
 struct SOCWSSSCplexSearch : public SearchEngine {
     Options opts;
     int constraint_type;
-    bool use_seq_constraints;
-    bool use_lmcut_constraints;
-    bool use_dynamic_merging_constraints;
-    bool use_delete_relaxation_constraints;
-    bool use_flow_constraints;
-    bool use_sequencing_cache;
-    bool print_current_oc;
-    bool print_learned_constraints;
-    bool print_lp_changes;
-    bool print_search_tree;
-    int max_seqs;
-    string eval;
+    string constraint_generators;
+    string heuristic;
     lp::LPSolverType lp_solver_type;
     int cost_type;
     double max_time;

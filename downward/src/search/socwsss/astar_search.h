@@ -30,10 +30,8 @@ using namespace std;
 namespace soc_astar_search {
 struct SOCAStarSearch : public EagerSearch {
     OperatorCount initial_op_count;
-    int h_oc;
+    int f_bound;
     int constraint_type;
-    int seq;
-    bool print_search_tree;
     double max_f_found;
     vector<bool> ops_learned_constraint;
     bool yt_learned_constraint;
@@ -48,11 +46,6 @@ struct SOCAStarSearch : public EagerSearch {
     virtual SearchStatus step() override;
 
     void generate_constraint();
-    void print_node(SearchNode &node);
-    void print_node(SearchNode &node, OperatorProxy &op, SearchNode &succ_node);
-    void print_edge(SearchNode &node, OperatorProxy &op, SearchNode &succ_node);
-    bool is_fully_expanded(SearchNode &node);
-    vector<int> compute_action_landmarks(const GlobalState &state);
 
     explicit SOCAStarSearch(const options::Options &opts);
     virtual ~SOCAStarSearch() = default;

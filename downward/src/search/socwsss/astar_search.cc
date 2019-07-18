@@ -4,10 +4,8 @@ namespace soc_astar_search {
 SOCAStarSearch::SOCAStarSearch(const Options &opts)
     : EagerSearch(opts),
       initial_op_count(opts.get<OperatorCount>("initial_op_count")),
-      h_oc(opts.get<int>("h_oc")),
+      f_bound(opts.get<int>("f_bound")),
       constraint_type(opts.get<int>("constraint_type")),
-      seq(opts.get<int>("seq")),
-      print_search_tree(opts.get<bool>("print_search_tree")),
       max_f_found(0),
       ops_learned_constraint(task_proxy.get_operators().size(),
                              (constraint_type == 1)),
@@ -171,13 +169,11 @@ SearchStatus SOCAStarSearch::step() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    print_node(*node);
-
-    // Use h_oc to bound search
+    // Use f_bound to bound search
     EvaluationContext eval_context2(node->get_state(), node->get_g(), false,
                                     &statistics);
     int node_f = eval_context2.get_evaluator_value(f_evaluator.get());
-    if (node_f > h_oc) {
+    if (node_f > f_bound) {
         return IN_PROGRESS;
     }
 
@@ -231,18 +227,14 @@ SearchStatus SOCAStarSearch::step() {
         if (s_op_count[op.get_id()] == 0) {
             // 1. Add all operators
             if (constraint_type == 1) {
-                print_edge(*node, op, succ_node);
-                print_node(*node, op, succ_node);
                 // 2. Add operators o that could generate states s' from states
                 // s only if s' is a new state
             } else if (constraint_type == 2) {
                 if (succ_node.is_new()) {
                     ops_learned_constraint[op.get_id()] = true;
-                    print_edge(*node, op, succ_node);
-                    print_node(*node, op, succ_node);
                 }
                 // 3. Add operators o that could generate states s' from states
-                // s only if s' is a new state and f(s') <= h_oc
+                // s only if s' is a new state and f(s') <= f_bound
             } else if (constraint_type == 3) {
                 // Calculate new_succ_g and new_succ_f
                 int new_succ_g = node->get_g() + get_adjusted_cost(op);
@@ -252,10 +244,8 @@ SearchStatus SOCAStarSearch::step() {
                     eval_context2.get_evaluator_value(f_evaluator.get());
 
                 if (succ_node.is_new()) {
-                    if (new_succ_f <= h_oc) {
+                    if (new_succ_f <= f_bound) {
                         ops_learned_constraint[op.get_id()] = true;
-                        print_edge(*node, op, succ_node);
-                        print_node(*node, op, succ_node);
                     } else {
                         yt_learned_constraint = true;
                     }
@@ -263,11 +253,6 @@ SearchStatus SOCAStarSearch::step() {
             }
 
             continue;
-        }
-
-        if (succ_node.is_new() ||
-            succ_node.get_g() > node->get_g() + get_adjusted_cost(op)) {
-            print_edge(*node, op, succ_node);
         }
         ////////////////////////////////////////////////////////////////////////
 
@@ -357,198 +342,5 @@ void SOCAStarSearch::generate_constraint() {
         learned_glc->yt_bound =
             accumulate(initial_op_count.begin(), initial_op_count.end(), 0) + 1;
     }
-}
-
-void SOCAStarSearch::print_node(SearchNode &node) {
-    if (print_search_tree) {
-        int node_g = node.get_g();
-        EvaluationContext eval_context_node(node.get_state(), node_g, false,
-                                            &statistics);
-        int node_f = eval_context_node.get_evaluator_value(f_evaluator.get());
-
-        cout << "%%" << endl;
-        cout << "SEQ: " << seq << endl;
-        cout << "NODE: " << node.get_state_id() << endl;
-        bool fully_expanded = is_fully_expanded(node);
-
-        if (task_properties::is_goal_state(task_proxy, node.get_state())) {
-            cout << "COLOR: green" << endl << endl;
-        } else if (node_f > h_oc) {
-            cout << "COLOR: gray" << endl << endl;
-            cout << "N3" << endl << endl;
-        } else {
-            cout << "COLOR: " << (fully_expanded ? "blue" : "yellow") << endl
-                 << endl;
-            cout << "N" << (fully_expanded ? "1" : "2") << endl << endl;
-        }
-
-        cout << "FACTS:" << endl;
-        VariablesProxy vars = task_proxy.get_variables();
-        for (size_t var_id = 0; var_id < vars.size(); ++var_id) {
-            int var_val = node.get_state()[var_id];
-            cout << vars[var_id].get_fact(var_val).get_name() << endl;
-        }
-        cout << endl
-             << "G: " << node_g << "\tF: " << node_f << "\tMIP: " << h_oc
-             << endl
-             << endl;
-
-        cout << "APPLICABLE OPS:" << endl;
-        vector<OperatorID> appops;
-        successor_generator.generate_applicable_ops(node.get_state(), appops);
-
-        GlobalState node_state =
-            state_registry.lookup_state(node.get_state_id());
-        OperatorCount node_op_count =
-            state_registry.lookup_op_count(node.get_state_id());
-
-        for (OperatorID appop : appops) {
-            cout << task_proxy.get_operators()[appop.get_index()].get_name();
-            cout << " x" << node_op_count[appop.get_index()] << endl;
-        }
-
-        cout << endl << "ACTION LANDMARKS:" << endl;
-        for (int op_id : compute_action_landmarks(node.get_state())) {
-            cout << task_proxy.get_operators()[op_id].get_name();
-            int oc = node_op_count[op_id];
-            cout << " x" << oc << endl;
-        }
-
-        if (node.get_state_id() ==
-            state_registry.get_initial_state().get_id()) {
-            cout << endl << "MIP PRIMAL:" << endl;
-            for (size_t op_id = 0; op_id < task_proxy.get_operators().size();
-                 ++op_id) {
-                if (initial_op_count[op_id] > 0) {
-                    cout << task_proxy.get_operators()[op_id].get_name() << " x"
-                         << initial_op_count[op_id] << endl;
-                }
-            }
-        }
-
-        cout << "%%" << endl;
-    }
-}
-
-void SOCAStarSearch::print_node(SearchNode &node, OperatorProxy &op,
-                                SearchNode &succ_node) {
-    if (print_search_tree) {
-        int new_succ_g = node.get_g() + get_adjusted_cost(op);
-        EvaluationContext eval_context2(succ_node.get_state(), new_succ_g,
-                                        false, &statistics);
-        int new_succ_f = eval_context2.get_evaluator_value(f_evaluator.get());
-        vector<OperatorID> appops;
-        successor_generator.generate_applicable_ops(succ_node.get_state(),
-                                                    appops);
-
-        cout << "%%" << endl;
-        cout << "SEQ: " << seq << endl;
-        cout << "NODE: " << succ_node.get_state_id() << endl;
-        cout << "COLOR: red" << endl << endl;
-        cout << "N4" << endl << endl;
-
-        cout << "FACTS:" << endl;
-        VariablesProxy vars = task_proxy.get_variables();
-        for (size_t var_id = 0; var_id < vars.size(); ++var_id) {
-            int var_val = succ_node.get_state()[var_id];
-            cout << vars[var_id].get_fact(var_val).get_name() << endl;
-        }
-        cout << endl
-             << "G: " << new_succ_g << "\tF: " << new_succ_f
-             << "\tMIP: " << h_oc << endl
-             << endl;
-
-        GlobalState node_state =
-            state_registry.lookup_state(node.get_state_id());
-        OperatorCount node_op_count =
-            state_registry.lookup_op_count(node.get_state_id());
-
-        cout << "APPLICABLE OPS:" << endl;
-        for (OperatorID appop : appops) {
-            cout << task_proxy.get_operators()[appop.get_index()].get_name();
-            int oc = node_op_count[appop.get_index()];
-            if (appop.get_index() == op.get_id()) {
-                cout << " x" << (oc - 1) << endl;
-            } else {
-                cout << " x" << oc << endl;
-            }
-        }
-
-        cout << endl << "ACTION LANDMARKS:" << endl;
-        for (int op_id : compute_action_landmarks(succ_node.get_state())) {
-            cout << task_proxy.get_operators()[op_id].get_name();
-            int oc = node_op_count[op_id];
-            if (op_id == op.get_id()) {
-                cout << " x" << (oc - 1) << endl;
-            } else {
-                cout << " x" << oc << endl;
-            }
-        }
-        cout << "%%" << endl;
-    }
-}
-
-void SOCAStarSearch::print_edge(SearchNode &node, OperatorProxy &op,
-                                SearchNode &succ_node) {
-    if (print_search_tree) {
-        cout << "%%" << endl;
-        cout << "SEQ: " << seq << endl;
-        cout << "EDGE: " << op.get_name() << " (" << op.get_cost() << ")"
-             << endl;
-        if (state_registry.lookup_op_count(node.get_state_id())[op.get_id()] >
-            0) {
-            cout << "COLOR: blue" << endl;
-        } else {
-            cout << "COLOR: red" << endl;
-        }
-        cout << "FROM: " << node.get_state_id() << endl;
-        cout << "TO: " << succ_node.get_state_id() << endl;
-        cout << "%%" << endl;
-    }
-}
-
-bool SOCAStarSearch::is_fully_expanded(SearchNode &node) {
-    vector<OperatorID> appops;
-    successor_generator.generate_applicable_ops(node.get_state(), appops);
-
-    bool fully_expanded = true;
-    for (OperatorID appop : appops) {
-        OperatorProxy op = task_proxy.get_operators()[appop];
-        GlobalState succ_state =
-            state_registry.get_successor_state(node.get_state(), op);
-        SearchNode succ_node = search_space.get_node(succ_state);
-
-        if (state_registry.lookup_op_count(
-                node.get_state_id())[appop.get_index()] == 0 &&
-            (succ_node.is_new() ||
-             succ_node.get_g() > node.get_g() + get_adjusted_cost(op))) {
-            fully_expanded = false;
-            break;
-        }
-    }
-    return fully_expanded;
-}
-
-vector<int> SOCAStarSearch::compute_action_landmarks(const GlobalState &state) {
-    vector<int> action_landmarks;
-
-    vector<bool> valid_operators(task_proxy.get_operators().size(), true);
-    for (OperatorProxy op : task_proxy.get_operators()) {
-        valid_operators[op.get_id()] = false;
-
-        Options oc_hmax_opts;
-        oc_hmax_opts.set("cache_estimates", true);
-        oc_hmax_opts.set("transform", task);
-        oc_hmax_opts.set("valid_operators", valid_operators);
-        SOCHMaxHeuristic oc_hmax(oc_hmax_opts);
-
-        if (oc_hmax.compute_heuristic(state) == -1) {
-            action_landmarks.emplace_back(op.get_id());
-        }
-
-        valid_operators[op.get_id()] = true;
-    }
-
-    return action_landmarks;
 }
 }  // namespace soc_astar_search

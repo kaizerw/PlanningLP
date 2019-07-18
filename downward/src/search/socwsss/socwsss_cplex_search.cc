@@ -5,20 +5,8 @@ namespace SOCWSSS_cplex_search {
 SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
     : SearchEngine(opts),
       constraint_type(opts.get<int>("constraint_type")),
-      use_seq_constraints(opts.get<bool>("use_seq_constraints")),
-      use_lmcut_constraints(opts.get<bool>("use_lmcut_constraints")),
-      use_dynamic_merging_constraints(
-          opts.get<bool>("use_dynamic_merging_constraints")),
-      use_delete_relaxation_constraints(
-          opts.get<bool>("use_delete_relaxation_constraints")),
-      use_flow_constraints(opts.get<bool>("use_flow_constraints")),
-      use_sequencing_cache(opts.get<bool>("use_sequencing_cache")),
-      print_current_oc(opts.get<bool>("print_current_oc")),
-      print_learned_constraints(opts.get<bool>("print_learned_constraints")),
-      print_lp_changes(opts.get<bool>("print_lp_changes")),
-      print_search_tree(opts.get<bool>("print_search_tree")),
-      max_seqs(opts.get<int>("max_seqs")),
-      eval(opts.get<string>("eval")),
+      constraint_generators(opts.get<string>("constraint_generators")),
+      heuristic(opts.get<string>("heuristic")),
       lp_solver_type(lp::LPSolverType(opts.get_enum("lpsolver"))),
       cost_type(opts.get<int>("cost_type")),
       max_time(opts.get<double>("max_time")),
@@ -26,25 +14,9 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       pruning(opts.get<shared_ptr<PruningMethod>>("pruning")),
       verbosity(opts.get<int>("verbosity")) {
     this->opts.set("constraint_type", opts.get<int>("constraint_type"));
-    this->opts.set("use_seq_constraints",
-                   opts.get<bool>("use_seq_constraints"));
-    this->opts.set("use_lmcut_constraints",
-                   opts.get<bool>("use_lmcut_constraints"));
-    this->opts.set("use_dynamic_merging_constraints",
-                   opts.get<bool>("use_dynamic_merging_constraints"));
-    this->opts.set("use_delete_relaxation_constraints",
-                   opts.get<bool>("use_delete_relaxation_constraints"));
-    this->opts.set("use_flow_constraints",
-                   opts.get<bool>("use_flow_constraints"));
-    this->opts.set("use_sequencing_cache",
-                   opts.get<bool>("use_sequencing_cache")),
-        this->opts.set("print_current_oc", opts.get<bool>("print_current_oc"));
-    this->opts.set("print_learned_constraints",
-                   opts.get<bool>("print_learned_constraints"));
-    this->opts.set("print_lp_changes", opts.get<bool>("print_lp_changes"));
-    this->opts.set("print_search_tree", opts.get<bool>("print_search_tree"));
-    this->opts.set("max_seqs", opts.get<int>("max_seqs"));
-    this->opts.set("eval", opts.get<string>("eval"));
+    this->opts.set("constraint_generators",
+                   opts.get<string>("constraint_generators"));
+    this->opts.set("heuristic", opts.get<string>("heuristic"));
     this->opts.set("lp_solver_type",
                    lp::LPSolverType(opts.get_enum("lpsolver")));
     this->opts.set("cost_type", opts.get<int>("cost_type"));
@@ -105,14 +77,14 @@ void SOCWSSSCplexSearch::initialize() {
 
 void SOCWSSSCplexSearch::create_base_constraints() {
     // Create state-equation constraints
-    if (use_seq_constraints) {
+    if (constraint_generators.find("seq") != string::npos) {
         cout << "Using SEQ constraints" << endl;
         SEQConstraints()(task, (*lp_constraints), infinity,
                          task_proxy.get_initial_state());
     }
 
     // Add lmcut landmark constraints with bounds literals
-    if (use_lmcut_constraints) {
+    if (constraint_generators.find("landmarks") != string::npos) {
         cout << "Using lmcut constraints" << endl;
         LandmarkCutLandmarks(task_proxy)
             .compute_landmarks(
@@ -128,7 +100,7 @@ void SOCWSSSCplexSearch::create_base_constraints() {
     }
 
     // Compute dynamic merging
-    if (use_dynamic_merging_constraints) {
+    if (constraint_generators.find("dynamicmerging") != string::npos) {
         cout << "Using dynamic merging constraints" << endl;
         DynamicMerging dm(lp_solver_type, make_shared<TaskProxy>(task_proxy),
                           infinity, lp_variables->size(),
@@ -142,7 +114,7 @@ void SOCWSSSCplexSearch::create_base_constraints() {
     }
 
     // Florian delete relaxation constraints
-    if (use_delete_relaxation_constraints) {
+    if (constraint_generators.find("h+") != string::npos) {
         cout << "Using delete relaxation constraints" << endl;
         FlorianDeleteRelaxationConstraints(make_shared<TaskProxy>(task_proxy),
                                            infinity)(
@@ -150,7 +122,7 @@ void SOCWSSSCplexSearch::create_base_constraints() {
     }
 
     // Florian flow constraints
-    if (use_flow_constraints) {
+    if (constraint_generators.find("flow") != string::npos) {
         cout << "Using flow constraints" << endl;
         FlorianFlowConstraints()(task, (*lp_variables), (*lp_constraints),
                                  infinity, task_proxy.get_initial_state());
@@ -319,7 +291,6 @@ SearchStatus SOCWSSSCplexSearch::step() {
 
         if (socwsss_callback->restart) {
             cout << "RESTARTING..." << endl;
-            socwsss_callback->restarts++;
             socwsss_callback->restart = false;
         } else {
             break;
@@ -344,8 +315,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
         for (IloInt i = 0; i < n_ops; ++i) {
             op_counts.emplace_back(cplex->getValue((*x)[i]));
         }
-        Plan plan = get<2>(socwsss_callback->cache_op_counts[op_counts]);
-        set_plan(plan);
+        set_plan(socwsss_callback->cache_op_counts[op_counts].plan);
     }
 
     return status;
@@ -361,22 +331,8 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.document_synopsis("SOCWSSS CPLEX Search", "SOCWSSS CPLEX Search");
 
     parser.add_option<int>("constraint_type", "", "1");
-
-    parser.add_option<bool>("use_seq_constraints", "", "true");
-    parser.add_option<bool>("use_lmcut_constraints", "", "false");
-    parser.add_option<bool>("use_dynamic_merging_constraints", "", "false");
-    parser.add_option<bool>("use_delete_relaxation_constraints", "", "false");
-    parser.add_option<bool>("use_flow_constraints", "", "false");
-
-    parser.add_option<bool>("use_sequencing_cache", "", "true");
-
-    parser.add_option<bool>("print_current_oc", "", "false");
-    parser.add_option<bool>("print_learned_constraints", "", "false");
-    parser.add_option<bool>("print_lp_changes", "", "false");
-    parser.add_option<bool>("print_search_tree", "", "false");
-
-    parser.add_option<int>("max_seqs", "", "-1");
-    parser.add_option<string>("eval", "", "blind");
+    parser.add_option<string>("constraint_generators", "", "seq");
+    parser.add_option<string>("heuristic", "", "blind");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);

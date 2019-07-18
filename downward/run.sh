@@ -14,25 +14,14 @@
 #              max_mem_to_solve=3.5, \
 #              eval=lmcut())"
 opts="socwsss_cplex(constraint_type=1, \
-                    use_seq_constraints=true, \
-                    use_lmcut_constraints=false, \
-                    use_dynamic_merging_constraints=false, \
-                    use_delete_relaxation_constraints=true, \
-                    use_flow_constraints=false, \
-                    use_sequencing_cache=true, \
-                    print_current_oc=false, \
-                    print_learned_constraints=false, \
-                    print_lp_changes=false, \
-                    print_search_tree=false, \
-                    max_seqs=-1, \
-                    eval=operatorcounting_seq_landmarks_glcs)"
-
+                    constraint_generators=seq, \
+                    heuristic=blind)"
 # T1 seq: not optimal solution: 1216561 x 1216462
-#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
+./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
 # T1 seq h+: not optimal solution: 1215938 x 1215839
 #opts="astar(operatorcounting([state_equation_constraints(), lmcut_constraints()]))"
 #opts="astar(operatorcounting([delete_relaxation_constraints(), flow_constraints()]))"
-./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
+#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
 ################################################################################
 # OpSeq domain-by-domain

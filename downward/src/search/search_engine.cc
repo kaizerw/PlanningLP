@@ -24,7 +24,8 @@ using utils::ExitCode;
 
 class PruningMethod;
 
-successor_generator::SuccessorGenerator &get_successor_generator(const TaskProxy &task_proxy) {
+successor_generator::SuccessorGenerator &get_successor_generator(
+    const TaskProxy &task_proxy) {
     cout << "Building successor generator..." << flush;
     int peak_memory_before = utils::get_peak_memory_in_kb();
     utils::Timer successor_generator_timer;
@@ -49,7 +50,8 @@ SearchEngine::SearchEngine(const Options &opts)
       state_registry(task_proxy),
       successor_generator(get_successor_generator(task_proxy)),
       search_space(state_registry),
-      search_progress(static_cast<utils::Verbosity>(opts.get_enum("verbosity"))),
+      search_progress(
+          static_cast<utils::Verbosity>(opts.get_enum("verbosity"))),
       statistics(static_cast<utils::Verbosity>(opts.get_enum("verbosity"))),
       cost_type(static_cast<OperatorCost>(opts.get_enum("cost_type"))),
       is_unit_cost(task_properties::is_unit_cost(task_proxy)),
@@ -63,16 +65,11 @@ SearchEngine::SearchEngine(const Options &opts)
     task_properties::print_variable_statistics(task_proxy);
 }
 
-SearchEngine::~SearchEngine() {
-}
+SearchEngine::~SearchEngine() {}
 
-bool SearchEngine::found_solution() const {
-    return solution_found;
-}
+bool SearchEngine::found_solution() const { return solution_found; }
 
-SearchStatus SearchEngine::get_status() const {
-    return status;
-}
+SearchStatus SearchEngine::get_status() const { return status; }
 
 const Plan &SearchEngine::get_plan() const {
     assert(solution_found);
@@ -106,6 +103,23 @@ bool SearchEngine::check_goal_and_set_plan(const GlobalState &state) {
         Plan plan;
         search_space.trace_path(state, plan);
         set_plan(plan);
+
+        ////////////////////////////////////////////////////////////////////////
+        vector<int> op_count(task_proxy.get_operators().size(), 0);
+        for (OperatorID op_id : plan) {
+            op_count[op_id.get_index()]++;
+        }
+
+        cout << "Max op count: "
+             << (*max_element(op_count.begin(), op_count.end())) << endl;
+        cout << "Max num ops: "
+             << (accumulate(op_count.begin(), op_count.end(), 0)) << endl;
+        cout << "Max num distinct ops: "
+             << (count_if(op_count.begin(), op_count.end(),
+                          [](int count) { return count > 0; }))
+             << endl;
+        ////////////////////////////////////////////////////////////////////////
+
         return true;
     }
     return false;
@@ -124,13 +138,16 @@ int SearchEngine::get_adjusted_cost(const OperatorProxy &op) const {
 /* TODO: merge this into add_options_to_parser when all search
          engines support pruning.
 
-   Method doesn't belong here because it's only useful for certain derived classes.
+   Method doesn't belong here because it's only useful for certain derived
+   classes.
    TODO: Figure out where it belongs and move it there. */
 void SearchEngine::add_pruning_option(OptionParser &parser) {
     parser.add_option<shared_ptr<PruningMethod>>(
         "pruning",
-        "Pruning methods can prune or reorder the set of applicable operators in "
-        "each state and thereby influence the number and order of successor states "
+        "Pruning methods can prune or reorder the set of applicable operators "
+        "in "
+        "each state and thereby influence the number and order of successor "
+        "states "
         "that are considered.",
         "null()");
 }
@@ -139,32 +156,34 @@ void SearchEngine::add_options_to_parser(OptionParser &parser) {
     ::add_cost_type_option_to_parser(parser);
     parser.add_option<int>(
         "bound",
-        "exclusive depth bound on g-values. Cutoffs are always performed according to "
-        "the real cost, regardless of the cost_type parameter", "infinity");
+        "exclusive depth bound on g-values. Cutoffs are always performed "
+        "according to "
+        "the real cost, regardless of the cost_type parameter",
+        "infinity");
     parser.add_option<double>(
         "max_time",
         "maximum time in seconds the search is allowed to run for. The "
         "timeout is only checked after each complete search step "
         "(usually a node expansion), so the actual runtime can be arbitrarily "
-        "longer. Therefore, this parameter should not be used for time-limiting "
+        "longer. Therefore, this parameter should not be used for "
+        "time-limiting "
         "experiments. Timed-out searches are treated as failed searches, "
-        "just like incomplete search algorithms that exhaust their search space.",
+        "just like incomplete search algorithms that exhaust their search "
+        "space.",
         "infinity");
     utils::add_verbosity_option_to_parser(parser);
 }
 
-/* Method doesn't belong here because it's only useful for certain derived classes.
+/* Method doesn't belong here because it's only useful for certain derived
+   classes.
    TODO: Figure out where it belongs and move it there. */
 void SearchEngine::add_succ_order_options(OptionParser &parser) {
     vector<string> options;
     parser.add_option<bool>(
         "randomize_successors",
-        "randomize the order in which successors are generated",
-        "false");
-    parser.add_option<bool>(
-        "preferred_successors_first",
-        "consider preferred operators first",
-        "false");
+        "randomize the order in which successors are generated", "false");
+    parser.add_option<bool>("preferred_successors_first",
+                            "consider preferred operators first", "false");
     parser.document_note(
         "Successor ordering",
         "When using randomize_successors=true and "
@@ -175,12 +194,11 @@ void SearchEngine::add_succ_order_options(OptionParser &parser) {
 
 void print_initial_evaluator_values(const EvaluationContext &eval_context) {
     eval_context.get_cache().for_each_evaluator_result(
-        [] (const Evaluator *eval, const EvaluationResult &result) {
+        [](const Evaluator *eval, const EvaluationResult &result) {
             if (eval->is_used_for_reporting_minima()) {
                 eval->report_value_for_initial_state(result);
             }
-        }
-        );
+        });
 }
 
 static PluginTypePlugin<SearchEngine> _type_plugin(
@@ -189,11 +207,12 @@ static PluginTypePlugin<SearchEngine> _type_plugin(
     "");
 
 void collect_preferred_operators(
-    EvaluationContext &eval_context,
-    Evaluator *preferred_operator_evaluator,
+    EvaluationContext &eval_context, Evaluator *preferred_operator_evaluator,
     ordered_set::OrderedSet<OperatorID> &preferred_operators) {
-    if (!eval_context.is_evaluator_value_infinite(preferred_operator_evaluator)) {
-        for (OperatorID op_id : eval_context.get_preferred_operators(preferred_operator_evaluator)) {
+    if (!eval_context.is_evaluator_value_infinite(
+            preferred_operator_evaluator)) {
+        for (OperatorID op_id : eval_context.get_preferred_operators(
+                 preferred_operator_evaluator)) {
             preferred_operators.insert(op_id);
         }
     }

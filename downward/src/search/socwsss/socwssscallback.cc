@@ -4,20 +4,8 @@ SOCWSSSCallback::SOCWSSSCallback(const Options &opts,
                                  shared_ptr<TaskProxy> task_proxy,
                                  shared_ptr<AbstractTask> task)
     : constraint_type(opts.get<int>("constraint_type")),
-      use_seq_constraints(opts.get<bool>("use_seq_constraints")),
-      use_lmcut_constraints(opts.get<bool>("use_lmcut_constraints")),
-      use_dynamic_merging_constraints(
-          opts.get<bool>("use_dynamic_merging_constraints")),
-      use_delete_relaxation_constraints(
-          opts.get<bool>("use_delete_relaxation_constraints")),
-      use_flow_constraints(opts.get<bool>("use_flow_constraints")),
-      use_sequencing_cache(opts.get<bool>("use_sequencing_cache")),
-      print_current_oc(opts.get<bool>("print_current_oc")),
-      print_learned_constraints(opts.get<bool>("print_learned_constraints")),
-      print_lp_changes(opts.get<bool>("print_lp_changes")),
-      print_search_tree(opts.get<bool>("print_search_tree")),
-      max_seqs(opts.get<int>("max_seqs")),
-      eval(opts.get<string>("eval")),
+      constraint_generators(opts.get<string>("constraint_generators")),
+      heuristic(opts.get<string>("heuristic")),
       lp_solver_type(opts.get<lp::LPSolverType>("lp_solver_type")),
       cost_type(opts.get<int>("cost_type")),
       max_time(opts.get<double>("max_time")),
@@ -130,50 +118,34 @@ pair<int, IloExpr> SOCWSSSCallback::get_cut(shared_ptr<GLC> learned_glc) {
     return {missing_bounds, cut};
 }
 
-pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
-    int h_oc, OperatorCount op_count) {
-    if (use_sequencing_cache && cache_op_counts.has(op_count)) {
+SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
+                                                 OperatorCount op_count) {
+    if (cache_op_counts.has(op_count)) {
         repeated_seqs++;
-        return {true, cache_op_counts[op_count]};
+        return cache_op_counts[op_count];
     }
-
-    bool status = false;
-    shared_ptr<GLC> learned_glc;
-    Plan plan;
-    int plan_cost = 0;
-
-    if (max_seqs != -1 && seq > max_seqs) {
-        return {false, {status, learned_glc, plan, plan_cost}};
-    }
-
-    printer_plots->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
-                             restarts);
-
-    seq++;
-
-    // cout.setstate(ios_base::failbit);
 
     // Setup A* search
     Options opts;
     shared_ptr<Evaluator> h;
 
-    if (eval.find("blind") != string::npos) {
+    if (heuristic.find("blind") != string::npos) {
         cout << "USING BLIND HEURISTIC" << endl;
         Options opts_h;
         opts_h.set("transform", task);
         opts_h.set("cache_estimates", true);
         h = make_shared<BlindSearchHeuristic>(opts_h);
-    } else if (eval.find("lmcut") != string::npos) {
+    } else if (heuristic.find("lmcut") != string::npos) {
         cout << "USING LMCUT HEURISTIC" << endl;
         Options opts_h;
         opts_h.set("transform", task);
         opts_h.set("cache_estimates", true);
         h = make_shared<LandmarkCutHeuristic>(opts_h);
-    } else if (eval.find("operatorcounting") != string::npos) {
+    } else if (heuristic.find("operatorcounting") != string::npos) {
         cout << "USING OPERATOR COUNT HEURISTIC" << endl;
         vector<shared_ptr<ConstraintGenerator>> cs;
 
-        if (eval.find("seq") != string::npos) {
+        if (constraint_generators.find("seq") != string::npos) {
             cout << "USING SEQ CONSTRAINT GENERATOR" << endl;
             Options o;
             o.set("use_safety_improvement", true);
@@ -182,12 +154,12 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
                 make_shared<StateEquationConstraints>(o);
             cs.emplace_back(c);
         }
-        if (eval.find("landmarks") != string::npos) {
+        if (constraint_generators.find("landmarks") != string::npos) {
             cout << "USING LANDMARK CONSTRAINT GENERATOR" << endl;
             shared_ptr<ConstraintGenerator> c = make_shared<LMCutConstraints>();
             cs.emplace_back(c);
         }
-        if (eval.find("h+") != string::npos) {
+        if (constraint_generators.find("h+") != string::npos) {
             cout << "USING H+ CONSTRAINT GENERATOR" << endl;
             Options o;
             o.set("use_time_vars", true);
@@ -196,7 +168,7 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
                 make_shared<DeleteRelaxationConstraints>(o);
             cs.emplace_back(c);
         }
-        if (eval.find("flow") != string::npos) {
+        if (constraint_generators.find("flow") != string::npos) {
             cout << "USING FLOW CONSTRAINT GENERATOR" << endl;
             Options o_p;
             o_p.set("pattern_max_size", 1);
@@ -219,7 +191,7 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
             shared_ptr<ConstraintGenerator> c = make_shared<FlowConstraints>(o);
             cs.emplace_back(c);
         }
-        if (eval.find("glcs") != string::npos) {
+        if (constraint_generators.find("glcs") != string::npos) {
             cout << "USING GLCS CONSTRAINT GENERATOR" << endl;
             shared_ptr<ConstraintGenerator> c = make_shared<GLCSConstraints>(
                 lp_variables, lp_constraints, glcs, bounds_literals, op_count);
@@ -239,7 +211,7 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
         opts_h.set("cache_estimates", true);
         h = make_shared<OperatorCountingHeuristic>(opts_h);
     } else {
-        cout << "HEURISTIC " << eval << " NOT FOUND" << endl;
+        cout << "HEURISTIC " << heuristic << " NOT FOUND" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
@@ -258,18 +230,17 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
 
     // Custom options
     opts.set("initial_op_count", op_count);
-    opts.set("h_oc", h_oc);
+    opts.set("f_bound", f_bound);
     opts.set("constraint_type", constraint_type);
-    opts.set("seq", seq);
-    opts.set("print_search_tree", print_search_tree);
-
-    auto astar = make_shared<soc_astar_search::SOCAStarSearch>(opts);
-
-    auto start = chrono::system_clock::now();
 
     // Perform A* search
+    // cout.setstate(ios_base::failbit);
+    seq++;
+    printer_plots->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
+                             restarts);
+    auto astar = make_shared<soc_astar_search::SOCAStarSearch>(opts);
+    auto start = chrono::system_clock::now();
     astar->search();
-
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
                                       chrono::system_clock::now() - start)
                                       .count();
@@ -277,49 +248,47 @@ pair<bool, SequenceInfo> SOCWSSSCallback::get_astar_sequence(
     printer_plots->plot_astar_time.emplace_back(elapsed_microseconds);
     printer_plots->plot_nodes_expanded.emplace_back(
         astar->get_statistics().get_expanded());
+    // cout.clear();
 
-    cout.clear();
-
+    SequenceInfo info;
     if (astar->found_solution()) {
         // Get plan found by A*
-        plan = astar->get_plan();
+        info.plan = astar->get_plan();
 
         // Calculate plan cost
-        plan_cost = accumulate(
-            plan.begin(), plan.end(), 0, [&](int acc, OperatorID op_id) {
+        info.plan_cost = accumulate(
+            info.plan.begin(), info.plan.end(), 0,
+            [&](int acc, OperatorID op_id) {
                 return acc + task_proxy->get_operators()[op_id].get_cost();
             });
 
-        cout << "SEQ " << seq << ": FOUND PLAN WITH COST=" << plan_cost << endl;
-        status = true;
-    } else {
-        learned_glc = astar->learned_glc;
-        cout << "SEQ " << seq << ": NOT SEQUENCIABLE WITH F-BOUND=" << h_oc
+        cout << "SEQ " << seq << ": FOUND PLAN WITH COST=" << info.plan_cost
              << endl;
-        status = false;
+        info.sequenciable = true;
+    } else {
+        info.learned_glc = astar->learned_glc;
+        cout << "SEQ " << seq << ": NOT SEQUENCIABLE WITH F-BOUND=" << f_bound
+             << endl;
+        info.sequenciable = false;
     }
 
-    SequenceInfo ret = {status, learned_glc, plan, plan_cost};
-    if (use_sequencing_cache || status) {
-        cache_op_counts.add(op_count, ret);
-    }
-    return {false, ret};
+    cache_op_counts.add(op_count, info);
+    return info;
 }
 
 void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
                                OperatorCount &rounded_x) {
     // Try to sequence current solution
-    auto [found_in_cache, info] = get_astar_sequence(rounded_z, rounded_x);
-    auto [status, learned_glc, plan, plan_cost] = info;
+    SequenceInfo info = get_astar_sequence(rounded_z, rounded_x);
 
-    if (status) {
+    if (info.sequenciable) {
         // If this plan has the same cost as the lower-bound found by the
         // LP, to the nearest integer, then we have optimally solved the
         // planning problem. If the plan cost is more than the lower bound,
         // this solution can be used to bound the search process
         if (ctxt.inRelaxation()) {
             vector<int> plan_counts(n_ops, 0);
-            for (OperatorID &op_id : plan) {
+            for (OperatorID &op_id : info.plan) {
                 plan_counts[op_id.get_index()]++;
             }
 
@@ -332,21 +301,23 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
                 }
             }
 
-            ctxt.postHeuristicSolution((*x), values, plan_cost,
+            ctxt.postHeuristicSolution((*x), values, info.plan_cost,
                                        Context::SolutionStrategy::Propagate);
         }
     } else {
-        if (!found_in_cache) {
-            glcs->emplace_back(learned_glc);
+        if (!info.in_lp) {
+            glcs->emplace_back(info.learned_glc);
 
             // Unless there is more than one missing bounds literal, the
             // constraint still invalidates the current linear optimum. If a
             // weakened constraint is generated that does not invalidate the
             // current linear optimum, the MIP search is restarted after any
             // weakened terms are replaced with the correct bounds literals
-            auto [missing_bounds, cut] = get_cut(learned_glc);
+            auto [missing_bounds, cut] = get_cut(info.learned_glc);
             if (missing_bounds > 1) {
                 restart = true;
+                restarts++;
+                cache_op_counts.reset_in_lp();
                 ctxt.abort();
             }
 
@@ -355,6 +326,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
             } else if (ctxt.inCandidate()) {
                 ctxt.rejectCandidate(cut >= 1.0);
             }
+            info.in_lp = true;
 
             printer_plots->update(rounded_z, rounded_x, c->getSize(),
                                   x->getSize());

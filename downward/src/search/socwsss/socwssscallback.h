@@ -31,6 +31,7 @@
 
 using blind_search_heuristic::BlindSearchHeuristic;
 using lm_cut_heuristic::LandmarkCutHeuristic;
+using lm_cut_heuristic::LandmarkCutLandmarks;
 using operator_counting::ConstraintGenerator;
 using operator_counting::DeleteRelaxationConstraints;
 using operator_counting::FlowConstraints;
@@ -61,10 +62,6 @@ using pdbs::PatternCollectionGeneratorSystematic;
 #include <utility>
 #include <vector>
 
-using lm_cut_heuristic::LandmarkCutLandmarks;
-using OperatorCount = vector<int>;
-using SequenceInfo = tuple<bool, shared_ptr<GLC>, Plan, int>;
-
 using namespace std;
 
 class Evaluator;
@@ -74,10 +71,13 @@ namespace options {
 class Options;
 }
 
-using Function = IloCplex::Callback::Function;
-using Context = IloCplex::Callback::Context;
-using OperatorCount = vector<int>;
-using SequenceInfo = tuple<bool, shared_ptr<GLC>, Plan, int>;
+struct SequenceInfo {
+    bool in_lp = false;
+    bool sequenciable = false;
+    shared_ptr<GLC> learned_glc = nullptr;
+    Plan plan = Plan();
+    int plan_cost = 0;
+};
 
 struct CacheOperatorCounts {
     struct Hash {
@@ -114,22 +114,22 @@ struct CacheOperatorCounts {
         }
         return map_op_count;
     }
+
+    void reset_in_lp() {
+        for (auto &i : cache) {
+            i.second.in_lp = false;
+        }
+    }
 };
+
+using Function = IloCplex::Callback::Function;
+using Context = IloCplex::Callback::Context;
+using OperatorCount = vector<int>;
 
 struct SOCWSSSCallback : public Function {
     int constraint_type;
-    bool use_seq_constraints;
-    bool use_lmcut_constraints;
-    bool use_dynamic_merging_constraints;
-    bool use_delete_relaxation_constraints;
-    bool use_flow_constraints;
-    bool use_sequencing_cache;
-    bool print_current_oc;
-    bool print_learned_constraints;
-    bool print_lp_changes;
-    bool print_search_tree;
-    int max_seqs;
-    string eval;
+    string constraint_generators;
+    string heuristic;
     lp::LPSolverType lp_solver_type;
     int cost_type;
     double max_time;
@@ -170,8 +170,7 @@ struct SOCWSSSCallback : public Function {
                    vector<double> &original_x, int rounded_z,
                    OperatorCount &rounded_x);
     pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
-    pair<bool, SequenceInfo> get_astar_sequence(int h_oc,
-                                                OperatorCount op_count);
+    SequenceInfo get_astar_sequence(int f_bound, OperatorCount op_count);
     void sequence(const Context &ctxt, int rounded_z, OperatorCount &rounded_x);
     void invoke(const Context &ctxt);
 };
