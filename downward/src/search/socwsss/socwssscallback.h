@@ -17,6 +17,7 @@
 #include "../pruning_method.h"
 #include "../search_engine.h"
 #include "../search_engines/search_common.h"
+#include "../state_registry.h"
 #include "../task_utils/successor_generator.h"
 
 #include "../heuristics/blind_search_heuristic.h"
@@ -150,6 +151,8 @@ struct SOCWSSSCallback : public Function {
     shared_ptr<IloCplex> cplex;
     shared_ptr<vector<lp::LPVariable>> lp_variables;
     shared_ptr<vector<lp::LPConstraint>> lp_constraints;
+    shared_ptr<vector<int>> idx_extra_variables;
+    shared_ptr<vector<int>> idx_extra_constraints;
 
     bool restart = false;
     int restarts = 0, seq = 0, repeated_seqs = 0;

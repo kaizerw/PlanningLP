@@ -204,8 +204,8 @@ void DeleteRelaxationConstraints::initialize_constraints(
 }
 
 
-bool DeleteRelaxationConstraints::update_constraints(const State &state,
-                                          lp::LPSolver &lp_solver) {
+bool DeleteRelaxationConstraints::update_constraints(const State &state, lp::LPSolver &lp_solver,
+        shared_ptr<vector<int>> /*state_op_count*/) {
     // Unset old bounds.
     for (FactProxy f : last_state) {
         lp_solver.set_constraint_lower_bound(get_constraint_id(f), 0);

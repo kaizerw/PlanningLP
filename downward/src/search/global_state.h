@@ -12,7 +12,9 @@ namespace soc_astar_search {
 class SOCAStarSearch;
 }
 
-class SOCOperatorCounting;
+namespace operator_counting {
+class OperatorCountingHeuristic;
+}
 
 using PackedStateBin = int_packer::IntPacker::Bin;
 
@@ -22,7 +24,7 @@ class GlobalState {
     friend class StateRegistry;
     friend class SOCStateRegistry;
     friend class soc_astar_search::SOCAStarSearch;
-    friend class SOCOperatorCountingHeuristic;
+    friend class operator_counting::OperatorCountingHeuristic;
     template <typename Entry>
     friend class PerStateInformation;
     template <typename>

@@ -59,6 +59,8 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     shared_ptr<vector<vector<int>>> bounds_literals;
     shared_ptr<vector<vector<int>>> c1_ops;
     shared_ptr<vector<pair<int, int>>> c23_ops;
+    shared_ptr<vector<int>> idx_extra_variables;
+    shared_ptr<vector<int>> idx_extra_constraints;
 
     shared_ptr<IloEnv> env;
     shared_ptr<IloModel> model;

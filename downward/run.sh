@@ -14,8 +14,8 @@
 #              max_mem_to_solve=3.5, \
 #              eval=lmcut())"
 opts="socwsss_cplex(constraint_type=1, \
-                    constraint_generators=seq, \
-                    heuristic=blind)"
+                    constraint_generators=seq_landmarks_glcs, \
+                    heuristic=operatorcounting)"
 # T1 seq: not optimal solution: 1216561 x 1216462
 ./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
 # T1 seq h+: not optimal solution: 1215938 x 1215839

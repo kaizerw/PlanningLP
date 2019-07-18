@@ -45,7 +45,8 @@ public:
                                         std::vector<lp::LPVariable> &variables,
                                         std::vector<lp::LPConstraint> &constraints,
                                         double infinity);
-    virtual bool update_constraints(const State &state, lp::LPSolver &lp_solver);
+    virtual bool update_constraints(const State &state, lp::LPSolver &lp_solver,
+        shared_ptr<vector<int>> state_op_count = nullptr);
 };
 }
 

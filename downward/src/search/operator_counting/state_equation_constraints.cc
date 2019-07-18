@@ -117,8 +117,8 @@ void StateEquationConstraints::initialize_constraints(
     }
 }
 
-bool StateEquationConstraints::update_constraints(const State &state,
-                                                  lp::LPSolver &lp_solver) {
+bool StateEquationConstraints::update_constraints(const State &state, lp::LPSolver &lp_solver,
+        shared_ptr<vector<int>> /*state_op_count*/) {
     // Compute the bounds for the rows in the LP.
     for (size_t var = 0; var < propositions.size(); ++var) {
         int num_values = propositions[var].size();

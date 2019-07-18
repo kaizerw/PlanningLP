@@ -13,6 +13,8 @@ class LPSolver;
 class LPVariable;
 }  // namespace lp
 
+using namespace std;
+
 namespace operator_counting {
 /*
   Derive from this class to add new operator-counting constraints. We support
@@ -48,8 +50,9 @@ class ConstraintGenerator {
 
       Returns true if a dead end was detected and false otherwise.
     */
-    virtual bool update_constraints(const State &state,
-                                    lp::LPSolver &lp_solver) = 0;
+    virtual bool update_constraints(
+        const State &state, lp::LPSolver &lp_solver,
+        shared_ptr<vector<int>> state_op_count = nullptr) = 0;
 
     virtual ~ConstraintGenerator() = default;
 };

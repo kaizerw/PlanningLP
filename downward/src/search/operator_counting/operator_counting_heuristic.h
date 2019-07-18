@@ -19,15 +19,15 @@ class OperatorCountingHeuristic : public Heuristic {
     std::vector<std::shared_ptr<ConstraintGenerator>> constraint_generators;
     lp::LPSolver lp_solver;
     bool use_integer_op_counts;
-    long num_integral_solutions;
-    long num_fractional_solutions;
-    long num_integral_objective_values;
-protected:
+
+   protected:
     virtual int compute_heuristic(const GlobalState &global_state) override;
-    int compute_heuristic(const State &state);
-public:
+    int compute_heuristic(const State &state,
+                          shared_ptr<vector<int>> state_op_count);
+
+   public:
     explicit OperatorCountingHeuristic(const options::Options &opts);
 };
-}
+}  // namespace operator_counting
 
 #endif

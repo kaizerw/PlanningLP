@@ -52,8 +52,8 @@ void PhOConstraints::initialize_constraints(
     }
 }
 
-bool PhOConstraints::update_constraints(const State &state,
-                                        lp::LPSolver &lp_solver) {
+bool PhOConstraints::update_constraints(const State &state, lp::LPSolver &lp_solver,
+        shared_ptr<vector<int>> /*state_op_count*/) {
     for (size_t i = 0; i < pdbs->size(); ++i) {
         int constraint_id = constraint_offset + i;
         shared_ptr<pdbs::PatternDatabase> pdb = (*pdbs)[i];
