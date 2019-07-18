@@ -40,7 +40,6 @@ void SOCWSSSCplexSearch::initialize() {
 
     // Create initial variables for LP
     for (OperatorProxy op : task_proxy.get_operators()) {
-        idx_extra_variables->emplace_back(lp_variables->size());
         lp_variables->emplace_back(0, infinity, op.get_cost(), true);
     }
 

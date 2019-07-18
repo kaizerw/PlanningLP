@@ -73,7 +73,9 @@ bool GLCSConstraints::update_constraints(
             }
         }
 
-        glcs_constraints.emplace_back(c);
+        if (!c.empty()) {
+            glcs_constraints.emplace_back(c);
+        }
     }
 
     // Add glcs_constraints to lp_solver
