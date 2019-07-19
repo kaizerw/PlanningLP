@@ -35,16 +35,12 @@ void SOCWSSSCplexSearch::initialize() {
     lp_variables = make_shared<vector<lp::LPVariable>>();
     lp_constraints = make_shared<vector<lp::LPConstraint>>();
 
-    idx_extra_variables = make_shared<vector<int>>();
-    idx_extra_constraints = make_shared<vector<int>>();
-
     // Create initial variables for LP
     for (OperatorProxy op : task_proxy.get_operators()) {
         lp_variables->emplace_back(0, infinity, op.get_cost(), true);
     }
 
     // Create variable Y_T
-    idx_extra_variables->emplace_back(lp_variables->size());
     lp_variables->emplace_back(0, infinity, 0, true);
 
     // Create constraint:
@@ -54,11 +50,9 @@ void SOCWSSSCplexSearch::initialize() {
         constraint_yt.insert(op.get_id(), 1.0);
     }
     constraint_yt.insert(n_ops, -1.0);
-    idx_extra_constraints->emplace_back(lp_constraints->size());
     lp_constraints->emplace_back(constraint_yt);
 
-    // Initialize c1_ops and c23_ops
-    c1_ops = make_shared<vector<vector<int>>>(n_ops + 1, vector<int>());
+    // Initialize c23_ops
     c23_ops =
         make_shared<vector<pair<int, int>>>(vector(n_ops + 1, pair(-1, -1)));
 
@@ -67,7 +61,6 @@ void SOCWSSSCplexSearch::initialize() {
         make_shared<vector<vector<int>>>(n_ops + 1, vector<int>());
     for (int op_id = 0; op_id < n_ops + 1; ++op_id) {
         (*bounds_literals)[op_id].emplace_back(lp_variables->size());
-        idx_extra_variables->emplace_back(lp_variables->size());
         lp_variables->emplace_back(0, 1, 0, true);
         get_domain_constraints(op_id, k_prealloc_bounds, 0);
     }
@@ -219,8 +212,6 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     socwsss_callback->cplex = cplex;
     socwsss_callback->lp_variables = lp_variables;
     socwsss_callback->lp_constraints = lp_constraints;
-    socwsss_callback->idx_extra_variables = idx_extra_variables;
-    socwsss_callback->idx_extra_constraints = idx_extra_constraints;
 }
 
 void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
@@ -228,7 +219,6 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
     // Create binary variables
     for (int i = previous_bound + 1; i <= current_bound; ++i) {
         (*bounds_literals)[op_id].emplace_back(lp_variables->size());
-        idx_extra_variables->emplace_back(lp_variables->size());
         lp_variables->emplace_back(0, 1, 0, true);
     }
 
@@ -242,8 +232,6 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
         c1.insert(id_k, 1.0);
         c1.insert(id_k_minus_1, -1.0);
 
-        (*c1_ops)[op_id].emplace_back(lp_constraints->size());
-        idx_extra_constraints->emplace_back(lp_constraints->size());
         lp_constraints->emplace_back(c1);
     }
 
@@ -270,8 +258,6 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
 
         (*c23_ops)[op_id] = {lp_constraints->size() - 2,
                              lp_constraints->size() - 1};
-        idx_extra_constraints->emplace_back(lp_constraints->size() - 2);
-        idx_extra_constraints->emplace_back(lp_constraints->size() - 1);
     } else {
         // If constraints 2 and 3 already exist for this operator then update
         // them

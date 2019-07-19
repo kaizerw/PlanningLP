@@ -18,6 +18,7 @@ opts="socwsss_cplex(constraint_type=1, \
                     heuristic=operatorcounting)"
 # T1 seq: not optimal solution: 1216561 x 1216462
 ./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
+#valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
 # T1 seq h+: not optimal solution: 1215938 x 1215839
 #opts="astar(operatorcounting([state_equation_constraints(), lmcut_constraints()]))"
 #opts="astar(operatorcounting([delete_relaxation_constraints(), flow_constraints()]))"

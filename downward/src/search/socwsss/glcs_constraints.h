@@ -15,30 +15,29 @@
 #include <cassert>
 #include <memory>
 #include <numeric>
+#include <utility>
 #include <vector>
 
 using namespace std;
 
 namespace operator_counting {
 class GLCSConstraints : public ConstraintGenerator {
-    shared_ptr<vector<lp::LPVariable>> lp_variables;
-    shared_ptr<vector<lp::LPConstraint>> lp_constraints;
-    shared_ptr<vector<int>> idx_extra_variables;
-    shared_ptr<vector<int>> idx_extra_constraints;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;
-    shared_ptr<vector<vector<int>>> bounds_literals;
     vector<int> initial_op_count;
 
     int n_ops;
+    int yt_index;
+    vector<pair<int, int>> c23_ops;
+    vector<vector<int>> bounds_literals;
 
    public:
-    GLCSConstraints(shared_ptr<vector<lp::LPVariable>>& lp_variables,
-                    shared_ptr<vector<lp::LPConstraint>>& lp_constraints,
-                    shared_ptr<vector<int>>& idx_extra_variables,
-                    shared_ptr<vector<int>>& idx_extra_constraints,
-                    shared_ptr<vector<shared_ptr<GLC>>>& glcs,
-                    shared_ptr<vector<vector<int>>>& bounds_literals,
+    GLCSConstraints(shared_ptr<vector<shared_ptr<GLC>>>& glcs,
                     vector<int>& initial_op_count);
+    void get_domain_constraints(int op_id, int op_id_bl, int current_bound,
+                                int previous_bound,
+                                vector<lp::LPVariable>& variables,
+                                vector<lp::LPConstraint>& constraints,
+                                double infinity);
     virtual void initialize_constraints(
         const std::shared_ptr<AbstractTask> task,
         std::vector<lp::LPVariable>& variables,

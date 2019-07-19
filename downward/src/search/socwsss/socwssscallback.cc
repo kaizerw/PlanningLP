@@ -193,9 +193,8 @@ SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
         }
         if (constraint_generators.find("glcs") != string::npos) {
             cout << "USING GLCS CONSTRAINT GENERATOR" << endl;
-            shared_ptr<ConstraintGenerator> c = make_shared<GLCSConstraints>(
-                lp_variables, lp_constraints, idx_extra_variables,
-                idx_extra_constraints, glcs, bounds_literals, op_count);
+            shared_ptr<ConstraintGenerator> c =
+                make_shared<GLCSConstraints>(glcs, op_count);
             cs.emplace_back(c);
         }
 
