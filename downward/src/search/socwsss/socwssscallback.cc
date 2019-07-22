@@ -258,13 +258,15 @@ SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
             });
 
         cout << "SEQ " << seq << ": FOUND PLAN WITH COST=" << info.plan_cost
-             << endl;
+             << " AND F-BOUND=" << f_bound << endl;
         info.sequenciable = true;
     } else {
         info.learned_glc = astar->learned_glc;
         cout << "SEQ " << seq << ": NOT SEQUENCIABLE WITH F-BOUND=" << f_bound
-             << endl;
+             << " AND " << accumulate(op_count.begin(), op_count.end(), 0)
+             << " OPERATORS" << endl;
         info.sequenciable = false;
+        info.plan_cost = numeric_limits<int>::max();
     }
 
     cache_op_counts.add(op_count, info);
@@ -282,6 +284,13 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
         // planning problem. If the plan cost is more than the lower bound,
         // this solution can be used to bound the search process
         if (ctxt.inRelaxation()) {
+            auto it =
+                min_element(cache_op_counts.cache.begin(),
+                            cache_op_counts.cache.end(), [](auto i, auto j) {
+                                return i.second.plan_cost < j.second.plan_cost;
+                            });
+            info = (*it).second;
+
             vector<int> plan_counts(n_ops, 0);
             for (OperatorID &op_id : info.plan) {
                 plan_counts[op_id.get_index()]++;
