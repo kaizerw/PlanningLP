@@ -305,7 +305,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
                                        Context::SolutionStrategy::Propagate);
         }
     } else {
-        if (!info.in_lp) {
+        if (!info.in_lp && constraint_type != 0) {
             glcs->emplace_back(info.learned_glc);
 
             // Unless there is more than one missing bounds literal, the
