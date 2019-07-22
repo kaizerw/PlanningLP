@@ -13,28 +13,14 @@
 #              max_time_to_solve=30, \
 #              max_mem_to_solve=3.5, \
 #              eval=lmcut())"
-opts="socwsss_cplex(constraint_type=0, \
-                    constraint_generators=seq, \
-                    heuristic=blind)"
-# T1 seq: not optimal solution: 1216561 x 1216462
+opts="socwsss_cplex(constraint_type=1, \
+                    constraint_generators=h+_flow, \
+                    heuristic=operatorcounting)"
 ./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
-# T1 seq h+: not optimal solution: 1215938 x 1215839
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
 ################################################################################
-# OpSeq domain-by-domain
-#opts="socwsss(mip=true, \
-#              constraint_type=1, \
-#              get_op_count_from_bounds=false, \
-#              print_current_oc=false, \
-#              print_learned_constraints=false, \
-#              print_lp_changes=false, \
-#              print_search_tree=false, \
-#              dynamic_merging=true, \
-#              max_seqs=-1, \
-#              max_time_to_solve=1, \
-#              eval=lmcut())"
 # domain         plan_cost  seq in 1min (dm)    domain obs
 # barman         90         nok (nok)           2 ops with cost=10 others cost=1
 # elevators      56         nok (nok)           2 ops with cost=0 others fcost

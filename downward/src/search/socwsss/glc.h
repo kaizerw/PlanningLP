@@ -1,6 +1,7 @@
 #ifndef GLC_H
 #define GLC_H
 
+#include <iostream>
 #include <utility>
 #include <vector>
 

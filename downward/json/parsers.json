@@ -1,6 +1,6 @@
 {
     "solved": {
-        "regex": "search exit code: (\\d+\\.?\\d*)",
+        "regex": "search exit code: (-?\\d+\\.?\\d*)",
         "type": "int",
         "summary": "sum"
     },
@@ -10,27 +10,27 @@
         "summary": "sum"
     },
     "infeasible": {
-        "regex": "search exit code: (\\d+\\.?\\d*)",
+        "regex": "search exit code: (-?\\d+\\.?\\d*)",
         "type": "int",
         "summary": "sum"
     },
     "timeout": {
-        "regex": "search exit code: (\\d+\\.?\\d*)",
+        "regex": "search exit code: (-?\\d+\\.?\\d*)",
         "type": "int",
         "summary": "sum"
     },
     "memout": {
-        "regex": "search exit code: (\\d+\\.?\\d*)",
+        "regex": "search exit code: (-?\\d+\\.?\\d*)",
         "type": "int",
         "summary": "sum"
     },
     "cplex_exception": {
-        "regex": "search exit code: (\\d+\\.?\\d*)",
+        "regex": "search exit code: (-?\\d+\\.?\\d*)",
         "type": "int",
         "summary": "sum"
     },
     "other_error": {
-        "regex": "search exit code: (\\d+\\.?\\d*)",
+        "regex": "search exit code: (-?\\d+\\.?\\d*)",
         "type": "int",
         "summary": "sum"
     },
@@ -215,7 +215,7 @@
         "summary": "mean"
     },
     "exit_code": {
-        "regex": "search exit code: (\\d+\\.?\\d*)",
+        "regex": "search exit code: (-?\\d+\\.?\\d*)",
         "type": "int",
         "summary": "sum"
     }

@@ -59,14 +59,9 @@ pair<int, OperatorCount> SOCWSSSCallback::round_sol(
     return {rounded_z, rounded_x};
 }
 
-bool SOCWSSSCallback::test_relaxation(const Context &ctxt, int rounded_z,
-                                      OperatorCount &rounded_x) {
-    bool status = true;
-    if (ctxt.inRelaxation()) {
-        status = (rounded_z >= 0) && all_of(rounded_x.begin(), rounded_x.end(),
-                                            [](int c) { return c >= 0; });
-    }
-    return status;
+bool SOCWSSSCallback::test_solution(int rounded_z, OperatorCount &rounded_x) {
+    return (rounded_z >= 0) && all_of(rounded_x.begin(), rounded_x.end(),
+                                      [](int c) { return c >= 0; });
 }
 
 bool SOCWSSSCallback::test_card(const Context &ctxt, double original_z,
@@ -348,7 +343,7 @@ void SOCWSSSCallback::invoke(const Context &ctxt) {
         auto [original_z, original_x] = extract_sol(ctxt);
         auto [rounded_z, rounded_x] = round_sol(ctxt, original_z, original_x);
 
-        if (test_relaxation(ctxt, rounded_z, rounded_x) &&
+        if (test_solution(rounded_z, rounded_x) &&
             test_card(ctxt, original_z, original_x, rounded_z, rounded_x)) {
             sequence(ctxt, rounded_z, rounded_x);
         }

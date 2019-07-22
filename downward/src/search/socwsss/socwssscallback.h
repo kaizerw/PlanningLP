@@ -165,8 +165,7 @@ struct SOCWSSSCallback : public Function {
     pair<double, vector<double>> extract_sol(const Context &ctxt);
     pair<int, OperatorCount> round_sol(const Context &ctxt, double original_z,
                                        vector<double> &original_x);
-    bool test_relaxation(const Context &ctxt, int rounded_z,
-                         OperatorCount &rounded_x);
+    bool test_solution(int rounded_z, OperatorCount &rounded_x);
     bool test_card(const Context &ctxt, double original_z,
                    vector<double> &original_x, int rounded_z,
                    OperatorCount &rounded_x);
