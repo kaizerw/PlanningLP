@@ -300,6 +300,27 @@ SearchStatus SOCWSSSCplexSearch::step() {
         socwsss_callback->seq, cplex->getBestObjValue(),
         socwsss_callback->repeated_seqs, socwsss_callback->restarts);
 
+    cout << "PLANS:" << endl;
+    for (auto i : socwsss_callback->cache_op_counts.cache) {
+        if (i.second.sequenciable) {
+            cout << "\t" << i.second.plan_cost << " = ";
+            for (auto j : i.second.plan) {
+                cout << task_proxy.get_operators()[j].get_name() << " ";
+            }
+            cout << endl;
+        }
+    }
+
+    cout << "GLCS:" << endl;
+    for (auto glc : (*socwsss_callback->glcs)) {
+        cout << "\t";
+        for (auto i : glc->ops_bounds) {
+            cout << task_proxy.get_operators()[i.first].get_name()
+                 << " >= " << i.second << " ";
+        }
+        cout << endl;
+    }
+
     if (cplex->getStatus() == IloAlgorithm::Status::Infeasible ||
         cplex->getStatus() == IloAlgorithm::Status::InfeasibleOrUnbounded) {
         cout << "INFEASIBLE" << endl;
