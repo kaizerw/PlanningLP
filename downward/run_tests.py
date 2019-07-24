@@ -328,7 +328,7 @@ def send_email(subject, text, filename=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--configs', help='Config file.', type=str, required=True)
+    parser.add_argument('--configs', help='Config file.', type=str, default='json/default.json')
 
     parser.add_argument('--max_time', help='Max time per test in minutes.', type=int, default=30)
     parser.add_argument('--max_memory', help='Max mem per test in MB.', type=int, default=3584)
