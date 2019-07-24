@@ -173,6 +173,11 @@ SearchStatus SOCAStarSearch::step() {
     EvaluationContext eval_context2(node->get_state(), node->get_g(), false,
                                     &statistics);
     int node_f = eval_context2.get_evaluator_value(f_evaluator.get());
+
+    node->get_state().dump_pddl();
+    cout << "NODE_F=" << node_f << endl;
+    cout << "NODE_G=" << node->get_g() << endl;
+
     if (node_f > f_bound) {
         return IN_PROGRESS;
     }

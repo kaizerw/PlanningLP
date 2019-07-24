@@ -1,5 +1,13 @@
 #include "socwssscallback.h"
 
+vector<int> plan_to_op_count(SequenceInfo &info, int n_ops) {
+    vector<int> plan_counts(n_ops, 0);
+    for (OperatorID &op_id : info.plan) {
+        plan_counts[op_id.get_index()]++;
+    }
+    return plan_counts;
+}
+
 SOCWSSSCallback::SOCWSSSCallback(const Options &opts,
                                  shared_ptr<TaskProxy> task_proxy,
                                  shared_ptr<AbstractTask> task)
@@ -260,6 +268,9 @@ SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
         cout << "SEQ " << seq << ": FOUND PLAN WITH COST=" << info.plan_cost
              << " AND F-BOUND=" << f_bound << endl;
         info.sequenciable = true;
+
+        cache_op_counts.add(plan_to_op_count(info, n_ops), info);
+
     } else {
         info.learned_glc = astar->learned_glc;
         cout << "SEQ " << seq << ": NOT SEQUENCIABLE WITH F-BOUND=" << f_bound
@@ -275,40 +286,40 @@ SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
 
 void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
                                OperatorCount &rounded_x) {
+    cout << "\tSEQ " << (seq + 1) << endl;
+    cout << "\tTRYING TO SEQUENCE WITH F-BOUND: " << rounded_z << endl;
+    for (int op_id = 0; op_id < n_ops; ++op_id) {
+        if (rounded_x[op_id] > 0) {
+            cout << "\t\t" << rounded_x[op_id] << " * "
+                 << task_proxy->get_operators()[op_id].get_name() << endl;
+        }
+    }
     // Try to sequence current solution
+    // cout.setstate(ios_base::failbit);
     SequenceInfo info = get_astar_sequence(rounded_z, rounded_x);
+    // cout.clear();
 
     if (info.sequenciable) {
+        cout << "\tSEQUENCIABLE USING OPERATORS: " << endl;
+        for (OperatorID op_id : info.plan) {
+            cout << "\t\t"
+                 << task_proxy->get_operators()[op_id.get_index()].get_name()
+                 << endl;
+        }
+
         // If this plan has the same cost as the lower-bound found by the
         // LP, to the nearest integer, then we have optimally solved the
         // planning problem. If the plan cost is more than the lower bound,
         // this solution can be used to bound the search process
-        if (ctxt.inRelaxation()) {
-            auto it =
-                min_element(cache_op_counts.cache.begin(),
-                            cache_op_counts.cache.end(), [](auto i, auto j) {
-                                return i.second.plan_cost < j.second.plan_cost;
-                            });
-            info = (*it).second;
-
-            vector<int> plan_counts(n_ops, 0);
-            for (OperatorID &op_id : info.plan) {
-                plan_counts[op_id.get_index()]++;
-            }
-
-            IloNumArray values(ctxt.getEnv());
-            for (int i = 0; i < x->getSize(); ++i) {
-                if (i < n_ops) {
-                    values.add(plan_counts[i]);
-                } else {
-                    values.add(NAN);
-                }
-            }
-
-            ctxt.postHeuristicSolution((*x), values, info.plan_cost,
-                                       Context::SolutionStrategy::Propagate);
-        }
+        post_current_best_plan(ctxt);
     } else {
+        cout << "\t\tLEARNED GLC: ";
+        for (auto i : info.learned_glc->ops_bounds) {
+            cout << task_proxy->get_operators()[i.first].get_name()
+                 << " >= " << i.second << " ";
+        }
+        cout << endl;
+
         if (!info.in_lp && constraint_type != 0) {
             glcs->emplace_back(info.learned_glc);
 
@@ -342,7 +353,29 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
     }
 }
 
+void SOCWSSSCallback::post_current_best_plan(const Context &ctxt) {
+    if (ctxt.inRelaxation()) {
+        SequenceInfo &info = cache_op_counts.get_min_plan();
+        vector<int> plan_counts = plan_to_op_count(info, n_ops);
+
+        if (info.sequenciable) {
+            IloNumArray values(ctxt.getEnv());
+            for (int i = 0; i < x->getSize(); ++i) {
+                if (i < n_ops) {
+                    values.add(plan_counts[i]);
+                } else {
+                    values.add(NAN);
+                }
+            }
+            ctxt.postHeuristicSolution((*x), values, info.plan_cost,
+                                       Context::SolutionStrategy::Propagate);
+        }
+    }
+}
+
 void SOCWSSSCallback::invoke(const Context &ctxt) {
+    post_current_best_plan(ctxt);
+
     if (ctxt.inCandidate() && ctxt.isCandidateRay()) {
         ctxt.rejectCandidate();
         return;

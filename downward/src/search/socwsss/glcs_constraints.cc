@@ -132,6 +132,8 @@ bool GLCSConstraints::update_constraints(
             } else {
                 c.insert(yt_index, (1.0 / new_yt_bound));
             }
+        } else {
+            continue;
         }
         for (auto& [op_id, op_bound] : glc->ops_bounds) {
             int last_op_bound = bounds_literals[op_id].size() - 1;
@@ -143,6 +145,9 @@ bool GLCSConstraints::update_constraints(
                 } else {
                     c.insert(op_id, (1.0 / new_op_bound));
                 }
+            } else {
+                c.clear();
+                break;
             }
         }
 

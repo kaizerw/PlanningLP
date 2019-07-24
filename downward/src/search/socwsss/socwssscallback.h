@@ -121,6 +121,13 @@ struct CacheOperatorCounts {
             i.second.in_lp = false;
         }
     }
+
+    SequenceInfo &get_min_plan() {
+        auto it = min_element(cache.begin(), cache.end(), [](auto i, auto j) {
+            return i.second.plan_cost < j.second.plan_cost;
+        });
+        return (*it).second;
+    }
 };
 
 using Function = IloCplex::Callback::Function;
@@ -172,6 +179,7 @@ struct SOCWSSSCallback : public Function {
     pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
     SequenceInfo get_astar_sequence(int f_bound, OperatorCount op_count);
     void sequence(const Context &ctxt, int rounded_z, OperatorCount &rounded_x);
+    void post_current_best_plan(const Context &ctxt);
     void invoke(const Context &ctxt);
 };
 

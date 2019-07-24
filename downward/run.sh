@@ -8,9 +8,9 @@
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
 
 # T3 seq lmcut: INFEASIBLE
-opts="socwsss_cplex(constraint_type=3, constraint_generators=seq, heuristic=lmcut)"
+#opts="socwsss_cplex(constraint_type=3, constraint_generators=seq, heuristic=lmcut)"
 # optimal plan cost = 195
-./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts"
+#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts"
 
 # T1 oc seq landmarks glcs: INFEASIBLE
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq_landmarks_glcs, heuristic=operatorcounting)"
@@ -27,9 +27,9 @@ opts="socwsss_cplex(constraint_type=3, constraint_generators=seq, heuristic=lmcu
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p02.sas --search "$opts"
 
 # T2 oc seq landmarks glcs: NOT OPTIMAL
-#opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks_glcs, heuristic=operatorcounting)"
+opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks_glcs, heuristic=operatorcounting)"
 # optimal plan cost = 3
-#./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem02-full.sas --search "$opts"
+./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem02-full.sas --search "$opts"
 # optimal plan cost = 8
 #./fast-downward.py --overall-memory-limit 3584M $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
 # optimal plan cost = 6
@@ -43,7 +43,6 @@ opts="socwsss_cplex(constraint_type=3, constraint_generators=seq, heuristic=lmcu
 # barman         90         nok (nok)           2 ops with cost=10 others cost=1
 # elevators      56         nok (nok)           2 ops with cost=0 others fcost
 # nomystery      11         ok  (ok)            all ops with cost=1
-
 # openstacks     2          nok (nok)           1 op with cost=1 others cost=0
 # parcprinter    375821     ok  (ok)            1 op with cost=0 and others with different costs>1
 # pegsol         3          ok  (ok)            1 op with cost=1 others cost=0
