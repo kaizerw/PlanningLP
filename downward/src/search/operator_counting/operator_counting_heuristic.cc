@@ -18,7 +18,8 @@ OperatorCountingHeuristic::OperatorCountingHeuristic(const Options &opts)
       constraint_generators(opts.get_list<shared_ptr<ConstraintGenerator>>(
           "constraint_generators")),
       lp_solver(lp::LPSolverType(opts.get_enum("lpsolver"))),
-      use_integer_op_counts(opts.get<bool>("use_integer_op_counts")) {
+      use_integer_op_counts(opts.get<bool>("use_integer_op_counts")),
+      socwsss(opts.get<bool>("socwsss")) {
     vector<lp::LPVariable> variables;
     double infinity = lp_solver.get_infinity();
     for (OperatorProxy op : task_proxy.get_operators()) {
@@ -39,8 +40,10 @@ OperatorCountingHeuristic::OperatorCountingHeuristic(const Options &opts)
 int OperatorCountingHeuristic::compute_heuristic(
     const GlobalState &global_state) {
     State state = convert_global_state(global_state);
-    shared_ptr<vector<int>> state_op_count = make_shared<vector<int>>(
-        global_state.get_registry().lookup_op_count(global_state.get_id()));
+    shared_ptr<vector<int>> state_op_count;
+    if (socwsss) {
+        state_op_count = make_shared<vector<int>>(global_state.get_registry().lookup_op_count(global_state.get_id()));
+    }
     return compute_heuristic(state, state_op_count);
 }
 
@@ -107,6 +110,8 @@ static shared_ptr<Heuristic> _parse(OptionParser &parser) {
         "use_integer_op_counts",
         "operator counting variables will be restricted to integer values",
         "false");
+        
+    parser.add_option<bool>("socwsss", "", "false");
 
     lp::add_lp_solver_option_to_parser(parser);
     Heuristic::add_options_to_parser(parser);

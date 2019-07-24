@@ -14,3 +14,7 @@ GLC::GLC(const GLC& other) {
 void GLC::add_op_bound(int op_id, int op_bound) {
     ops_bounds.emplace_back(op_id, op_bound);
 }
+
+bool GLC::empty() {
+    return (this->yt_bound == -1 && this->ops_bounds.size() == 0);
+}

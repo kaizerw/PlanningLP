@@ -37,11 +37,11 @@ void SOCWSSSCplexSearch::initialize() {
 
     // Create initial variables for LP
     for (OperatorProxy op : task_proxy.get_operators()) {
-        lp_variables->emplace_back(0, infinity, op.get_cost(), true);
+        lp_variables->emplace_back(0, infinity, op.get_cost());
     }
 
     // Create variable Y_T
-    lp_variables->emplace_back(0, infinity, 0, true);
+    lp_variables->emplace_back(0, infinity, 0);
 
     // Create constraint:
     // 0 <= sum(Yo, o in O) - Y_T <= 0
@@ -61,7 +61,7 @@ void SOCWSSSCplexSearch::initialize() {
         make_shared<vector<vector<int>>>(n_ops + 1, vector<int>());
     for (int op_id = 0; op_id < n_ops + 1; ++op_id) {
         (*bounds_literals)[op_id].emplace_back(lp_variables->size());
-        lp_variables->emplace_back(0, 1, 0, true);
+        lp_variables->emplace_back(0, 1, 0);
         get_domain_constraints(op_id, k_prealloc_bounds, 0);
     }
 
@@ -219,7 +219,7 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
     // Create binary variables
     for (int i = previous_bound + 1; i <= current_bound; ++i) {
         (*bounds_literals)[op_id].emplace_back(lp_variables->size());
-        lp_variables->emplace_back(0, 1, 0, true);
+        lp_variables->emplace_back(0, 1, 0);
     }
 
     // Create constraints (1): [Yo >= k] - [Yo >= k - 1] <= 0
@@ -275,6 +275,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
         cplex->use(socwsss_callback.get(), socwsss_callback_mask);
 
         try {
+            cout << "Starting SOCWSSS CPLEX search..." << endl;
             cplex->solve();
         } catch (IloException &ex) {
             string msg(ex.getMessage());
@@ -300,6 +301,17 @@ SearchStatus SOCWSSSCplexSearch::step() {
         socwsss_callback->seq, cplex->getBestObjValue(),
         socwsss_callback->repeated_seqs, socwsss_callback->restarts);
 
+    cout << "\tALL LEARNED GLCS:" << endl;
+    for (auto glc : (*socwsss_callback->glcs)) {
+        cout << "\t\t";
+        cout << "YT >= " << glc->yt_bound << " ";
+        for (auto i : glc->ops_bounds) {
+            cout << task_proxy.get_operators()[i.first].get_name()
+                 << " >= " << i.second << " ";
+        }
+        cout << endl;
+    }
+
     cout << "\tALL PLANS IN CACHE:" << endl;
     for (auto i : socwsss_callback->cache_op_counts.cache) {
         if (i.second.sequenciable) {
@@ -311,15 +323,13 @@ SearchStatus SOCWSSSCplexSearch::step() {
         }
     }
 
-    cout << "\tALL LEARNED GLCS:" << endl;
-    for (auto glc : (*socwsss_callback->glcs)) {
-        cout << "\t\t";
-        for (auto i : glc->ops_bounds) {
-            cout << task_proxy.get_operators()[i.first].get_name()
-                 << " >= " << i.second << " ";
+    int ops_zero = 0;
+    for (auto op : task_proxy.get_operators()) {
+        if (op.get_cost() == 0) {
+            ops_zero++;
         }
-        cout << endl;
     }
+    cout << "\tOPS WITH ZERO COST: " << ops_zero << endl;
 
     if (cplex->getStatus() == IloAlgorithm::Status::Infeasible ||
         cplex->getStatus() == IloAlgorithm::Status::InfeasibleOrUnbounded) {

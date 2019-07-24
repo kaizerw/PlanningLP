@@ -30,11 +30,12 @@ using namespace std;
 namespace soc_astar_search {
 struct SOCAStarSearch : public EagerSearch {
     OperatorCount initial_op_count;
+    int initial_n_ops;
     int f_bound;
     int constraint_type;
     double max_f_found;
     vector<bool> ops_learned_constraint;
-    bool yt_learned_constraint;
+    int yt_bound;
     StateRegistry state_registry;
     SearchSpace search_space;
 

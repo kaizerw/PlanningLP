@@ -21,6 +21,7 @@ struct GLC {
     GLC();
     GLC(const GLC &other);
     void add_op_bound(int op_id, int op_bound);
+    bool empty();
 };
 
 #endif

@@ -77,7 +77,7 @@ struct SequenceInfo {
     bool sequenciable = false;
     shared_ptr<GLC> learned_glc = nullptr;
     Plan plan = Plan();
-    int plan_cost = 0;
+    int plan_cost = numeric_limits<int>::max();
 };
 
 struct CacheOperatorCounts {
@@ -122,11 +122,16 @@ struct CacheOperatorCounts {
         }
     }
 
-    SequenceInfo &get_min_plan() {
+    pair<bool, SequenceInfo> get_min_plan() {
         auto it = min_element(cache.begin(), cache.end(), [](auto i, auto j) {
             return i.second.plan_cost < j.second.plan_cost;
         });
-        return (*it).second;
+
+        if (it != cache.end()) {
+            return {true, (*it).second};
+        }
+
+        return {false, SequenceInfo()};
     }
 };
 

@@ -212,6 +212,7 @@ SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
         opts_h.set("use_integer_op_counts", false);
         opts_h.set("transform", task);
         opts_h.set("cache_estimates", true);
+        opts_h.set("socwsss", true);
         h = make_shared<OperatorCountingHeuristic>(opts_h);
     } else {
         cout << "HEURISTIC " << heuristic << " NOT FOUND" << endl;
@@ -313,7 +314,18 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
         // this solution can be used to bound the search process
         post_current_best_plan(ctxt);
     } else {
+        if (info.learned_glc == nullptr) {
+            info.in_lp = true;
+            if (ctxt.inCandidate()) {
+                ctxt.rejectCandidate();
+            }
+            printer_plots->update(rounded_z, rounded_x, c->getSize(),
+                                  x->getSize());
+            return;
+        }
+
         cout << "\t\tLEARNED GLC: ";
+        cout << "YT >= " << info.learned_glc->yt_bound << " ";
         for (auto i : info.learned_glc->ops_bounds) {
             cout << task_proxy->get_operators()[i.first].get_name()
                  << " >= " << i.second << " ";
@@ -355,10 +367,9 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
 
 void SOCWSSSCallback::post_current_best_plan(const Context &ctxt) {
     if (ctxt.inRelaxation()) {
-        SequenceInfo &info = cache_op_counts.get_min_plan();
-        vector<int> plan_counts = plan_to_op_count(info, n_ops);
-
-        if (info.sequenciable) {
+        auto [found, info] = cache_op_counts.get_min_plan();
+        if (found && info.sequenciable) {
+            vector<int> plan_counts = plan_to_op_count(info, n_ops);
             IloNumArray values(ctxt.getEnv());
             for (int i = 0; i < x->getSize(); ++i) {
                 if (i < n_ops) {
