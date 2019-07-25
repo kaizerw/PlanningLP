@@ -29,9 +29,6 @@ bool SOCAStarSearch::check_goal_and_set_plan(const GlobalState &state) {
 }
 
 void SOCAStarSearch::initialize() {
-    cout << "Conducting best first search"
-         << (reopen_closed_nodes ? " with" : " without")
-         << " reopening closed nodes, (real) bound = " << bound << endl;
     assert(open_list);
 
     set<Evaluator *> evals;
@@ -176,9 +173,11 @@ SearchStatus SOCAStarSearch::step() {
                                     &statistics);
     int node_f = eval_context2.get_evaluator_value(f_evaluator.get());
 
+    /*
     node->get_state().dump_pddl();
     cout << "NODE_F=" << node_f << endl;
     cout << "NODE_G=" << node->get_g() << endl;
+    */
 
     if (node_f > f_bound) {
         return IN_PROGRESS;

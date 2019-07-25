@@ -287,6 +287,7 @@ SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
 
 void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
                                OperatorCount &rounded_x) {
+    /*
     cout << "\tSEQ " << (seq + 1) << endl;
     cout << "\tTRYING TO SEQUENCE WITH F-BOUND: " << rounded_z << endl;
     for (int op_id = 0; op_id < n_ops; ++op_id) {
@@ -295,18 +296,21 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
                  << task_proxy->get_operators()[op_id].get_name() << endl;
         }
     }
+    */
     // Try to sequence current solution
     // cout.setstate(ios_base::failbit);
     SequenceInfo info = get_astar_sequence(rounded_z, rounded_x);
     // cout.clear();
 
     if (info.sequenciable) {
+        /*
         cout << "\tSEQUENCIABLE USING OPERATORS: " << endl;
         for (OperatorID op_id : info.plan) {
             cout << "\t\t"
                  << task_proxy->get_operators()[op_id.get_index()].get_name()
                  << endl;
         }
+        */
 
         // If this plan has the same cost as the lower-bound found by the
         // LP, to the nearest integer, then we have optimally solved the
@@ -324,6 +328,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
             return;
         }
 
+        /*
         cout << "\t\tLEARNED GLC: ";
         cout << "YT >= " << info.learned_glc->yt_bound << " ";
         for (auto i : info.learned_glc->ops_bounds) {
@@ -331,6 +336,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
                  << " >= " << i.second << " ";
         }
         cout << endl;
+        */
 
         if (!info.in_lp && constraint_type != 0) {
             glcs->emplace_back(info.learned_glc);

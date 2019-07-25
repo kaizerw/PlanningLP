@@ -123,8 +123,14 @@ void SOCWSSSCplexSearch::create_base_constraints() {
     // Florian flow constraints
     if (constraint_generators.find("flow") != string::npos) {
         cout << "Using flow constraints" << endl;
-        FlorianFlowConstraints()(task, (*lp_variables), (*lp_constraints),
-                                 infinity, task_proxy.get_initial_state());
+        FlorianFlowConstraints fc(task, lp_variables->size(), infinity,
+                                  task_proxy.get_initial_state());
+
+        // Copy flow constraints and variables
+        copy(fc.lp_variables.begin(), fc.lp_variables.end(),
+             back_inserter((*lp_variables)));
+        copy(fc.lp_constraints.begin(), fc.lp_constraints.end(),
+             back_inserter((*lp_constraints)));
     }
 }
 
@@ -301,6 +307,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
         socwsss_callback->seq, cplex->getBestObjValue(),
         socwsss_callback->repeated_seqs, socwsss_callback->restarts);
 
+    /*
     cout << "\tALL LEARNED GLCS:" << endl;
     for (auto glc : (*socwsss_callback->glcs)) {
         cout << "\t\t";
@@ -336,6 +343,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
         cout << "INFEASIBLE" << endl;
         exit(13);
     }
+    */
 
     // Get final plan
     if (cplex->getStatus() == IloAlgorithm::Status::Optimal) {

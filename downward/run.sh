@@ -18,9 +18,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 
 # 6 - T1 oc h+ flow: EMPTY PLAN
 opts="socwsss_cplex(constraint_type=1, constraint_generators=h+_flow, heuristic=operatorcounting)"
-#opts="astar(operatorcounting([delete_relaxation_constraints(), flow_constraints()]))"
-$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p08.sas --search "$opts" # optimal plan cost = 751642
-#$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p20.sas --search "$opts" # optimal plan cost = 1270874
+#$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p08.sas --search "$opts" # optimal plan cost = 751642
+$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p20.sas --search "$opts" # optimal plan cost = 1270874
 
 # 6 - T2 oc h+ flow: EMPTY PLAN
 #opts="socwsss_cplex(constraint_type=2, constraint_generators=h+_flow, heuristic=operatorcounting)"

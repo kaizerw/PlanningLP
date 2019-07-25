@@ -97,27 +97,6 @@ bool detect_unrepresented_features(const vector<lp::LPVariable> &variables,
     return added_feature;
 }
 
-FlorianFlowConstraints::FlorianFlowConstraints(
-    bool remove_dead_states, bool single_transition_optimization,
-    bool self_loop_optimization, bool weak_linking_constraints,
-    bool use_mutexes, bool partial_merges, int max_merge_feature_size,
-    double partial_merge_time_limit, double merge_lp_solve_time_limit)
-    : remove_dead_states(remove_dead_states),
-      single_transition_optimization(single_transition_optimization),
-      self_loop_optimization(self_loop_optimization),
-      weak_linking_constraints(weak_linking_constraints),
-      use_mutexes(use_mutexes),
-      partial_merges(partial_merges),
-      max_merge_feature_size(max_merge_feature_size),
-      partial_merge_time_limit(partial_merge_time_limit),
-      lp_solve_time_limit(merge_lp_solve_time_limit) {
-    Options opts_sys;
-    opts_sys.set("pattern_max_size", 1);
-    opts_sys.set("only_interesting_patterns", true);
-    this->pattern_generator = static_pointer_cast<PatternCollectionGenerator>(
-        make_shared<PatternCollectionGeneratorSystematic>(opts_sys));
-}
-
 struct HashPattern {
     size_t operator()(const pdbs::Pattern &v) const {
         size_t key = v.size();
@@ -219,10 +198,28 @@ void FlorianFlowConstraints::add_partial_merge_features(
          << endl;
 }
 
-void FlorianFlowConstraints::operator()(const shared_ptr<AbstractTask> task,
-                                        vector<lp::LPVariable> &variables,
-                                        vector<lp::LPConstraint> &constraints,
-                                        double infinity, const State &state) {
+FlorianFlowConstraints::FlorianFlowConstraints(
+    const shared_ptr<AbstractTask> task, int lp_variables_offset,
+    double infinity, const State &state, bool remove_dead_states,
+    bool single_transition_optimization, bool self_loop_optimization,
+    bool weak_linking_constraints, bool use_mutexes, bool partial_merges,
+    int max_merge_feature_size, double partial_merge_time_limit,
+    double merge_lp_solve_time_limit)
+    : remove_dead_states(remove_dead_states),
+      single_transition_optimization(single_transition_optimization),
+      self_loop_optimization(self_loop_optimization),
+      weak_linking_constraints(weak_linking_constraints),
+      use_mutexes(use_mutexes),
+      partial_merges(partial_merges),
+      max_merge_feature_size(max_merge_feature_size),
+      partial_merge_time_limit(partial_merge_time_limit),
+      lp_solve_time_limit(merge_lp_solve_time_limit) {
+    Options opts_sys;
+    opts_sys.set("pattern_max_size", 1);
+    opts_sys.set("only_interesting_patterns", true);
+    pattern_generator = static_pointer_cast<PatternCollectionGenerator>(
+        make_shared<PatternCollectionGeneratorSystematic>(opts_sys));
+
     assert(pattern_generator);
     pdbs::PatternCollectionInformation pattern_collection_info =
         pattern_generator->generate(task);
@@ -234,6 +231,14 @@ void FlorianFlowConstraints::operator()(const shared_ptr<AbstractTask> task,
     int num_actual_abstract_states = 0;
     TaskProxy task_proxy(*task);
     VariablesProxy vars = task_proxy.get_variables();
+    OperatorsProxy ops = task_proxy.get_operators();
+
+    // Initialize local variables and constraints
+    vector<lp::LPVariable> local_variables;
+    vector<lp::LPConstraint> local_constraints;
+    for (OperatorProxy op : ops) {
+        local_variables.emplace_back(0, infinity, op.get_cost());
+    }
 
     utils::Timer constraint_generation_timer;
 
@@ -247,8 +252,8 @@ void FlorianFlowConstraints::operator()(const shared_ptr<AbstractTask> task,
         settings.self_loop_optimization = self_loop_optimization;
         settings.weak_linking_constraints = weak_linking_constraints;
         settings.use_mutexes = use_mutexes;
-        sub_constraints.emplace_back(*task, variables, constraints, infinity,
-                                     settings);
+        sub_constraints.emplace_back(*task, local_variables, local_constraints,
+                                     infinity, settings);
 
         int num_abstract_states = 1;
         for (int v : pattern) {
@@ -260,7 +265,8 @@ void FlorianFlowConstraints::operator()(const shared_ptr<AbstractTask> task,
     }
 
     if (partial_merges) {
-        add_partial_merge_features(*task, variables, constraints, infinity);
+        add_partial_merge_features(*task, local_variables, local_constraints,
+                                   infinity);
     }
 
     cout << "Flow constraints abstract states for original patterns: "
@@ -273,8 +279,29 @@ void FlorianFlowConstraints::operator()(const shared_ptr<AbstractTask> task,
          << endl;
 
     for (FlowConstraintInternals &constraint : sub_constraints) {
-        if (constraint.update_constraints(state, constraints)) {
+        if (constraint.update_constraints(state, local_constraints)) {
             return;
         }
+    }
+
+    // Erase base operator counting variables
+    local_variables.erase(local_variables.begin(),
+                          local_variables.begin() + ops.size());
+    lp_variables = local_variables;
+
+    // Update new variables ids for new constraints
+    for (lp::LPConstraint old_c : local_constraints) {
+        lp::LPConstraint new_c(old_c.get_lower_bound(),
+                               old_c.get_upper_bound());
+        for (size_t vi = 0; vi < old_c.get_variables().size(); ++vi) {
+            int old_var_id = old_c.get_variables()[vi];
+            int old_coeff = old_c.get_coefficients()[vi];
+            int new_var_id = old_var_id;
+            if (old_var_id >= (int)ops.size()) {
+                new_var_id = old_var_id - ops.size() + lp_variables_offset;
+            }
+            new_c.insert(new_var_id, old_coeff);
+        }
+        lp_constraints.emplace_back(new_c);
     }
 }

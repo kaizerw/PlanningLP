@@ -37,6 +37,9 @@ struct FlorianFlowConstraints {
     double partial_merge_time_limit;
     double lp_solve_time_limit;
 
+    vector<lp::LPVariable> lp_variables;
+    vector<lp::LPConstraint> lp_constraints;
+
     vector<FlowConstraintInternals> sub_constraints;
     void add_partial_merge_features(const AbstractTask &task,
                                     vector<lp::LPVariable> &variables,
@@ -44,18 +47,14 @@ struct FlorianFlowConstraints {
                                     double infinity);
 
     explicit FlorianFlowConstraints(
-        bool remove_dead_states = true,
+        const shared_ptr<AbstractTask> task, int lp_variables_offset,
+        double infinity, const State &state, bool remove_dead_states = true,
         bool single_transition_optimization = true,
         bool self_loop_optimization = true,
         bool weak_linking_constraints = true, bool use_mutexes = true,
         bool partial_merges = true, int max_merge_feature_size = 2,
         double partial_merge_time_limit = numeric_limits<double>::infinity(),
         double merge_lp_solve_time_limit = numeric_limits<double>::infinity());
-
-    void operator()(const shared_ptr<AbstractTask> task,
-                    vector<lp::LPVariable> &variables,
-                    vector<lp::LPConstraint> &constraints, double infinity,
-                    const State &state);
 };
 
 #endif
