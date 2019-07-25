@@ -1,6 +1,6 @@
 ################################################################################
 ./build.py
-run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5m"
+run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1m"
 ################################################################################
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq, heuristic=blind)"
 #$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
@@ -17,8 +17,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 #$run_pref $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p02.sas --search "$opts" # optimal plan cost = 225
 
 # 6 - T1 oc h+ flow: EMPTY PLAN
-opts="socwsss_cplex(constraint_type=1, constraint_generators=h+_flow, heuristic=operatorcounting)"
-$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p08.sas --search "$opts" # optimal plan cost = 751642
+#opts="socwsss_cplex(constraint_type=1, constraint_generators=h+_flow, heuristic=operatorcounting)"
+#$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p08.sas --search "$opts" # optimal plan cost = 751642
 #$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p20.sas --search "$opts" # optimal plan cost = 1270874
 
 # 6 - T2 oc h+ flow: EMPTY PLAN
@@ -79,6 +79,18 @@ $run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p08.sas --search "$opts"
 # 8 - T3 oc h+ flow: NOT OPTIMAL [ALL SOLVED]
 #opts="socwsss_cplex(constraint_type=3, constraint_generators=h+_flow_glcs, heuristic=operatorcounting)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-half.sas --search "$opts" # optimal plan cost = 6
+#################################################################################
+#opts="astar(lmcut())"
+#opts="astar(operatorcounting([lmcut_constraints()]))"
+#opts="socwsss_cplex(constraint_type=1, constraint_generators=landmarks, heuristic=lmcut)"
+#$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts" # optimal plan cost = 56
+#$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p02.sas --search "$opts" # optimal plan cost = 48
+#################################################################################
+#opts="socwsss_cplex(constraint_type=1, constraint_generators=seq, heuristic=blind)"
+#opts="socwsss_cplex(constraint_type=1, constraint_generators=seq, heuristic=lmcut)"
+#$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
+opts="socwsss_cplex(constraint_type=1, constraint_generators=seq, heuristic=lmcut)"
+$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
 #################################################################################
 # domain         plan_cost  seq in 1min (dm)    domain obs
 # barman         90         nok (nok)           2 ops with cost=10 others cost=1

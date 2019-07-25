@@ -209,6 +209,28 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     cplex->setWarning(env->getNullStream());
     cplex->setParam(IloCplex::Param::Threads, 1);
 
+    cplex->setParam(IloCplex::Param::MIP::Strategy::Search,
+                    IloCplex::Traditional);
+    cplex->setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
+    cplex->setParam(IloCplex::Param::Preprocessing::Reduce, 0);
+    cplex->setParam(IloCplex::Param::RootAlgorithm, IloCplex::Primal);
+
+    cplex->setParam(IloCplex::Param::MIP::Cuts::BQP, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::Cliques, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::Covers, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::Disjunctive, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::FlowCovers, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::Gomory, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::GUBCovers, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::Implied, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::LiftProj, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::LocalImplied, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::MCFCut, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::MIRCut, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::PathCut, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::RLT, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::ZeroHalfCut, -1);
+
     socwsss_callback->bounds_literals = bounds_literals;
     socwsss_callback->env = env;
     socwsss_callback->model = model;
