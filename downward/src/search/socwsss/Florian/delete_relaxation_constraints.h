@@ -42,11 +42,12 @@ struct FlorianDeleteRelaxationConstraints {
                             double infinity);
 
     FlorianDeleteRelaxationConstraints(shared_ptr<TaskProxy> task_proxy,
-                                       double infinity, bool use_time_vars=true,
-                                       bool use_integer_vars=true);
-
-    void operator()(vector<lp::LPVariable> &variables,
-                    vector<lp::LPConstraint> &constraints, const State &state);
+                                       double infinity,
+                                       vector<lp::LPVariable> &variables,
+                                       vector<lp::LPConstraint> &constraints,
+                                       const State &state,
+                                       bool use_time_vars = true,
+                                       bool use_integer_vars = false);
 };
 
 #endif

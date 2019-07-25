@@ -80,7 +80,8 @@ class Slave:
                             elif name == 'timeout':                        attr = int(attr == 23)
                             elif name == 'memout':                         attr = int(attr == 22)
                             elif name == 'cplex_exception':                attr = int(attr == 25)
-                            elif name == 'other_error':                    attr = int(attr not in [0, 13, 23, 22, 25])
+                            elif name == 'solution_not_found':             attr = int(attr == 12)
+                            elif name == 'other_error':                    attr = int(attr not in [0, 13, 23, 22, 25, 12])
                             elif name == 'quality_score':                  attr = round(attr / lb, 10) if lb > 0 else 0.0
                             elif name == 'optimal_plan_cost':              attr = lb
                             elif name == 'max_f_equals_optimal_plan_cost': attr = int(attr == lb)

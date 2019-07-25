@@ -1,12 +1,19 @@
 #include "delete_relaxation_constraints.h"
 
 FlorianDeleteRelaxationConstraints::FlorianDeleteRelaxationConstraints(
-    shared_ptr<TaskProxy> task_proxy, double infinity, bool use_time_vars,
-    bool use_integer_vars)
+    shared_ptr<TaskProxy> task_proxy, double infinity,
+    vector<lp::LPVariable> &variables, vector<lp::LPConstraint> &constraints,
+    const State &state, bool use_time_vars, bool use_integer_vars)
     : task_proxy(task_proxy),
       infinity(infinity),
       use_time_vars(use_time_vars),
-      use_integer_vars(use_integer_vars) {}
+      use_integer_vars(use_integer_vars) {
+    create_constraints(variables, constraints, infinity);
+
+    for (FactProxy f : state) {
+        constraints[get_constraint_id(f)].set_lower_bound(-1);
+    }
+}
 
 int FlorianDeleteRelaxationConstraints::get_var_op_used(
     OperatorProxy op, vector<lp::LPVariable> &variables) {
@@ -169,15 +176,5 @@ void FlorianDeleteRelaxationConstraints::create_constraints(
         constraint.insert(op.get_id(), 1);
         constraint.insert(get_var_op_used(op, variables), -1);
         constraints.push_back(constraint);
-    }
-}
-
-void FlorianDeleteRelaxationConstraints::operator()(
-    vector<lp::LPVariable> &variables, vector<lp::LPConstraint> &constraints,
-    const State &state) {
-    create_constraints(variables, constraints, infinity);
-
-    for (FactProxy f : state) {
-        constraints[get_constraint_id(f)].set_lower_bound(-1);
     }
 }

@@ -115,9 +115,9 @@ void SOCWSSSCplexSearch::create_base_constraints() {
     // Florian delete relaxation constraints
     if (constraint_generators.find("h+") != string::npos) {
         cout << "Using delete relaxation constraints" << endl;
-        FlorianDeleteRelaxationConstraints(make_shared<TaskProxy>(task_proxy),
-                                           infinity)(
-            (*lp_variables), (*lp_constraints), task_proxy.get_initial_state());
+        FlorianDeleteRelaxationConstraints(
+            make_shared<TaskProxy>(task_proxy), infinity, (*lp_variables),
+            (*lp_constraints), task_proxy.get_initial_state());
     }
 
     // Florian flow constraints
@@ -352,7 +352,12 @@ SearchStatus SOCWSSSCplexSearch::step() {
         for (IloInt i = 0; i < n_ops; ++i) {
             op_counts.emplace_back(cplex->getValue((*x)[i]));
         }
-        set_plan(socwsss_callback->cache_op_counts[op_counts].plan);
+        Plan plan = socwsss_callback->cache_op_counts[op_counts].plan;
+        if (plan.size() == 0) {
+            cout << "SOLUTION NOT FOUND" << endl;
+            exit(12);
+        }
+        set_plan(plan);
     }
 
     return status;

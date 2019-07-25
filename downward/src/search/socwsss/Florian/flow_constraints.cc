@@ -279,9 +279,7 @@ FlorianFlowConstraints::FlorianFlowConstraints(
          << endl;
 
     for (FlowConstraintInternals &constraint : sub_constraints) {
-        if (constraint.update_constraints(state, local_constraints)) {
-            return;
-        }
+        constraint.update_constraints(state, local_constraints);
     }
 
     // Erase base operator counting variables
@@ -291,6 +289,10 @@ FlorianFlowConstraints::FlorianFlowConstraints(
 
     // Update new variables ids for new constraints
     for (lp::LPConstraint old_c : local_constraints) {
+        if (old_c.get_variables().size() == 0) {
+            continue;
+        }
+
         lp::LPConstraint new_c(old_c.get_lower_bound(),
                                old_c.get_upper_bound());
         for (size_t vi = 0; vi < old_c.get_variables().size(); ++vi) {

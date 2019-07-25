@@ -29,6 +29,11 @@
         "type": "int",
         "summary": "sum"
     },
+    "solution_not_found": {
+        "regex": "search exit code: (-?\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "sum"
+    },
     "other_error": {
         "regex": "search exit code: (-?\\d+\\.?\\d*)",
         "type": "int",
