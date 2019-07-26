@@ -331,14 +331,16 @@ SearchStatus SOCWSSSCplexSearch::step() {
 
     /*
     cout << "\tALL LEARNED GLCS:" << endl;
+    int glc_id = 0;
     for (auto glc : (*socwsss_callback->glcs)) {
-        cout << "\t\t";
+        cout << "\t\t(" << glc_id << ") ";
         cout << "YT >= " << glc->yt_bound << " ";
         for (auto i : glc->ops_bounds) {
             cout << task_proxy.get_operators()[i.first].get_name()
                  << " >= " << i.second << " ";
         }
         cout << endl;
+        glc_id++;
     }
 
     cout << "\tALL PLANS IN CACHE:" << endl;
@@ -349,6 +351,24 @@ SearchStatus SOCWSSSCplexSearch::step() {
                 cout << task_proxy.get_operators()[j].get_name() << " ";
             }
             cout << endl;
+
+            OperatorCount op_counts(n_ops, 0);
+            for (auto op_id : i.second.plan) {
+                op_counts[op_id.get_index()]++;
+            }
+            int glc_id = 0;
+            for (auto glc : (*socwsss_callback->glcs)) {
+                int sat = 0;
+                for (auto &[op_id, op_bound] : glc->ops_bounds) {
+                    if (op_counts[op_id] >= op_bound) {
+                        sat++;
+                    }
+                }
+                if (sat == 0) {
+                    cout << "\t\t\tVIOLATES GLC " << glc_id << endl;
+                }
+                glc_id++;
+            }
         }
     }
 

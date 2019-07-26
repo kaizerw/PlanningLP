@@ -289,6 +289,8 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
                                OperatorCount &rounded_x) {
     /*
     cout << "\tSEQ " << (seq + 1) << endl;
+    cout << "\tIN CANDIDATE? " << ctxt.inCandidate() << endl;
+    cout << "\tIN RELAXATION? " << ctxt.inRelaxation() << endl;
     cout << "\tTRYING TO SEQUENCE WITH F-BOUND: " << rounded_z << endl;
     for (int op_id = 0; op_id < n_ops; ++op_id) {
         if (rounded_x[op_id] > 0) {
@@ -329,7 +331,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
         }
 
         /*
-        cout << "\t\tLEARNED GLC: ";
+        cout << "\t\tLEARNED GLC: (" << glcs->size() << ") ";
         cout << "YT >= " << info.learned_glc->yt_bound << " ";
         for (auto i : info.learned_glc->ops_bounds) {
             cout << task_proxy->get_operators()[i.first].get_name()

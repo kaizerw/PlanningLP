@@ -1,6 +1,6 @@
 ################################################################################
 ./build.py
-run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5m"
+run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1m"
 ################################################################################
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq, heuristic=blind)"
 #$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p11.sas --search "$opts"
@@ -77,8 +77,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-half.sas --search "$opts" # optimal plan cost = 11
 
 # 8 - T3 oc h+ flow: NOT OPTIMAL [ALL SOLVED]
-opts="socwsss_cplex(constraint_type=3, constraint_generators=h+_flow_glcs, heuristic=operatorcounting)"
-$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-half.sas --search "$opts" # optimal plan cost = 6
+#opts="socwsss_cplex(constraint_type=3, constraint_generators=h+_flow_glcs, heuristic=operatorcounting)"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-half.sas --search "$opts" # optimal plan cost = 6
 #################################################################################
 #opts="astar(lmcut())"
 #opts="astar(operatorcounting([lmcut_constraints()]))"
@@ -91,6 +91,10 @@ $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-half.sas --search
 #$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq, heuristic=lmcut)"
 #$run_pref $DOWNWARD_BENCHMARKS/parcprinter-opt11-strips/p10.sas --search "$opts"
+#################################################################################
+#opts="astar(lmcut())"
+opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks, heuristic=lmcut)"
+$run_pref p01.pddl --search "$opts"
 #################################################################################
 # domain         plan_cost  seq in 1min (dm)    domain obs
 # barman         90         nok (nok)           2 ops with cost=10 others cost=1
