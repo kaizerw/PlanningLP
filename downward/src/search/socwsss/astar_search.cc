@@ -11,7 +11,7 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       max_f_found(0),
       ops_learned_constraint(task_proxy.get_operators().size(),
                              (constraint_type == 1)),
-      yt_bound(numeric_limits<int>::max()),
+      yt_bound(false),
       state_registry(task_proxy, true, initial_op_count),
       search_space(state_registry) {
     cout << "Initializing SOC A* search..." << endl;
@@ -253,10 +253,7 @@ SearchStatus SOCAStarSearch::step() {
                     if (new_succ_f <= f_bound) {
                         ops_learned_constraint[op.get_id()] = true;
                     } else {
-                        int used_ops =
-                            initial_n_ops -
-                            accumulate(s_op_count.begin(), s_op_count.end(), 0);
-                        yt_bound = min(yt_bound, used_ops);
+                        yt_bound = true;
                     }
                 }
             }
@@ -347,8 +344,8 @@ void SOCAStarSearch::generate_constraint() {
             learned_glc->add_op_bound(op_id, initial_op_count[op_id] + 1);
         }
     }
-    if (yt_bound != numeric_limits<int>::max()) {
-        learned_glc->yt_bound = yt_bound + 1;
+    if (yt_bound) {
+        learned_glc->yt_bound = f_bound + 1;
     }
     if (learned_glc->empty()) {
         learned_glc = nullptr;

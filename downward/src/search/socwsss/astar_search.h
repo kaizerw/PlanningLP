@@ -35,7 +35,7 @@ struct SOCAStarSearch : public EagerSearch {
     int constraint_type;
     double max_f_found;
     vector<bool> ops_learned_constraint;
-    int yt_bound;
+    bool yt_bound;
     StateRegistry state_registry;
     SearchSpace search_space;
 
