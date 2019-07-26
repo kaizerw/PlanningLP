@@ -379,13 +379,13 @@ SearchStatus SOCWSSSCplexSearch::step() {
         }
     }
     cout << "\tOPS WITH ZERO COST: " << ops_zero << endl;
+    */
 
     if (cplex->getStatus() == IloAlgorithm::Status::Infeasible ||
         cplex->getStatus() == IloAlgorithm::Status::InfeasibleOrUnbounded) {
         cout << "INFEASIBLE" << endl;
         exit(13);
     }
-    */
 
     // Get final plan
     if (cplex->getStatus() == IloAlgorithm::Status::Optimal) {
