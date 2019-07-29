@@ -11,7 +11,7 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       max_f_found(0),
       ops_learned_constraint(task_proxy.get_operators().size(),
                              (constraint_type == 1)),
-      yt_bound(false),
+      yt_bound(numeric_limits<int>::max()),
       state_registry(task_proxy, true, initial_op_count),
       search_space(state_registry) {
     cout << "Initializing SOC A* search..." << endl;
@@ -180,6 +180,12 @@ SearchStatus SOCAStarSearch::step() {
     */
 
     if (node_f > f_bound) {
+        // In T2 and T3 we add the YT bound if A* selects for expansion a state
+        // with f > f_bound
+        if (constraint_type == 2 || constraint_type == 3) {
+            yt_bound = min(yt_bound, node_f);
+        }
+
         return IN_PROGRESS;
     }
 
@@ -242,7 +248,6 @@ SearchStatus SOCAStarSearch::step() {
                 // 3. Add operators o that could generate states s' from states
                 // s only if s' is a new state and f(s') <= f_bound
             } else if (constraint_type == 3) {
-                // Calculate new_succ_g and new_succ_f
                 int new_succ_g = node->get_g() + get_adjusted_cost(op);
                 EvaluationContext eval_context2(succ_node.get_state(),
                                                 new_succ_g, false, &statistics);
@@ -253,7 +258,10 @@ SearchStatus SOCAStarSearch::step() {
                     if (new_succ_f <= f_bound) {
                         ops_learned_constraint[op.get_id()] = true;
                     } else {
-                        yt_bound = true;
+                        // In T3, we add the YT bound if a state with f >
+                        // f_bound could be generated if there were one more
+                        // of the operator
+                        yt_bound = min(yt_bound, new_succ_f);
                     }
                 }
             }
@@ -344,8 +352,8 @@ void SOCAStarSearch::generate_constraint() {
             learned_glc->add_op_bound(op_id, initial_op_count[op_id] + 1);
         }
     }
-    if (yt_bound) {
-        learned_glc->yt_bound = f_bound + 1;
+    if (yt_bound != numeric_limits<int>::max()) {
+        learned_glc->yt_bound += 1;
     }
     if (learned_glc->empty()) {
         learned_glc = nullptr;
