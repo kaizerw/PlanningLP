@@ -1,5 +1,13 @@
 #include "sat_seq.h"
 
+/*
+// Test PlanToMinisat
+vector<int> op_counts({0, 1, 0, 1, 1, 1, 1, 0, 1, 0});
+int n_layers = accumulate(op_counts.begin(), op_counts.end(), 0);
+PlanToMinisat(make_shared<TaskProxy>(task_proxy), n_layers, op_counts)();
+exit(0);
+*/
+
 PlanToMinisat::PlanToMinisat(shared_ptr<TaskProxy> task_proxy, int n_layers,
                              vector<int>& op_counts)
     : task_proxy(task_proxy), n_layers(n_layers), op_counts(op_counts) {
@@ -113,7 +121,7 @@ void PlanToMinisat::initialize_assumptions() {
 }
 
 int PlanToMinisat::s(int i, int j) {
-    tuple<int, int> key = make_tuple(i, j);
+    tuple<int, int> key(i, j);
     if (this->aux_vars.count(key) == 0) {
         this->aux_vars[key] = this->id_generator++;
     }

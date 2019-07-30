@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <set>
 #include <sstream>
 #include <string>
