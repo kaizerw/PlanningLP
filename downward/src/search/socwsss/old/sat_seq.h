@@ -20,8 +20,8 @@ using namespace std;
 
 struct PlanToMinisat {
     shared_ptr<TaskProxy> task_proxy;
-    int n_layers;
     vector<int> op_counts;
+    int n_layers;
     int id_generator = 1;
     map<tuple<int, int>, int> aux_vars;
 
@@ -30,6 +30,7 @@ struct PlanToMinisat {
     vector<int> initial_state;
     vector<int> goal_state;
     vector<vector<int>> pres, posts;
+    vector<vector<vector<int>>> prods;
 
     map<string, int> facts_to_ids;
     map<int, string> ids_to_facts;
@@ -40,23 +41,22 @@ struct PlanToMinisat {
     map<string, int> assumptions_to_ids;
     map<int, string> ids_to_assumptions;
 
-    vector<vector<int>> part3, part7, part8;
-    map<int, vector<vector<int>>> part1, part2, part4, part5, part6;
+    map<int, vector<vector<int>>> part1, part2, part3, part4, part5, part6,
+        part7, part8;
 
-    PlanToMinisat(shared_ptr<TaskProxy> task_proxy, int n_layers,
-                  vector<int>& op_counts);
+    PlanToMinisat(shared_ptr<TaskProxy> task_proxy, vector<int>& op_counts);
     void initialize_ids();
     void initialize_assumptions();
     int s(int i, int j);
     vector<vector<int>> encode_bcc(map<int, int>& x, int k);
     vector<vector<int>> do_part1(int l);
     vector<vector<int>> do_part2(int l);
-    vector<vector<int>> do_part3();
+    vector<vector<int>> do_part3(int l);
     vector<vector<int>> do_part4(int l);
     vector<vector<int>> do_part5(int l);
     vector<vector<int>> do_part6(int l);
-    vector<vector<int>> do_part7();
-    vector<vector<int>> do_part8();
+    vector<vector<int>> do_part7(int l);
+    vector<vector<int>> do_part8(int l);
     vector<vector<int>> convert();
     vector<vector<int>> get_assumptions();
     void make_minisat_input(vector<vector<int>> encoded, string filename);

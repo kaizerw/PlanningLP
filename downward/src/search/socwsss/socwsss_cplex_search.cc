@@ -28,9 +28,8 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
 
 void SOCWSSSCplexSearch::initialize() {
     // Test PlanToMinisat
-    vector<int> op_counts({0, 1, 0, 1, 1, 1, 1, 0, 1, 0});
-    int n_layers = accumulate(op_counts.begin(), op_counts.end(), 0);
-    PlanToMinisat(make_shared<TaskProxy>(task_proxy), n_layers, op_counts)();
+    vector<int> op_counts({0, 1, 0, 1, 2, 2, 1, 0, 1, 0});
+    PlanToMinisat(make_shared<TaskProxy>(task_proxy), op_counts)();
     exit(0);
 
     cout << "Initializing SOCWSSS CPLEX search..." << endl;

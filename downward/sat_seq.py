@@ -26,7 +26,9 @@ if __name__ == '__main__':
     status = s.solve(assumptions)
 
     if status:
+        print('Solved')
         print(s.get_model())
     else:
+        print('Conflict')
         print(s.get_core())
     exit(not status)
