@@ -353,7 +353,7 @@ void SOCAStarSearch::generate_constraint() {
         }
     }
     if (yt_bound != numeric_limits<int>::max()) {
-        learned_glc->yt_bound += 1;
+        learned_glc->yt_bound = yt_bound;
     }
     if (learned_glc->empty()) {
         learned_glc = nullptr;

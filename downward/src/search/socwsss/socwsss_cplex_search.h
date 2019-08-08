@@ -18,6 +18,7 @@
 
 #include "Florian/delete_relaxation_constraints.h"
 #include "Florian/flow_constraints.h"
+#include "relaxed_exploration_landmarks.h"
 #include "socwssscallback.h"
 
 #include <chrono>

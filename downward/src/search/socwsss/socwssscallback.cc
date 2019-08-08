@@ -332,10 +332,10 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
 
         /*
         cout << "\t\tLEARNED GLC: (" << glcs->size() << ") ";
-        cout << "YT >= " << info.learned_glc->yt_bound << " ";
+        cout << "[YT >= " << info.learned_glc->yt_bound << "] ";
         for (auto i : info.learned_glc->ops_bounds) {
-            cout << task_proxy->get_operators()[i.first].get_name()
-                 << " >= " << i.second << " ";
+            cout << "[" << task_proxy->get_operators()[i.first].get_name()
+                 << " >= " << i.second << "] ";
         }
         cout << endl;
         */

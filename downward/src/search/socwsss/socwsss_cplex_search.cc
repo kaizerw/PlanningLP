@@ -98,6 +98,19 @@ void SOCWSSSCplexSearch::create_base_constraints() {
                 });
     }
 
+    // Add relaxed exploration action landmarks
+    /*
+    if (true) {
+        cout << "Using relaxed exploration landmarks" << endl;
+        auto landmarks = RelaxedExplorationLandmarks(task_proxy)();
+        for (int op_id : landmarks) {
+            lp::LPConstraint landmark_constraint(1.0, infinity);
+            landmark_constraint.insert(op_id, 1.0);
+            lp_constraints->emplace_back(landmark_constraint);
+        }
+    }
+    */
+
     // Compute dynamic merging
     if (constraint_generators.find("dynamicmerging") != string::npos) {
         cout << "Using dynamic merging constraints" << endl;
@@ -334,10 +347,10 @@ SearchStatus SOCWSSSCplexSearch::step() {
     int glc_id = 0;
     for (auto glc : (*socwsss_callback->glcs)) {
         cout << "\t\t(" << glc_id << ") ";
-        cout << "YT >= " << glc->yt_bound << " ";
+        cout << "[YT >= " << glc->yt_bound << "] ";
         for (auto i : glc->ops_bounds) {
-            cout << task_proxy.get_operators()[i.first].get_name()
-                 << " >= " << i.second << " ";
+            cout << "[" << task_proxy.get_operators()[i.first].get_name()
+                 << " >= " << i.second << "] ";
         }
         cout << endl;
         glc_id++;
@@ -359,6 +372,10 @@ SearchStatus SOCWSSSCplexSearch::step() {
             int glc_id = 0;
             for (auto glc : (*socwsss_callback->glcs)) {
                 int sat = 0;
+                int yt_bound = glc->yt_bound;
+                if (yt_bound != -1 && i.second.plan_cost >= yt_bound) {
+                    sat++;
+                }
                 for (auto &[op_id, op_bound] : glc->ops_bounds) {
                     if (op_counts[op_id] >= op_bound) {
                         sat++;
