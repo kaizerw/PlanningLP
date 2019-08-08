@@ -51,10 +51,9 @@ PlanToMinisat::PlanToMinisat(shared_ptr<TaskProxy> task_proxy,
         int domain_size = (*vars)[var_id].get_domain_size();
         prods.emplace_back(vector<vector<int>>(domain_size, vector<int>({})));
         for (size_t op_id = 0; op_id < ops->size(); ++op_id) {
-            int pre_val = pres[op_id][var_id];
             int post_val = posts[op_id][var_id];
 
-            if (pre_val != -1 && post_val != -1 && pre_val != post_val) {
+            if (post_val != -1) {
                 prods[var_id][post_val].emplace_back(op_id);
             }
         }
@@ -453,6 +452,17 @@ void PlanToMinisat::save_file(vector<vector<int>> encoded, string filename) {
     file.close();
 }
 
+string PlanToMinisat::tos(vector<vector<int>> encoded) {
+    stringstream file;
+    for (vector<int>& clause : encoded) {
+        for (int c : clause) {
+            file << c << " ";
+        }
+        file << endl;
+    }
+    return file.str();
+}
+
 string PlanToMinisat::format(vector<vector<int>> part) {
     string formula;
 
@@ -508,41 +518,30 @@ string PlanToMinisat::print() {
     return r;
 }
 
-void PlanToMinisat::operator()() {
-    string input("input.cnf");
-    string output("output.txt");
+string PlanToMinisat::exec(const char* cmd) {
+    array<char, 128> buffer;
+    string result;
+    unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        throw runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
 
+void PlanToMinisat::operator()() {
     vector<vector<int>> base = convert();
     vector<vector<int>> assumptions = get_assumptions();
 
-    vector<vector<int>> encoded;
-    copy(base.begin(), base.end(), back_inserter(encoded));
-    copy(assumptions.begin(), assumptions.end(), back_inserter(encoded));
+    string base_str = tos(base);
+    string assumptions_str = tos(assumptions);
 
-    make_minisat_input(encoded, input);
-
-    save_file(base, string("base.txt"));
-    save_file(assumptions, string("assumptions.txt"));
-
-    // cout << print() << endl;
-
-    // int status =
-    //    system((string("minisat") + string(" ") + input + string(" ") +
-    //    output)
-    //               .c_str());
-    // cout << status;
-
-    // ifstream file(output);
-    // if (file.is_open()) {
-    //    string line;
-    //    getline(file, line, '\n');
-    //    cout << line << endl;
-    //}
-    // file.close();
-
-    int status =
-        system((string("./sat_seq.py ") + string(" ") + string("base.txt") +
-                string(" ") + string("assumptions.txt"))
-                   .c_str());
-    cout << status << endl;
+    cout << "Executing minisat..." << endl;
+    string minisat_output =
+        exec((string("./sat_seq.py ") + string(" \"") + base_str +
+              string("\" \"") + assumptions_str + string("\""))
+                 .c_str());
+    cout << "Minisat output: " << minisat_output << endl;
 }

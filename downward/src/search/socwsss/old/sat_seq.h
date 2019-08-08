@@ -2,7 +2,9 @@
 #define SAT_SEQ_H
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -10,6 +12,7 @@
 #include <numeric>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -61,8 +64,10 @@ struct PlanToMinisat {
     vector<vector<int>> get_assumptions();
     void make_minisat_input(vector<vector<int>> encoded, string filename);
     void save_file(vector<vector<int>> encoded, string filename);
+    string tos(vector<vector<int>> encoded);
     string format(vector<vector<int>> part);
     string print();
+    string exec(const char* cmd);
     void operator()();
 };
 

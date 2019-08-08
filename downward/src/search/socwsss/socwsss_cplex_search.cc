@@ -28,7 +28,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
 
 void SOCWSSSCplexSearch::initialize() {
     // Test PlanToMinisat
-    vector<int> op_counts({0, 1, 0, 1, 2, 2, 1, 0, 1, 0});
+    vector<int> op_counts({0, 1, 0, 1, 1, 1, 1, 0, 1, 0});
     PlanToMinisat(make_shared<TaskProxy>(task_proxy), op_counts)();
     exit(0);
 
