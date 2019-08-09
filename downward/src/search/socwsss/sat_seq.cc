@@ -2,6 +2,7 @@
 
 /*
 // Test PlanToMinisat
+// simplegripper/prob01.pddl
 vector<int> op_counts({0, 1, 0, 1, 1, 1, 1, 0, 1, 0});
 PlanToMinisat(make_shared<TaskProxy>(task_proxy), op_counts)();
 exit(0);
@@ -75,6 +76,7 @@ void PlanToMinisat::initialize_ids() {
 
             all_to_ids[key.str()] = id;
             ids_to_all[id] = key.str();
+            ids_to_assumptions_pairs[id] = {op_id, l};
 
             id_generator++;
         }
@@ -110,6 +112,7 @@ void PlanToMinisat::initialize_assumptions() {
 
     all_to_ids[key.str()] = id;
     ids_to_all[id] = key.str();
+    ids_to_assumptions_pairs[id] = {-1, (n_layers + 1)};
 
     id_generator++;
 
@@ -123,12 +126,9 @@ void PlanToMinisat::initialize_assumptions() {
 
         all_to_ids[key.str()] = id;
         ids_to_all[id] = key.str();
+        ids_to_assumptions_pairs[id] = {op_id, (op_counts[op_id] + 1)};
 
         id_generator++;
-    }
-
-    for (auto i : assumptions_to_ids) {
-        cout << get<0>(i) << " " << get<1>(i) << endl;
     }
 }
 
@@ -538,10 +538,51 @@ void PlanToMinisat::operator()() {
     string base_str = tos(base);
     string assumptions_str = tos(assumptions);
 
-    cout << "Executing minisat..." << endl;
-    string minisat_output =
-        exec((string("./sat_seq.py ") + string(" \"") + base_str +
-              string("\" \"") + assumptions_str + string("\""))
-                 .c_str());
-    cout << "Minisat output: " << minisat_output << endl;
+    string cmd = (string("./sat_seq.py ") + string(" \"") + base_str +
+                  string("\" \"") + assumptions_str + string("\""));
+    string s = exec(cmd.c_str());
+
+    size_t pos = 0;
+    string token;
+    string delimiter = " ";
+    vector<int> minisat_output;
+    while ((pos = s.find(delimiter)) != string::npos) {
+        token = s.substr(0, pos);
+        minisat_output.emplace_back(atoi(token.c_str()));
+        s.erase(0, pos + delimiter.length());
+    }
+    minisat_output.emplace_back(atoi(s.c_str()));
+
+    sequenciable = (bool)(minisat_output[0]);
+    minisat_output.erase(minisat_output.begin());
+    if (sequenciable) {
+        for (int v : minisat_output) {
+            vector<pair<int, int>> used_ops;
+            if (v >= 0 && ids_to_assumptions_pairs.find(v) !=
+                              ids_to_assumptions_pairs.end()) {
+                auto [op_id, layer] = ids_to_assumptions_pairs[v];
+                used_ops.emplace_back(op_id, layer);
+            }
+            auto fn1 = [](auto i, auto j) { return i.second < j.second; };
+            sort(used_ops.begin(), used_ops.end(), fn1);
+            auto fn2 = [](auto i) { return OperatorID(i.first); };
+            transform(used_ops.begin(), used_ops.end(), back_inserter(plan),
+                      fn2);
+        }
+    } else {
+        learned_glc = make_shared<GLC>();
+        for (int v : minisat_output) {
+            v = abs(v);
+            auto [op_id, op_bound] = ids_to_assumptions_pairs[v];
+
+            if (op_id == -1) {
+                learned_glc->yt_bound = op_bound;
+            } else {
+                learned_glc->add_op_bound(op_id, op_bound);
+            }
+        }
+        if (learned_glc->empty()) {
+            learned_glc = nullptr;
+        }
+    }
 }

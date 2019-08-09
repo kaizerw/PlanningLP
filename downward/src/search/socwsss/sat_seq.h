@@ -17,7 +17,9 @@
 #include <tuple>
 #include <vector>
 
+#include "../plan_manager.h"
 #include "../task_proxy.h"
+#include "glc.h"
 
 using namespace std;
 
@@ -39,13 +41,19 @@ struct PlanToMinisat {
     map<int, string> ids_to_facts;
     map<string, int> operators_to_ids;
     map<int, string> ids_to_operators;
+    map<int, pair<int, int>> ids_to_operators_pairs;
     map<string, int> all_to_ids;
     map<int, string> ids_to_all;
     map<string, int> assumptions_to_ids;
     map<int, string> ids_to_assumptions;
+    map<int, pair<int, int>> ids_to_assumptions_pairs;
 
     map<int, vector<vector<int>>> part1, part2, part3, part4, part5, part6,
         part7, part8;
+
+    bool sequenciable = false;
+    Plan plan;
+    shared_ptr<GLC> learned_glc;
 
     PlanToMinisat(shared_ptr<TaskProxy> task_proxy, vector<int>& op_counts);
     void initialize_ids();

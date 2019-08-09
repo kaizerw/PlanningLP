@@ -49,6 +49,7 @@ using pdbs::PatternCollectionGeneratorSystematic;
 #include "dynamic_merging.h"
 #include "glc.h"
 #include "printer_plots.h"
+#include "sat_seq.h"
 #include "seq_constraints.h"
 
 #include <chrono>
@@ -143,6 +144,7 @@ struct SOCWSSSCallback : public Function {
     int constraint_type;
     string constraint_generators;
     string heuristic;
+    bool sat_seq;
     lp::LPSolverType lp_solver_type;
     int cost_type;
     double max_time;
@@ -182,6 +184,7 @@ struct SOCWSSSCallback : public Function {
                    vector<double> &original_x, int rounded_z,
                    OperatorCount &rounded_x);
     pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
+    SequenceInfo get_sat_sequence(OperatorCount op_count);
     SequenceInfo get_astar_sequence(int f_bound, OperatorCount op_count);
     void sequence(const Context &ctxt, int rounded_z, OperatorCount &rounded_x);
     void post_current_best_plan(const Context &ctxt);

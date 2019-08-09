@@ -12,7 +12,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 #################################################################################
 # Test SAT sequencing
 #opts="astar(lmcut())"
-opts="socwsss_cplex(constraint_type=1, constraint_generators=seq, heuristic=blind)"
+#opts="socwsss_cplex(constraint_type=1, constraint_generators=seq, heuristic=blind)"
+opts="socwsss_cplex(sat_seq=true)"
 $run_pref $DOWNWARD_BENCHMARKS/simplegripper/prob01.pddl --search "$opts"
 #################################################################################
 rm -f sas_plan

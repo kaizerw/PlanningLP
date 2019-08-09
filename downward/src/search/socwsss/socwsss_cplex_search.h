@@ -18,7 +18,6 @@
 
 #include "Florian/delete_relaxation_constraints.h"
 #include "Florian/flow_constraints.h"
-#include "old/sat_seq.h"
 #include "socwssscallback.h"
 
 #include <chrono>
@@ -44,6 +43,7 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     int constraint_type;
     string constraint_generators;
     string heuristic;
+    bool sat_seq;
     lp::LPSolverType lp_solver_type;
     int cost_type;
     double max_time;

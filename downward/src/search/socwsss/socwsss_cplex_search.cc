@@ -7,6 +7,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       constraint_type(opts.get<int>("constraint_type")),
       constraint_generators(opts.get<string>("constraint_generators")),
       heuristic(opts.get<string>("heuristic")),
+      sat_seq(opts.get<bool>("sat_seq")),
       lp_solver_type(lp::LPSolverType(opts.get_enum("lpsolver"))),
       cost_type(opts.get<int>("cost_type")),
       max_time(opts.get<double>("max_time")),
@@ -17,6 +18,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
     this->opts.set("constraint_generators",
                    opts.get<string>("constraint_generators"));
     this->opts.set("heuristic", opts.get<string>("heuristic"));
+    this->opts.set("sat_seq", opts.get<bool>("sat_seq"));
     this->opts.set("lp_solver_type",
                    lp::LPSolverType(opts.get_enum("lpsolver")));
     this->opts.set("cost_type", opts.get<int>("cost_type"));
@@ -27,11 +29,6 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
 }
 
 void SOCWSSSCplexSearch::initialize() {
-    // Test PlanToMinisat
-    vector<int> op_counts({0, 1, 0, 1, 1, 1, 1, 0, 1, 0});
-    PlanToMinisat(make_shared<TaskProxy>(task_proxy), op_counts)();
-    exit(0);
-
     cout << "Initializing SOCWSSS CPLEX search..." << endl;
 
     n_ops = task_proxy.get_operators().size();
@@ -422,6 +419,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<int>("constraint_type", "", "1");
     parser.add_option<string>("constraint_generators", "", "seq");
     parser.add_option<string>("heuristic", "", "blind");
+    parser.add_option<bool>("sat_seq", "", "false");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);
