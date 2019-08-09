@@ -49,7 +49,11 @@ void SOCWSSSCplexSearch::initialize() {
     // 0 <= sum(Co*Yo, o in O) - Y_T <= 0
     lp::LPConstraint constraint_yt(0.0, 0.0);
     for (OperatorProxy op : task_proxy.get_operators()) {
-        constraint_yt.insert(op.get_id(), op.get_cost());
+        if (sat_seq) {
+            constraint_yt.insert(op.get_id(), 1);
+        } else {
+            constraint_yt.insert(op.get_id(), op.get_cost());
+        }
     }
     constraint_yt.insert(n_ops, -1.0);
     lp_constraints->emplace_back(constraint_yt);
