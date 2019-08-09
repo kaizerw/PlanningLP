@@ -14,6 +14,7 @@ SOCWSSSCallback::SOCWSSSCallback(const Options &opts,
     : constraint_type(opts.get<int>("constraint_type")),
       constraint_generators(opts.get<string>("constraint_generators")),
       heuristic(opts.get<string>("heuristic")),
+      sat_seq(opts.get<bool>("sat_seq")),
       lp_solver_type(opts.get<lp::LPSolverType>("lp_solver_type")),
       cost_type(opts.get<int>("cost_type")),
       max_time(opts.get<double>("max_time")),
@@ -121,12 +122,65 @@ pair<int, IloExpr> SOCWSSSCallback::get_cut(shared_ptr<GLC> learned_glc) {
     return {missing_bounds, cut};
 }
 
+SequenceInfo SOCWSSSCallback::get_sat_sequence(OperatorCount op_count) {
+    if (cache_op_counts.has(op_count)) {
+        repeated_seqs++;
+        return cache_op_counts[op_count];
+    }
+
+    cout << "SEQUENCING WITH SAT..." << endl;
+    // cout.setstate(ios_base::failbit);
+    seq++;
+    printer_plots->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
+                             restarts);
+    auto start = chrono::system_clock::now();
+    auto sat_seq = PlanToMinisat(task_proxy, op_count);
+    sat_seq();
+    double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
+                                      chrono::system_clock::now() - start)
+                                      .count();
+    printer_plots->plot_astar_time.emplace_back(elapsed_microseconds);
+    // cout.clear();
+
+    SequenceInfo info;
+    if (sat_seq.sequenciable) {
+        // Get plan found by SAT
+        info.plan = sat_seq.plan;
+
+        // Calculate plan cost
+        info.plan_cost = accumulate(
+            info.plan.begin(), info.plan.end(), 0,
+            [&](int acc, OperatorID op_id) {
+                return acc + task_proxy->get_operators()[op_id].get_cost();
+            });
+
+        cout << "SEQ " << seq << ": FOUND PLAN WITH COST=" << info.plan_cost
+             << endl;
+        info.sequenciable = true;
+
+        cache_op_counts.add(plan_to_op_count(info, n_ops), info);
+
+    } else {
+        info.learned_glc = sat_seq.learned_glc;
+        cout << "SEQ " << seq << ": NOT SEQUENCIABLE WITH "
+             << accumulate(op_count.begin(), op_count.end(), 0) << " OPERATORS"
+             << endl;
+        info.sequenciable = false;
+        info.plan_cost = numeric_limits<int>::max();
+    }
+
+    cache_op_counts.add(op_count, info);
+    return info;
+}
+
 SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
                                                  OperatorCount op_count) {
     if (cache_op_counts.has(op_count)) {
         repeated_seqs++;
         return cache_op_counts[op_count];
     }
+
+    cout << "SEQUENCING WITH A*..." << endl;
 
     // Setup A* search
     Options opts;
@@ -301,7 +355,12 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
     */
     // Try to sequence current solution
     // cout.setstate(ios_base::failbit);
-    SequenceInfo info = get_astar_sequence(rounded_z, rounded_x);
+    SequenceInfo info;
+    if (sat_seq) {
+        info = get_sat_sequence(rounded_x);
+    } else {
+        info = get_astar_sequence(rounded_z, rounded_x);
+    }
     // cout.clear();
 
     if (info.sequenciable) {

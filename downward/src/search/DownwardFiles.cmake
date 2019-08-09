@@ -777,6 +777,7 @@ fast_downward_plugin(
         socwsss/glcs_constraints
 	socwsss/relaxed_exploration_landmarks
         socwsss/socwsss_search
+        socwsss/sat_seq
         socwsss/socwsss_cplex_search
     DEPENDS OPERATOR_COUNTING PRIORITY_QUEUES SEARCH_COMMON LP_SOLVER NULL_PRUNING_METHOD ORDERED_SET SUCCESSOR_GENERATOR
 )
