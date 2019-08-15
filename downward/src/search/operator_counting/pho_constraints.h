@@ -32,7 +32,7 @@ public:
         double infinity) override;
     virtual bool update_constraints(
         const State &state, lp::LPSolver &lp_solver,
-        shared_ptr<vector<int>> state_op_count = nullptr) override;
+        shared_ptr<vector<long>> state_op_count = nullptr) override;
 };
 }
 

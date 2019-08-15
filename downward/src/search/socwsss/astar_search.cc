@@ -6,7 +6,7 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       initial_op_count(opts.get<OperatorCount>("initial_op_count")),
       initial_n_ops(
           accumulate(initial_op_count.begin(), initial_op_count.end(), 0)),
-      f_bound(opts.get<int>("f_bound")),
+      f_bound(opts.get<long>("f_bound")),
       constraint_type(opts.get<int>("constraint_type")),
       max_f_found(0),
       ops_learned_constraint(task_proxy.get_operators().size(),
@@ -171,7 +171,7 @@ SearchStatus SOCAStarSearch::step() {
     // Use f_bound to bound search
     EvaluationContext eval_context2(node->get_state(), node->get_g(), false,
                                     &statistics);
-    int node_f = eval_context2.get_evaluator_value(f_evaluator.get());
+    long node_f = eval_context2.get_evaluator_value(f_evaluator.get());
 
     /*
     node->get_state().dump_pddl();
@@ -248,10 +248,10 @@ SearchStatus SOCAStarSearch::step() {
                 // 3. Add operators o that could generate states s' from states
                 // s only if s' is a new state and f(s') <= f_bound
             } else if (constraint_type == 3) {
-                int new_succ_g = node->get_g() + get_adjusted_cost(op);
+                long new_succ_g = node->get_g() + get_adjusted_cost(op);
                 EvaluationContext eval_context2(succ_node.get_state(),
                                                 new_succ_g, false, &statistics);
-                int new_succ_f =
+                long new_succ_f =
                     eval_context2.get_evaluator_value(f_evaluator.get());
 
                 if (succ_node.is_new()) {

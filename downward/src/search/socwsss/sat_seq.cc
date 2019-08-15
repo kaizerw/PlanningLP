@@ -9,7 +9,7 @@ exit(0);
 */
 
 PlanToMinisat::PlanToMinisat(shared_ptr<TaskProxy> task_proxy,
-                             vector<int>& op_counts)
+                             vector<long>& op_counts)
     : task_proxy(task_proxy),
       op_counts(op_counts),
       n_layers(accumulate(op_counts.begin(), op_counts.end(), 0)) {

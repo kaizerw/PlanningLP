@@ -23,7 +23,7 @@ using namespace std;
 namespace operator_counting {
 class GLCSConstraints : public ConstraintGenerator {
     shared_ptr<vector<shared_ptr<GLC>>> glcs;
-    vector<int> initial_op_count;
+    vector<long> initial_op_count;
 
     int n_ops;
     int yt_index;
@@ -32,7 +32,7 @@ class GLCSConstraints : public ConstraintGenerator {
 
    public:
     GLCSConstraints(shared_ptr<vector<shared_ptr<GLC>>>& glcs,
-                    vector<int>& initial_op_count);
+                    vector<long>& initial_op_count);
     void get_domain_constraints(int op_id, int op_id_bl, int current_bound,
                                 int previous_bound,
                                 vector<lp::LPVariable>& variables,
@@ -44,7 +44,7 @@ class GLCSConstraints : public ConstraintGenerator {
         std::vector<lp::LPConstraint>& constraints, double infinity) override;
     virtual bool update_constraints(
         const State& state, lp::LPSolver& lp_solver,
-        shared_ptr<vector<int>> state_op_count = nullptr) override;
+        shared_ptr<vector<long>> state_op_count = nullptr) override;
 };
 }  // namespace operator_counting
 

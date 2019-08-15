@@ -11,10 +11,15 @@ GLC::GLC(const GLC& other) {
     this->ops_bounds = other.ops_bounds;
 }
 
-void GLC::add_op_bound(int op_id, int op_bound) {
+void GLC::add_op_bound(int op_id, long op_bound) {
     ops_bounds.emplace_back(op_id, op_bound);
 }
 
 bool GLC::empty() {
     return (this->yt_bound == -1 && this->ops_bounds.size() == 0);
+}
+
+bool GLC::operator==(const GLC& other) {
+    return (this->yt_bound == other.yt_bound && 
+            this->ops_bounds == other.ops_bounds);
 }

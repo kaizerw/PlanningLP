@@ -362,6 +362,19 @@ SearchStatus SOCWSSSCplexSearch::step() {
         glc_id++;
     }
 
+    cout << "\tREPEATED LEARNED GLCS:" << endl;
+    int glc1_id = 0;
+    for (auto glc1 : (*socwsss_callback->glcs)) {
+        int glc2_id = 0;
+        for (auto glc2 : (*socwsss_callback->glcs)) {
+            if (glc1_id != glc2_id && (*glc1) == (*glc2)) {
+                cout << glc1_id << " EQUALS " << glc2_id << endl;
+            }
+            glc2_id++;
+        }
+        glc1_id++;
+    }
+
     cout << "\tALL PLANS IN CACHE:" << endl;
     for (auto i : socwsss_callback->cache_op_counts.cache) {
         if (i.second.sequenciable) {

@@ -260,7 +260,7 @@ void FlowConstraints::add_partial_merge_features(
 
 bool FlowConstraints::update_constraints(
     const State &state, lp::LPSolver &lp_solver,
-        shared_ptr<vector<int>> /*state_op_count*/) {
+        shared_ptr<vector<long>> /*state_op_count*/) {
     for (FlowConstraintInternals &constraint : sub_constraints) {
         if (constraint.update_constraints(state, lp_solver)) {
             return true;

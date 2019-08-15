@@ -3,7 +3,7 @@
 namespace operator_counting {
 
 GLCSConstraints::GLCSConstraints(shared_ptr<vector<shared_ptr<GLC>>>& glcs,
-                                 vector<int>& initial_op_count)
+                                 vector<long>& initial_op_count)
     : glcs(glcs), initial_op_count(initial_op_count) {}
 
 void GLCSConstraints::get_domain_constraints(
@@ -110,7 +110,7 @@ void GLCSConstraints::initialize_constraints(
 
 bool GLCSConstraints::update_constraints(
     const State& /*state*/, lp::LPSolver& lp_solver,
-    shared_ptr<vector<int>> state_op_count) {
+    shared_ptr<vector<long>> state_op_count) {
     // Calculate difference between initial_op_count and state_op_count
     vector<int> diff;
     transform(initial_op_count.begin(), initial_op_count.end(),

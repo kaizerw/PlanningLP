@@ -24,7 +24,7 @@ class OperatorCountingHeuristic : public Heuristic {
    protected:
     virtual int compute_heuristic(const GlobalState &global_state) override;
     int compute_heuristic(const State &state,
-                          shared_ptr<vector<int>> state_op_count);
+                          shared_ptr<vector<long>> state_op_count);
 
    public:
     explicit OperatorCountingHeuristic(const options::Options &opts);

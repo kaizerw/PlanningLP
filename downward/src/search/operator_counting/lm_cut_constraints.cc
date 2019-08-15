@@ -26,7 +26,7 @@ void LMCutConstraints::initialize_constraints(
 
 bool LMCutConstraints::update_constraints(
     const State &state, lp::LPSolver &lp_solver,
-    shared_ptr<vector<int>> /*state_op_count*/) {
+    shared_ptr<vector<long>> /*state_op_count*/) {
     assert(landmark_generator);
     vector<lp::LPConstraint> constraints;
     double infinity = lp_solver.get_infinity();

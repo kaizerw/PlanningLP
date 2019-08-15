@@ -14,14 +14,15 @@ struct GLC {
     // If yt_bound == -1 the [Y_T >= L + 1] bound literal will not be added
 
     int yt_bound;                       // Y_T bound literal
-    vector<pair<int, int>> ops_bounds;  // Operators bound literals
+    vector<pair<int, long>> ops_bounds;  // Operators bound literals
     int right_side_coeff;               // Right side coefficient
 
    public:
     GLC();
     GLC(const GLC &other);
-    void add_op_bound(int op_id, int op_bound);
+    void add_op_bound(int op_id, long op_bound);
     bool empty();
+    bool operator==(const GLC &other);
 };
 
 #endif

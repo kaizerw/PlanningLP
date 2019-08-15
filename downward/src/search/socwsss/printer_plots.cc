@@ -43,7 +43,7 @@ int PrinterPlots::compute_times_made_progress() {
     return times_made_progress;
 }
 
-void PrinterPlots::update(int lp_h_oc, vector<int> rounded_solution, int c_size,
+void PrinterPlots::update(int lp_h_oc, vector<long> rounded_solution, int c_size,
                           int x_size) {
     // Store values to plots
     this->plot_lp_all_constraints.emplace_back(c_size);

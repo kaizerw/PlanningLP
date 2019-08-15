@@ -18,7 +18,7 @@
 
 using namespace std;
 
-using OperatorCount = vector<int>;
+using OperatorCount = vector<long>;
 
 /*
   Overview of classes relevant to storing and working with registered states.

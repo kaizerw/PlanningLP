@@ -40,15 +40,15 @@ OperatorCountingHeuristic::OperatorCountingHeuristic(const Options &opts)
 int OperatorCountingHeuristic::compute_heuristic(
     const GlobalState &global_state) {
     State state = convert_global_state(global_state);
-    shared_ptr<vector<int>> state_op_count;
+    shared_ptr<vector<long>> state_op_count;
     if (socwsss) {
-        state_op_count = make_shared<vector<int>>(global_state.get_registry().lookup_op_count(global_state.get_id()));
+        state_op_count = make_shared<vector<long>>(global_state.get_registry().lookup_op_count(global_state.get_id()));
     }
     return compute_heuristic(state, state_op_count);
 }
 
 int OperatorCountingHeuristic::compute_heuristic(
-    const State &state, shared_ptr<vector<int>> state_op_count) {
+    const State &state, shared_ptr<vector<long>> state_op_count) {
     assert(!lp_solver.has_temporary_constraints());
     for (auto generator : constraint_generators) {
         bool dead_end =

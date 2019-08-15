@@ -1,7 +1,7 @@
 #include "socwssscallback.h"
 
-vector<int> plan_to_op_count(SequenceInfo &info, int n_ops) {
-    vector<int> plan_counts(n_ops, 0);
+OperatorCount plan_to_op_count(SequenceInfo &info, int n_ops) {
+    OperatorCount plan_counts(n_ops, 0);
     for (OperatorID &op_id : info.plan) {
         plan_counts[op_id.get_index()]++;
     }
@@ -49,32 +49,38 @@ pair<double, vector<double>> SOCWSSSCallback::extract_sol(const Context &ctxt) {
     return {original_z, original_x};
 }
 
-pair<int, OperatorCount> SOCWSSSCallback::round_sol(
+pair<long, OperatorCount> SOCWSSSCallback::round_sol(
     const Context &ctxt, double original_z, vector<double> &original_x) {
-    int rounded_z = 0;
+    long rounded_z = 0;
     OperatorCount rounded_x;
 
     if (ctxt.inRelaxation()) {
         rounded_z = round(original_z);
         transform(original_x.begin(), original_x.end(),
                   back_inserter(rounded_x),
-                  [](double i) { return (int)ceil(i); });
+                  [](double i) { return (long)ceil(i); });
     } else if (ctxt.inCandidate()) {
-        rounded_z = (int)original_z;
+        rounded_z = (long)original_z;
         transform(original_x.begin(), original_x.end(),
-                  back_inserter(rounded_x), [](double i) { return (int)i; });
+                  back_inserter(rounded_x), [](double i) { return (long)i; });
     }
 
     return {rounded_z, rounded_x};
 }
 
-bool SOCWSSSCallback::test_solution(int rounded_z, OperatorCount &rounded_x) {
-    return (rounded_z >= 0) && all_of(rounded_x.begin(), rounded_x.end(),
-                                      [](int c) { return c >= 0; });
+bool SOCWSSSCallback::test_solution(const Context &ctxt, 
+            long rounded_z, OperatorCount &rounded_x) {
+    bool ret = (rounded_z >= 0);
+    ret = (ret && all_of(rounded_x.begin(), rounded_x.end(),
+                        [](int c) { return c >= 0; }));
+    if (!ret && ctxt.inCandidate()) {
+        ctxt.rejectCandidate();
+    }
+    return ret;
 }
 
 bool SOCWSSSCallback::test_card(const Context &ctxt, double original_z,
-                                vector<double> &original_x, int rounded_z,
+                                vector<double> &original_x, long rounded_z,
                                 OperatorCount &rounded_x) {
     // We call our SAT sequencing procedure inside the python callback
     // interface of Gurobi 5.6 if both the cardinality and objective of the
@@ -173,7 +179,7 @@ SequenceInfo SOCWSSSCallback::get_sat_sequence(OperatorCount op_count) {
     return info;
 }
 
-SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
+SequenceInfo SOCWSSSCallback::get_astar_sequence(long f_bound,
                                                  OperatorCount op_count) {
     if (cache_op_counts.has(op_count)) {
         repeated_seqs++;
@@ -325,7 +331,6 @@ SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
         info.sequenciable = true;
 
         cache_op_counts.add(plan_to_op_count(info, n_ops), info);
-
     } else {
         info.learned_glc = astar->learned_glc;
         cout << "SEQ " << seq << ": NOT SEQUENCIABLE WITH F-BOUND=" << f_bound
@@ -339,7 +344,7 @@ SequenceInfo SOCWSSSCallback::get_astar_sequence(int f_bound,
     return info;
 }
 
-void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
+void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                                OperatorCount &rounded_x) {
     /*
     cout << "\tSEQ " << (seq + 1) << endl;
@@ -379,6 +384,13 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
         // this solution can be used to bound the search process
         post_current_best_plan(ctxt);
     } else {
+        for (auto glc : (*glcs)) {
+            if ((*info.learned_glc) == (*glc)) {
+                info.learned_glc = nullptr;
+                break;
+            }
+        }
+
         if (info.learned_glc == nullptr) {
             info.in_lp = true;
             if (ctxt.inCandidate()) {
@@ -398,7 +410,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
         }
         cout << endl;
         */
-
+       
         if (!info.in_lp && constraint_type != 0) {
             glcs->emplace_back(info.learned_glc);
 
@@ -424,9 +436,11 @@ void SOCWSSSCallback::sequence(const Context &ctxt, int rounded_z,
 
             printer_plots->update(rounded_z, rounded_x, c->getSize(),
                                   x->getSize());
+            return;
         } else {
             if (ctxt.inCandidate()) {
                 ctxt.rejectCandidate();
+                return;
             }
         }
     }
@@ -436,7 +450,7 @@ void SOCWSSSCallback::post_current_best_plan(const Context &ctxt) {
     if (ctxt.inRelaxation()) {
         auto [found, info] = cache_op_counts.get_min_plan();
         if (found && info.sequenciable) {
-            vector<int> plan_counts = plan_to_op_count(info, n_ops);
+            OperatorCount plan_counts = plan_to_op_count(info, n_ops);
             IloNumArray values(ctxt.getEnv());
             for (int i = 0; i < x->getSize(); ++i) {
                 if (i < n_ops) {
@@ -463,7 +477,7 @@ void SOCWSSSCallback::invoke(const Context &ctxt) {
         auto [original_z, original_x] = extract_sol(ctxt);
         auto [rounded_z, rounded_x] = round_sol(ctxt, original_z, original_x);
 
-        if (test_solution(rounded_z, rounded_x) &&
+        if (test_solution(ctxt, rounded_z, rounded_x) &&
             test_card(ctxt, original_z, original_x, rounded_z, rounded_x)) {
             sequence(ctxt, rounded_z, rounded_x);
         }

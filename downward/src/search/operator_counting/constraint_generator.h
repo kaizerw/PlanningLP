@@ -52,7 +52,7 @@ class ConstraintGenerator {
     */
     virtual bool update_constraints(
         const State &state, lp::LPSolver &lp_solver,
-        shared_ptr<vector<int>> state_op_count = nullptr) = 0;
+        shared_ptr<vector<long>> state_op_count = nullptr) = 0;
 
     virtual ~ConstraintGenerator() = default;
 };

@@ -25,7 +25,7 @@ using namespace std;
 
 struct PlanToMinisat {
     shared_ptr<TaskProxy> task_proxy;
-    vector<int> op_counts;
+    vector<long> op_counts;
     int n_layers;
     int id_generator = 1;
     map<tuple<int, int>, int> aux_vars;
@@ -55,7 +55,7 @@ struct PlanToMinisat {
     Plan plan;
     shared_ptr<GLC> learned_glc;
 
-    PlanToMinisat(shared_ptr<TaskProxy> task_proxy, vector<int>& op_counts);
+    PlanToMinisat(shared_ptr<TaskProxy> task_proxy, vector<long>& op_counts);
     void initialize_ids();
     void initialize_assumptions();
     int s(int i, int j);

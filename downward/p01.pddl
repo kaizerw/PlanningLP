@@ -5,7 +5,6 @@
 n0 n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12  - count
 ;p0 p1 p2  - passenger
 p2 - passenger
-fast0  - fast-elevator
 slow0-0 slow1-0 - slow-elevator
 )
 
@@ -25,11 +24,6 @@ slow0-0 slow1-0 - slow-elevator
 (above n10 n11) (above n10 n12)
 (above n11 n12)
 
-(lift-at fast0 n6)
-(passengers fast0 n0)
-(can-hold fast0 n1) (can-hold fast0 n2) (can-hold fast0 n3)
-(reachable-floor fast0 n0)(reachable-floor fast0 n3)(reachable-floor fast0 n6)(reachable-floor fast0 n9)(reachable-floor fast0 n12)
-
 (lift-at slow0-0 n6)
 (passengers slow0-0 n0)
 (can-hold slow0-0 n1) (can-hold slow0-0 n2)
@@ -48,14 +42,6 @@ slow0-0 slow1-0 - slow-elevator
 
 (= (travel-slow n6 n7) 6) (= (travel-slow n6 n8) 7) (= (travel-slow n6 n9) 8) (= (travel-slow n6 n10) 9) (= (travel-slow n6 n11) 10) (= (travel-slow n6 n12) 11) (= (travel-slow n7 n8) 6) (= (travel-slow n7 n9) 7) (= (travel-slow n7 n10) 8) (= (travel-slow n7 n11) 9) (= (travel-slow n7 n12) 10) (= (travel-slow n8 n9) 6) (= (travel-slow n8 n10) 7) (= (travel-slow n8 n11) 8) (= (travel-slow n8 n12) 9) (= (travel-slow n9 n10) 6) (= (travel-slow n9 n11) 7) (= (travel-slow n9 n12) 8) (= (travel-slow n10 n11) 6) (= (travel-slow n10 n12) 7) (= (travel-slow n11 n12) 6)
 
-
-(= (travel-fast n0 n3) 10) (= (travel-fast n0 n6) 19) (= (travel-fast n0 n9) 28) (= (travel-fast n0 n12) 37)
-
-(= (travel-fast n3 n6) 10) (= (travel-fast n3 n9) 19) (= (travel-fast n3 n12) 28)
-
-(= (travel-fast n6 n9) 10) (= (travel-fast n6 n12) 19)
-
-(= (travel-fast n9 n12) 10)
 
 (= (total-cost) 0)
 

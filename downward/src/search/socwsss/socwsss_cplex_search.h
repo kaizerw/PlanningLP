@@ -28,7 +28,7 @@
 
 using namespace std;
 
-using OperatorCount = vector<int>;
+using OperatorCount = vector<long>;
 
 class Evaluator;
 class Heuristic;

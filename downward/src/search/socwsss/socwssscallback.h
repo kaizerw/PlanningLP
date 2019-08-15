@@ -138,7 +138,7 @@ struct CacheOperatorCounts {
 
 using Function = IloCplex::Callback::Function;
 using Context = IloCplex::Callback::Context;
-using OperatorCount = vector<int>;
+using OperatorCount = vector<long>;
 
 struct SOCWSSSCallback : public Function {
     int constraint_type;
@@ -177,16 +177,17 @@ struct SOCWSSSCallback : public Function {
     SOCWSSSCallback(const Options &opts, shared_ptr<TaskProxy> task_proxy,
                     shared_ptr<AbstractTask> task);
     pair<double, vector<double>> extract_sol(const Context &ctxt);
-    pair<int, OperatorCount> round_sol(const Context &ctxt, double original_z,
+    pair<long, OperatorCount> round_sol(const Context &ctxt, double original_z,
                                        vector<double> &original_x);
-    bool test_solution(int rounded_z, OperatorCount &rounded_x);
+    bool test_solution(const Context &ctxt, long rounded_z, 
+                       OperatorCount &rounded_x);
     bool test_card(const Context &ctxt, double original_z,
-                   vector<double> &original_x, int rounded_z,
+                   vector<double> &original_x, long rounded_z,
                    OperatorCount &rounded_x);
     pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
     SequenceInfo get_sat_sequence(OperatorCount op_count);
-    SequenceInfo get_astar_sequence(int f_bound, OperatorCount op_count);
-    void sequence(const Context &ctxt, int rounded_z, OperatorCount &rounded_x);
+    SequenceInfo get_astar_sequence(long f_bound, OperatorCount op_count);
+    void sequence(const Context &ctxt, long rounded_z, OperatorCount &rounded_x);
     void post_current_best_plan(const Context &ctxt);
     void invoke(const Context &ctxt);
 };

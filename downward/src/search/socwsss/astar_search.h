@@ -22,7 +22,7 @@
 #include <numeric>
 
 using eager_search::EagerSearch;
-using OperatorCount = vector<int>;
+using OperatorCount = vector<long>;
 using soc_hmax_heuristic::SOCHMaxHeuristic;
 
 using namespace std;
@@ -31,11 +31,11 @@ namespace soc_astar_search {
 struct SOCAStarSearch : public EagerSearch {
     OperatorCount initial_op_count;
     int initial_n_ops;
-    int f_bound;
+    long f_bound;
     int constraint_type;
     double max_f_found;
     vector<bool> ops_learned_constraint;
-    int yt_bound;
+    long yt_bound;
     StateRegistry state_registry;
     SearchSpace search_space;
 
