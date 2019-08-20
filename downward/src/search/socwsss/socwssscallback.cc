@@ -68,11 +68,11 @@ pair<long, OperatorCount> SOCWSSSCallback::round_sol(
     return {rounded_z, rounded_x};
 }
 
-bool SOCWSSSCallback::test_solution(const Context &ctxt, 
-            long rounded_z, OperatorCount &rounded_x) {
+bool SOCWSSSCallback::test_solution(const Context &ctxt, long rounded_z,
+                                    OperatorCount &rounded_x) {
     bool ret = (rounded_z >= 0);
     ret = (ret && all_of(rounded_x.begin(), rounded_x.end(),
-                        [](int c) { return c >= 0; }));
+                         [](int c) { return c >= 0; }));
     if (!ret && ctxt.inCandidate()) {
         ctxt.rejectCandidate();
     }
@@ -358,6 +358,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
         }
     }
     */
+
     // Try to sequence current solution
     // cout.setstate(ios_base::failbit);
     SequenceInfo info;
@@ -385,7 +386,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
         post_current_best_plan(ctxt);
     } else {
         for (auto glc : (*glcs)) {
-            if ((*info.learned_glc) == (*glc)) {
+            if (info.learned_glc != nullptr && (*info.learned_glc) == (*glc)) {
                 info.learned_glc = nullptr;
                 break;
             }
@@ -410,7 +411,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
         }
         cout << endl;
         */
-       
+
         if (!info.in_lp && constraint_type != 0) {
             glcs->emplace_back(info.learned_glc);
 

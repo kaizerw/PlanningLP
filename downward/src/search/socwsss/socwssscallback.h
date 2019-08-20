@@ -178,8 +178,8 @@ struct SOCWSSSCallback : public Function {
                     shared_ptr<AbstractTask> task);
     pair<double, vector<double>> extract_sol(const Context &ctxt);
     pair<long, OperatorCount> round_sol(const Context &ctxt, double original_z,
-                                       vector<double> &original_x);
-    bool test_solution(const Context &ctxt, long rounded_z, 
+                                        vector<double> &original_x);
+    bool test_solution(const Context &ctxt, long rounded_z,
                        OperatorCount &rounded_x);
     bool test_card(const Context &ctxt, double original_z,
                    vector<double> &original_x, long rounded_z,
@@ -187,7 +187,8 @@ struct SOCWSSSCallback : public Function {
     pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
     SequenceInfo get_sat_sequence(OperatorCount op_count);
     SequenceInfo get_astar_sequence(long f_bound, OperatorCount op_count);
-    void sequence(const Context &ctxt, long rounded_z, OperatorCount &rounded_x);
+    void sequence(const Context &ctxt, long rounded_z,
+                  OperatorCount &rounded_x);
     void post_current_best_plan(const Context &ctxt);
     void invoke(const Context &ctxt);
 };
