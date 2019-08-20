@@ -535,12 +535,22 @@ void PlanToMinisat::operator()() {
     vector<vector<int>> base = convert();
     vector<vector<int>> assumptions = get_assumptions();
 
-    string base_str = tos(base);
-    string assumptions_str = tos(assumptions);
+    default_random_engine gen(
+        chrono::system_clock::now().time_since_epoch().count());
+    uniform_real_distribution<double> dist(0.0, 1.0);
 
-    string cmd = (string("./sat_seq.py ") + string(" \"") + base_str +
-                  string("\" \"") + assumptions_str + string("\""));
+    string base_filename = to_string(dist(gen) * 100000);
+    string assumptions_filename = to_string(dist(gen) * 100000);
+
+    save_file(base, base_filename);
+    save_file(assumptions, assumptions_filename);
+
+    string cmd = (string("./sat_seq.py ") + string(" \"") + base_filename +
+                  string("\" \"") + assumptions_filename + string("\""));
     string s = exec(cmd.c_str());
+
+    remove(base_filename.c_str());
+    remove(assumptions_filename.c_str());
 
     size_t pos = 0;
     string token;

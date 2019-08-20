@@ -19,8 +19,9 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 #opts="astar(lmcut())"
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq, heuristic=blind)"
 #opts="astar(operatorcounting([state_equation_constraints(), lmcut_constraints()]))"
-#opts="socwsss_cplex(sat_seq=true)"
+opts="socwsss_cplex(sat_seq=true)"
 #$run_pref $DOWNWARD_BENCHMARKS/simplegripper/prob01.pddl --search "$opts"
+$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 #################################################################################
 rm -f sas_plan
 #################################################################################

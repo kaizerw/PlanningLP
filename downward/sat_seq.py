@@ -6,9 +6,9 @@ from pysat.solvers import Solver
 
 def parse(base, assumptions):
     base = [[int(i) for i in line.strip().split()]
-            for line in base.strip().split('\n')]
+            for line in open(base).readlines()]
     assumptions = [int(line.strip())
-                   for line in assumptions.strip().split('\n')]
+                   for line in open(assumptions).readlines()]
     return base, assumptions
 
 
