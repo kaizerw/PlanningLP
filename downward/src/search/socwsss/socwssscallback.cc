@@ -138,7 +138,8 @@ SequenceInfo SOCWSSSCallback::get_sat_sequence(OperatorCount op_count) {
     // cout.setstate(ios_base::failbit);
     seq++;
     printer_plots->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
-                             restarts);
+                             restarts,
+                             cache_op_counts.get_min_plan().second.plan_cost);
     auto start = chrono::system_clock::now();
     auto sat_seq = PlanToMinisat(task_proxy, op_count);
     sat_seq();
@@ -301,7 +302,8 @@ SequenceInfo SOCWSSSCallback::get_astar_sequence(long f_bound,
     // cout.setstate(ios_base::failbit);
     seq++;
     printer_plots->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
-                             restarts);
+                             restarts,
+                             cache_op_counts.get_min_plan().second.plan_cost);
     auto astar = make_shared<soc_astar_search::SOCAStarSearch>(opts);
     auto start = chrono::system_clock::now();
     astar->search();

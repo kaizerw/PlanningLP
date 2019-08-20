@@ -45,7 +45,7 @@ class PrinterPlots {
     void update(int lp_h_oc, vector<long> rounded_solution, int c_size,
                 int x_size);
     void show_data(int seq, double best_bound_found, int repeated_sequencings,
-                   int restarts);
+                   int restarts, int min_plan_in_cache);
 };
 
 #endif

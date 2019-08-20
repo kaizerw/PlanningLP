@@ -64,6 +64,11 @@
         "type": "int",
         "summary": "mean"
     },
+    "min_plan_in_cache": {
+        "regex": "Min plan in cache: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
     "max_f_equals_optimal_plan_cost": {
         "regex": "Max f found: (\\d+\\.?\\d*)|f = (\\d+\\.?\\d*)",
         "type": "int",

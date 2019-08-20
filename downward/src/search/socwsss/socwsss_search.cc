@@ -171,7 +171,7 @@ SearchStatus SOCWSSSSearch::step() {
                                  .count();
 
     // Print data
-    printer_plots->show_data(this->seq, this->best_bound_found, 0, 0);
+    printer_plots->show_data(this->seq, this->best_bound_found, 0, 0, 0);
 
     return status;
 }
@@ -296,7 +296,7 @@ void SOCWSSSSearch::get_op_count() {
 }
 
 SearchStatus SOCWSSSSearch::get_sequence() {
-    printer_plots->show_data(this->seq, this->best_bound_found, 0, 0);
+    printer_plots->show_data(this->seq, this->best_bound_found, 0, 0, 0);
 
     SearchStatus status = FAILED;
 

@@ -43,8 +43,8 @@ int PrinterPlots::compute_times_made_progress() {
     return times_made_progress;
 }
 
-void PrinterPlots::update(int lp_h_oc, vector<long> rounded_solution, int c_size,
-                          int x_size) {
+void PrinterPlots::update(int lp_h_oc, vector<long> rounded_solution,
+                          int c_size, int x_size) {
     // Store values to plots
     this->plot_lp_all_constraints.emplace_back(c_size);
     this->plot_lp_all_variables.emplace_back(x_size);
@@ -59,7 +59,8 @@ void PrinterPlots::update(int lp_h_oc, vector<long> rounded_solution, int c_size
 }
 
 void PrinterPlots::show_data(int seq, double best_bound_found,
-                             int repeated_sequencings, int restarts) {
+                             int repeated_sequencings, int restarts,
+                             int min_plan_in_cache) {
     double total_solve_time = chrono::duration_cast<chrono::microseconds>(
                                   chrono::system_clock::now() - this->start)
                                   .count();
@@ -87,6 +88,7 @@ void PrinterPlots::show_data(int seq, double best_bound_found,
               this->plot_astar_time.begin(), ms_to_s);
 
     // exit_code
+    cout << "Min plan in cache: " << min_plan_in_cache << endl;
     cout << "Max f found: "
          << (this->plot_max_f_found.size() > 0
                  ? *max_element(this->plot_max_f_found.begin(),

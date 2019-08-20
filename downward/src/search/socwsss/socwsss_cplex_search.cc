@@ -346,7 +346,8 @@ SearchStatus SOCWSSSCplexSearch::step() {
     // Print out custom attributes
     socwsss_callback->printer_plots->show_data(
         socwsss_callback->seq, cplex->getBestObjValue(),
-        socwsss_callback->repeated_seqs, socwsss_callback->restarts);
+        socwsss_callback->repeated_seqs, socwsss_callback->restarts,
+        socwsss_callback->cache_op_counts.get_min_plan().second.plan_cost);
 
     /*
     cout << "\tALL LEARNED GLCS:" << endl;
