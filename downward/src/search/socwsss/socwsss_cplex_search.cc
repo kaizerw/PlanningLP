@@ -1,13 +1,13 @@
 #include "socwsss_cplex_search.h"
 
 namespace SOCWSSS_cplex_search {
-
 SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
     : SearchEngine(opts),
       constraint_type(opts.get<int>("constraint_type")),
       constraint_generators(opts.get<string>("constraint_generators")),
       heuristic(opts.get<string>("heuristic")),
       sat_seq(opts.get<bool>("sat_seq")),
+      mip_start(opts.get<bool>("mip_start")),
       lp_solver_type(lp::LPSolverType(opts.get_enum("lpsolver"))),
       cost_type(opts.get<int>("cost_type")),
       max_time(opts.get<double>("max_time")),
@@ -19,6 +19,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
                    opts.get<string>("constraint_generators"));
     this->opts.set("heuristic", opts.get<string>("heuristic"));
     this->opts.set("sat_seq", opts.get<bool>("sat_seq"));
+    this->opts.set("mip_start", opts.get<bool>("mip_start"));
     this->opts.set("lp_solver_type",
                    lp::LPSolverType(opts.get_enum("lpsolver")));
     this->opts.set("cost_type", opts.get<int>("cost_type"));
@@ -71,13 +72,65 @@ void SOCWSSSCplexSearch::initialize() {
         get_domain_constraints(op_id, k_prealloc_bounds, 0);
     }
 
+    // Add constraints from constraint generators
     create_base_constraints();
 
+    // Initialize callback
     socwsss_callback = make_shared<SOCWSSSCallback>(
         opts, make_shared<TaskProxy>(task_proxy), task);
 
     socwsss_callback_mask |= IloCplex::Callback::Context::Id::Relaxation;
     socwsss_callback_mask |= IloCplex::Callback::Context::Id::Candidate;
+
+    // Perform MIP start
+    if (mip_start) {
+        Options opts_lmcut;
+        opts_lmcut.set("transform", task);
+        opts_lmcut.set("cache_estimates", true);
+        auto lmcut = make_shared<LandmarkCutHeuristic>(opts_lmcut);
+
+        options::Options opts_greedy;
+        opts_greedy.set("evals", vector<shared_ptr<Evaluator>>({lmcut}));
+        opts_greedy.set("preferred", vector<shared_ptr<Evaluator>>());
+        opts_greedy.set("boost", 0);
+        opts_greedy.set("pruning", pruning);
+        opts_greedy.set("cost_type", cost_type);
+        opts_greedy.set("bound", bound);
+        opts_greedy.set("max_time", max_time);
+        opts_greedy.set("verbosity", verbosity);
+
+        opts_greedy.set("open", search_common::create_greedy_open_list_factory(
+                                    opts_greedy));
+        opts_greedy.set("reopen_closed", false);
+        shared_ptr<Evaluator> evaluator = nullptr;
+        opts_greedy.set("f_eval", evaluator);
+
+        auto greedy = make_shared<EagerSearch>(opts_greedy);
+        greedy->search();
+
+        if (greedy->found_solution()) {
+            has_mip_start = true;
+            auto plan = greedy->get_plan();
+            int plan_cost = accumulate(
+                plan.begin(), plan.end(), 0, [&](int acc, OperatorID op_id) {
+                    return acc + task_proxy.get_operators()[op_id].get_cost();
+                });
+
+            mip_start_op_count =
+                OperatorCount(task_proxy.get_operators().size(), 0);
+            for (OperatorID &op_id : plan) {
+                mip_start_op_count[op_id.get_index()]++;
+            }
+
+            SequenceInfo mip_start_info;
+            mip_start_info.sequenciable = true;
+            mip_start_info.plan = plan;
+            mip_start_info.plan_cost = plan_cost;
+
+            socwsss_callback->cache_op_counts.add(mip_start_op_count,
+                                                  mip_start_info);
+        }
+    }
 }
 
 void SOCWSSSCplexSearch::create_base_constraints() {
@@ -249,6 +302,19 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     cplex->setParam(IloCplex::Param::MIP::Cuts::PathCut, -1);
     cplex->setParam(IloCplex::Param::MIP::Cuts::RLT, -1);
     cplex->setParam(IloCplex::Param::MIP::Cuts::ZeroHalfCut, -1);
+
+    // Add MIP start
+    if (has_mip_start) {
+        IloNumVarArray startVar((*env));
+        IloNumArray startVal((*env));
+        for (int op_id = 0; op_id < n_ops; ++op_id) {
+            startVar.add((*x)[op_id]);
+            startVal.add(mip_start_op_count[op_id]);
+        }
+        cplex->addMIPStart(startVar, startVal);
+        startVal.end();
+        startVar.end();
+    }
 
     socwsss_callback->bounds_literals = bounds_literals;
     socwsss_callback->env = env;
@@ -455,6 +521,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<string>("constraint_generators", "", "seq");
     parser.add_option<string>("heuristic", "", "blind");
     parser.add_option<bool>("sat_seq", "", "false");
+    parser.add_option<bool>("mip_start", "", "false");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);

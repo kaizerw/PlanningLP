@@ -45,6 +45,7 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     string constraint_generators;
     string heuristic;
     bool sat_seq;
+    bool mip_start;
     lp::LPSolverType lp_solver_type;
     int cost_type;
     double max_time;
@@ -54,6 +55,9 @@ struct SOCWSSSCplexSearch : public SearchEngine {
 
     double infinity = IloInfinity;
     int n_ops, n_vars;
+
+    bool has_mip_start = false;
+    OperatorCount mip_start_op_count;
 
     shared_ptr<vector<lp::LPVariable>> lp_variables;
     shared_ptr<vector<lp::LPConstraint>> lp_constraints;
