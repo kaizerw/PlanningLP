@@ -517,7 +517,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.document_synopsis("SOCWSSS CPLEX Search", "SOCWSSS CPLEX Search");
 
     parser.add_option<int>("constraint_type", "", "0");
-    parser.add_option<string>("constraint_generators", "", "seq_landmarks");
+    parser.add_option<string>("constraint_generators", "", "seq");
     parser.add_option<string>("heuristic", "", "blind");
     parser.add_option<bool>("mip_start", "", "true");
     parser.add_option<bool>("sat_seq", "", "false");

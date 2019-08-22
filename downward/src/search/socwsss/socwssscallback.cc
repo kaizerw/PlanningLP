@@ -418,7 +418,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
         cout << endl;
         */
 
-        if (!info->in_lp && constraint_type != 0) {
+        if (!info->in_lp && (constraint_type != 0 || sat_seq)) {
             glcs->emplace_back(info->learned_glc);
 
             // Unless there is more than one missing bounds literal, the
