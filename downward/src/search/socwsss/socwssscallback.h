@@ -93,17 +93,18 @@ struct CacheOperatorCounts {
         }
     };
 
-    unordered_map<unordered_map<int, int>, SequenceInfo, Hash> cache;
+    unordered_map<unordered_map<int, int>, shared_ptr<SequenceInfo>, Hash>
+        cache;
 
     bool has(OperatorCount &op_count) {
         return (cache.count(convert(op_count)) > 0);
     }
 
-    SequenceInfo operator[](OperatorCount &op_count) {
+    shared_ptr<SequenceInfo> operator[](OperatorCount &op_count) {
         return cache[convert(op_count)];
     }
 
-    void add(OperatorCount op_count, SequenceInfo info) {
+    void add(OperatorCount op_count, shared_ptr<SequenceInfo> info) {
         cache[convert(op_count)] = info;
     }
 
@@ -119,20 +120,20 @@ struct CacheOperatorCounts {
 
     void reset_in_lp() {
         for (auto &i : cache) {
-            i.second.in_lp = false;
+            i.second->in_lp = false;
         }
     }
 
-    pair<bool, SequenceInfo> get_min_plan() {
+    pair<bool, shared_ptr<SequenceInfo>> get_min_plan() {
         auto it = min_element(cache.begin(), cache.end(), [](auto i, auto j) {
-            return i.second.plan_cost < j.second.plan_cost;
+            return i.second->plan_cost < j.second->plan_cost;
         });
 
         if (it != cache.end()) {
             return {true, (*it).second};
         }
 
-        return {false, SequenceInfo()};
+        return {false, make_shared<SequenceInfo>()};
     }
 };
 
@@ -186,8 +187,10 @@ struct SOCWSSSCallback : public Function {
                    vector<double> &original_x, long rounded_z,
                    OperatorCount &rounded_x);
     pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
-    SequenceInfo get_sat_sequence(OperatorCount op_count);
-    SequenceInfo get_astar_sequence(long f_bound, OperatorCount op_count);
+    pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
+        OperatorCount op_count);
+    pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
+        long f_bound, OperatorCount op_count);
     void sequence(const Context &ctxt, long rounded_z,
                   OperatorCount &rounded_x);
     void post_current_best_plan(const Context &ctxt);

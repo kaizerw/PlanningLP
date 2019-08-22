@@ -122,11 +122,10 @@ void SOCWSSSCplexSearch::initialize() {
                 mip_start_op_count[op_id.get_index()]++;
             }
 
-            SequenceInfo mip_start_info;
-            mip_start_info.sequenciable = true;
-            mip_start_info.plan = plan;
-            mip_start_info.plan_cost = plan_cost;
-
+            auto mip_start_info = make_shared<SequenceInfo>();
+            mip_start_info->sequenciable = true;
+            mip_start_info->plan = plan;
+            mip_start_info->plan_cost = plan_cost;
             socwsss_callback->cache_op_counts.add(mip_start_op_count,
                                                   mip_start_info);
         }
@@ -413,7 +412,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
     socwsss_callback->printer_plots->show_data(
         socwsss_callback->seq, cplex->getBestObjValue(),
         socwsss_callback->repeated_seqs, socwsss_callback->restarts,
-        socwsss_callback->cache_op_counts.get_min_plan().second.plan_cost);
+        socwsss_callback->cache_op_counts.get_min_plan().second->plan_cost);
 
     /*
     cout << "\tALL LEARNED GLCS:" << endl;
@@ -444,22 +443,22 @@ SearchStatus SOCWSSSCplexSearch::step() {
 
     cout << "\tALL PLANS IN CACHE:" << endl;
     for (auto i : socwsss_callback->cache_op_counts.cache) {
-        if (i.second.sequenciable) {
-            cout << "\t\t" << i.second.plan_cost << " = ";
-            for (auto j : i.second.plan) {
+        if (i.second->sequenciable) {
+            cout << "\t\t" << i.second->plan_cost << " = ";
+            for (auto j : i.second->plan) {
                 cout << task_proxy.get_operators()[j].get_name() << " ";
             }
             cout << endl;
 
             OperatorCount op_counts(n_ops, 0);
-            for (auto op_id : i.second.plan) {
+            for (auto op_id : i.second->plan) {
                 op_counts[op_id.get_index()]++;
             }
             int glc_id = 0;
             for (auto glc : (*socwsss_callback->glcs)) {
                 int sat = 0;
                 int yt_bound = glc->yt_bound;
-                if (yt_bound != -1 && i.second.plan_cost >= yt_bound) {
+                if (yt_bound != -1 && i.second->plan_cost >= yt_bound) {
                     sat++;
                 }
                 for (auto &[op_id, op_bound] : glc->ops_bounds) {
@@ -497,7 +496,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
         for (IloInt i = 0; i < n_ops; ++i) {
             op_counts.emplace_back(cplex->getValue((*x)[i]));
         }
-        Plan plan = socwsss_callback->cache_op_counts[op_counts].plan;
+        Plan plan = socwsss_callback->cache_op_counts[op_counts]->plan;
         if (plan.size() == 0) {
             cout << "SOLUTION NOT FOUND" << endl;
             exit(12);
@@ -517,11 +516,11 @@ void SOCWSSSCplexSearch::print_statistics() const {
 static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.document_synopsis("SOCWSSS CPLEX Search", "SOCWSSS CPLEX Search");
 
-    parser.add_option<int>("constraint_type", "", "1");
-    parser.add_option<string>("constraint_generators", "", "seq");
+    parser.add_option<int>("constraint_type", "", "0");
+    parser.add_option<string>("constraint_generators", "", "seq_landmarks");
     parser.add_option<string>("heuristic", "", "blind");
+    parser.add_option<bool>("mip_start", "", "true");
     parser.add_option<bool>("sat_seq", "", "false");
-    parser.add_option<bool>("mip_start", "", "false");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);

@@ -25,8 +25,11 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq_landmarks, heuristic=lmcut, mip_start=true)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem08-half.sas --search "$opts" # optimal solution: 43
 #################################################################################
-opts="socwsss_cplex(sat_seq=true, mip_start=true)"
-$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem06-full.sas --search "$opts"
+#opts="socwsss_cplex(sat_seq=true, mip_start=true)"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem06-full.sas --search "$opts"
+
+opts="socwsss_cplex(constraint_type=3)"
+$run_pref $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts"
 #################################################################################
 rm -f sas_plan
 #################################################################################
