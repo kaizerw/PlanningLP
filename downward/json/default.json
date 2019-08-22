@@ -1,5 +1,15 @@
 [
     {
+        "name": "T0",
+        "search": "socwsss_cplex(constraint_type=0)",
+        "domains": [
+            "elevators-opt11-strips", 
+            "parcprinter-opt11-strips", 
+            "visitall-opt11-strips", 
+            "woodworking-opt11-strips"
+        ]
+   },
+   {
         "name": "T1",
         "search": "socwsss_cplex(constraint_type=1)",
         "domains": [
@@ -8,8 +18,8 @@
             "visitall-opt11-strips", 
             "woodworking-opt11-strips"
         ]
-    },
-    {
+   },
+   {
         "name": "T2",
         "search": "socwsss_cplex(constraint_type=2)",
         "domains": [
@@ -22,6 +32,16 @@
     {
         "name": "T3",
         "search": "socwsss_cplex(constraint_type=3)",
+        "domains": [
+            "elevators-opt11-strips", 
+            "parcprinter-opt11-strips", 
+            "visitall-opt11-strips", 
+            "woodworking-opt11-strips"
+        ]
+    },
+    {
+        "name": "SAT",
+        "search": "socwsss_cplex(sat_seq=true)",
         "domains": [
             "elevators-opt11-strips", 
             "parcprinter-opt11-strips", 
