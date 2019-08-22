@@ -91,8 +91,8 @@ bool SOCWSSSCallback::test_card(const Context &ctxt, double original_z,
             accumulate(original_x.begin(), original_x.end(), 0);
         int rounded_card = accumulate(rounded_x.begin(), rounded_x.end(), 0);
 
-        if (rounded_z > (1.2 * original_z) ||
-            rounded_card > (1.2 * original_card)) {
+        if (rounded_z > (1.1 * original_z) ||
+            rounded_card > (1.1 * original_card)) {
             return false;
         }
     }
