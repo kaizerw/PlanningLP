@@ -352,12 +352,12 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                                OperatorCount &rounded_x) {
     /*
     cout << "\tSEQ " << (seq + 1) << endl;
-    cout << "\tIN CANDIDATE? " << ctxt.inCandidate() << endl;
-    cout << "\tIN RELAXATION? " << ctxt.inRelaxation() << endl;
-    cout << "\tTRYING TO SEQUENCE WITH F-BOUND: " << rounded_z << endl;
+    cout << "\t\tIN CANDIDATE? " << ctxt.inCandidate() << endl;
+    cout << "\t\tIN RELAXATION? " << ctxt.inRelaxation() << endl;
+    cout << "\t\tTRYING TO SEQUENCE WITH F-BOUND: " << rounded_z << endl;
     for (int op_id = 0; op_id < n_ops; ++op_id) {
         if (rounded_x[op_id] > 0) {
-            cout << "\t\t" << rounded_x[op_id] << " * "
+            cout << "\t\t\t" << rounded_x[op_id] << " * "
                  << task_proxy->get_operators()[op_id].get_name() << endl;
         }
     }
@@ -373,12 +373,13 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
         tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
     }
     // cout.clear();
+    // cout << "\t\tFOUND IN CACHE? " << found_in_cache << endl;
 
     if (info->sequenciable) {
         /*
-        cout << "\tSEQUENCIABLE USING OPERATORS: " << endl;
+        cout << "\t\tSEQUENCIABLE USING OPERATORS: " << endl;
         for (OperatorID op_id : info->plan) {
-            cout << "\t\t"
+            cout << "\t\t\t"
                  << task_proxy->get_operators()[op_id.get_index()].get_name()
                  << endl;
         }

@@ -16,8 +16,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 #$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 #################################################################################
 # Test SAT sequencing
-#opts="astar(lmcut())"
-#opts="socwsss_cplex(constraint_generators=seq_landmarks, sat_seq=true)"
+#opts="socwsss_cplex(constraint_type=3, constraint_generators=seq_landmarks, mip_start=false)"
+#opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, mip_start=false)"
 #$run_pref $DOWNWARD_BENCHMARKS/simplegripper/prob01.pddl --search "$opts"
 #################################################################################
 # Test MIP start
@@ -25,10 +25,14 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq_landmarks, heuristic=lmcut, mip_start=true)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem08-half.sas --search "$opts" # optimal solution: 43
 #################################################################################
-opts="socwsss_cplex(sat_seq=true)"
-$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem06-full.sas --search "$opts"
+#opts="socwsss_cplex(sat_seq=true, mip_start=false)"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem06-full.sas --search "$opts"
 
-#opts="socwsss_cplex(constraint_type=2)"
+opts="socwsss_cplex(constraint_type=2, mip_start=false)"
+$run_pref $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts"
+
+#opts="socwsss_cplex(constraint_type=1, constraint_generators=h+_flow, heuristic=operatorcounting)"
+#$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 #$run_pref $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts"
 #################################################################################
 rm -f sas_plan
