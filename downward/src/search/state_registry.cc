@@ -45,6 +45,10 @@ StateRegistry::StateRegistry(const TaskProxy &task_proxy, bool soc,
         }
     }
 
+    if (ranges.empty()) {
+        ranges.emplace_back(2);
+    }
+
     op_count_packer = make_shared<int_packer::IntPacker>(ranges);
     op_count_bins = op_count_packer->get_num_bins();
 
