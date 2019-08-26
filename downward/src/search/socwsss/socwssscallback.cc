@@ -162,18 +162,10 @@ pair<bool, shared_ptr<SequenceInfo>> SOCWSSSCallback::get_sat_sequence(
             [&](int acc, OperatorID op_id) {
                 return acc + task_proxy->get_operators()[op_id].get_cost();
             });
-
-        cout << "SEQ " << seq << ": FOUND PLAN WITH COST=" << info->plan_cost
-             << endl;
         info->sequenciable = true;
-
         cache_op_counts.add(plan_to_op_count(info, n_ops), info);
-
     } else {
         info->learned_glc = sat_seq.learned_glc;
-        cout << "SEQ " << seq << ": NOT SEQUENCIABLE WITH "
-             << accumulate(op_count.begin(), op_count.end(), 0) << " OPERATORS"
-             << endl;
         info->sequenciable = false;
         info->plan_cost = numeric_limits<int>::max();
     }
@@ -329,17 +321,10 @@ pair<bool, shared_ptr<SequenceInfo>> SOCWSSSCallback::get_astar_sequence(
             [&](int acc, OperatorID op_id) {
                 return acc + task_proxy->get_operators()[op_id].get_cost();
             });
-
-        cout << "SEQ " << seq << ": FOUND PLAN WITH COST=" << info->plan_cost
-             << " AND F-BOUND=" << f_bound << endl;
         info->sequenciable = true;
-
         cache_op_counts.add(plan_to_op_count(info, n_ops), info);
     } else {
         info->learned_glc = astar->learned_glc;
-        cout << "SEQ " << seq << ": NOT SEQUENCIABLE WITH F-BOUND=" << f_bound
-             << " AND " << accumulate(op_count.begin(), op_count.end(), 0)
-             << " OPERATORS" << endl;
         info->sequenciable = false;
         info->plan_cost = numeric_limits<int>::max();
     }
@@ -351,13 +336,17 @@ pair<bool, shared_ptr<SequenceInfo>> SOCWSSSCallback::get_astar_sequence(
 void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                                OperatorCount &rounded_x) {
     /*
-    cout << "\tSEQ " << (seq + 1) << endl;
-    cout << "\t\tIN CANDIDATE? " << ctxt.inCandidate() << endl;
-    cout << "\t\tIN RELAXATION? " << ctxt.inRelaxation() << endl;
-    cout << "\t\tTRYING TO SEQUENCE WITH F-BOUND: " << rounded_z << endl;
+    cerr << string(80, '*') << endl;
+    cerr << "SEQ " << (seq + 1) << endl;
+    cerr << "\tIN CANDIDATE? " << ctxt.inCandidate() << endl;
+    cerr << "\tIN RELAXATION? " << ctxt.inRelaxation() << endl;
+    cerr << "\tF-BOUND: " << rounded_z << endl;
+    cerr << "\t" << accumulate(rounded_x.begin(), rounded_x.end(), 0)
+         << " OPERATORS AVAILABLE: " << endl;
     for (int op_id = 0; op_id < n_ops; ++op_id) {
         if (rounded_x[op_id] > 0) {
-            cout << "\t\t\t" << rounded_x[op_id] << " * "
+            cerr << "\t\t[" << rounded_x[op_id] << "] ("
+                 << task_proxy->get_operators()[op_id].get_cost() << ") "
                  << task_proxy->get_operators()[op_id].get_name() << endl;
         }
     }
@@ -373,13 +362,17 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
         tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
     }
     // cout.clear();
-    // cout << "\t\tFOUND IN CACHE? " << found_in_cache << endl;
+    // cerr << "\tIN CACHE? " << found_in_cache << endl;
 
     if (info->sequenciable) {
         /*
-        cout << "\t\tSEQUENCIABLE USING OPERATORS: " << endl;
+        cerr << "\tSEQUENCIABLE" << endl;
+        cerr << "\tPLAN COST: " << info->plan_cost << endl;
+        cerr << "\tPLAN:" << endl;
         for (OperatorID op_id : info->plan) {
-            cout << "\t\t\t"
+            cerr << "\t\t("
+                 << task_proxy->get_operators()[op_id.get_index()].get_cost()
+                 << ") "
                  << task_proxy->get_operators()[op_id.get_index()].get_name()
                  << endl;
         }
@@ -410,13 +403,14 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
         }
 
         /*
-        cout << "\t\tLEARNED GLC: (" << glcs->size() << ") ";
-        cout << "[YT >= " << info->learned_glc->yt_bound << "] ";
+        cerr << "\tNOT SEQUENCIABLE" << endl;
+        cerr << "\tLEARNED GLC (" << glcs->size() << ") WITH "
+             << info->learned_glc->get_num_bounds() << " BOUNDS:" << endl;
+        cerr << "\t\t[YT >= " << info->learned_glc->yt_bound << "]" << endl;
         for (auto i : info->learned_glc->ops_bounds) {
-            cout << "[" << task_proxy->get_operators()[i.first].get_name()
-                 << " >= " << i.second << "] ";
+            cerr << "\t\t[" << task_proxy->get_operators()[i.first].get_name()
+                 << " >= " << i.second << "]" << endl;
         }
-        cout << endl;
         */
 
         if (!info->in_lp && (constraint_type != 0 || sat_seq)) {
@@ -432,6 +426,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                 restart = true;
                 restarts++;
                 cache_op_counts.reset_in_lp();
+                // cerr << "\tRESTART" << endl;
                 ctxt.abort();
             }
 

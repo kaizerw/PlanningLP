@@ -13,9 +13,9 @@ struct GLC {
     // >= right_side_coeff
     // If yt_bound == -1 the [Y_T >= L + 1] bound literal will not be added
 
-    int yt_bound;                       // Y_T bound literal
+    int yt_bound;                        // Y_T bound literal
     vector<pair<int, long>> ops_bounds;  // Operators bound literals
-    int right_side_coeff;               // Right side coefficient
+    int right_side_coeff;                // Right side coefficient
 
    public:
     GLC();
@@ -23,6 +23,7 @@ struct GLC {
     void add_op_bound(int op_id, long op_bound);
     bool empty();
     bool operator==(const GLC &other);
+    int get_num_bounds();
 };
 
 #endif

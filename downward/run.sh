@@ -4,7 +4,7 @@
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas
 ################################################################################
 ./build.py
-run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 30m"
+run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1m"
 ################################################################################
 #opts="astar(lmcut())"
 #opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks, heuristic=lmcut)"
@@ -35,10 +35,10 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 3
 #$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 #$run_pref $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts"
 #################################################################################
-opts="socwsss_cplex(constraint_type=1)"
-#$run_pref $DOWNWARD_BENCHMARKS/scanalyzer-opt11-strips/p03.sas --search "$opts"
-#valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/scanalyzer-opt11-strips/p03.sas
-$run_pref $DOWNWARD_BENCHMARKS/scanalyzer-opt11-strips/p06.sas --search "$opts"
-#################################################################################
+# Large number of operators
+opts="socwsss_cplex(constraint_type=3)"
+#opts="socwsss_cplex(sat_seq=true)"
+$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts" # optimal solution: 56
+################################################################################
 rm -f sas_plan
 #################################################################################

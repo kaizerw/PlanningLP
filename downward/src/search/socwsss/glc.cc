@@ -20,6 +20,13 @@ bool GLC::empty() {
 }
 
 bool GLC::operator==(const GLC& other) {
-    return (this->yt_bound == other.yt_bound && 
+    return (this->yt_bound == other.yt_bound &&
             this->ops_bounds == other.ops_bounds);
+}
+
+int GLC::get_num_bounds() {
+    if (yt_bound != -1) {
+        return this->ops_bounds.size() + 1;
+    }
+    return this->ops_bounds.size();
 }
