@@ -4,7 +4,7 @@
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas
 ################################################################################
 ./build.py
-run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1m"
+run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5m"
 ################################################################################
 #opts="astar(lmcut())"
 #opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks, heuristic=lmcut)"
@@ -28,17 +28,18 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 #opts="socwsss_cplex(sat_seq=true, mip_start=false)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem06-full.sas --search "$opts"
 
-#opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks)"
-#$run_pref $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts"
+# If HeuristicFreq = 1 search freezes
+opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks)"
+$run_pref $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts"
 
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=h+_flow, heuristic=operatorcounting)"
 #$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 #$run_pref $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts"
 #################################################################################
 # Large number of operators
-opts="socwsss_cplex(constraint_type=3)"
+#opts="socwsss_cplex(constraint_type=3)"
 #opts="socwsss_cplex(sat_seq=true)"
-$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts" # optimal solution: 56
+#$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts" # optimal solution: 56
 ################################################################################
 rm -f sas_plan
 #################################################################################

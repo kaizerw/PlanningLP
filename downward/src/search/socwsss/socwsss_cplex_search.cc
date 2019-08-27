@@ -279,6 +279,7 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     cplex->setOut(env->getNullStream());
     cplex->setWarning(env->getNullStream());
     cplex->setParam(IloCplex::Param::Threads, 1);
+
     cplex->setParam(IloCplex::Param::MIP::Strategy::Search,
                     IloCplex::Traditional);
     cplex->setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
