@@ -400,6 +400,13 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                 ctxt.rejectCandidate();
             }
         } else {
+            if (constraint_type == 0) {
+                if (ctxt.inCandidate()) {
+                    ctxt.rejectCandidate();
+                }
+                return;
+            }
+
             glcs->emplace_back(info->learned_glc);
 
             auto [missing_bounds, cut] = get_cut(info->learned_glc);
