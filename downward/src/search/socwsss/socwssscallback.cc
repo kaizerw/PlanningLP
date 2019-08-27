@@ -369,7 +369,7 @@ void SOCWSSSCallback::log(const Context &ctxt, long rounded_z,
 
 void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                                OperatorCount &rounded_x) {
-    cout.setstate(ios_base::failbit);
+    // cout.setstate(ios_base::failbit);
     bool found_in_cache = false;
     shared_ptr<SequenceInfo> info;
     if (sat_seq) {
@@ -377,7 +377,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
     } else {
         tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
     }
-    cout.clear();
+    // cout.clear();
 
     // log(ctxt, rounded_z, rounded_x, found_in_cache, info);
 
