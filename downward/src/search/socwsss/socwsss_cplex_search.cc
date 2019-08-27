@@ -105,8 +105,10 @@ void SOCWSSSCplexSearch::initialize() {
         shared_ptr<Evaluator> evaluator = nullptr;
         opts_greedy.set("f_eval", evaluator);
 
+        cout.setstate(ios_base::failbit);
         auto greedy = make_shared<EagerSearch>(opts_greedy);
         greedy->search();
+        cout.clear();
 
         if (greedy->found_solution()) {
             has_mip_start = true;
@@ -276,17 +278,22 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     model->add((*c));
 
     cplex = make_shared<IloCplex>((*model));
-    cplex->setOut(env->getNullStream());
-    cplex->setWarning(env->getNullStream());
-    cplex->setParam(IloCplex::Param::Threads, 1);
 
-    cplex->setParam(IloCplex::Param::MIP::Strategy::Search,
-                    IloCplex::Traditional);
+    // cplex->setOut(env->getNullStream());
+    // cplex->setWarning(env->getNullStream());
+
+    cplex->setParam(IloCplex::MIPSearch, IloCplex::Traditional);
+    cplex->setParam(IloCplex::Param::Threads, 1);
+    cplex->setParam(IloCplex::MIPInterval, 1);
+
+    /*
     cplex->setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
     cplex->setParam(IloCplex::Param::Preprocessing::Reduce, 0);
     cplex->setParam(IloCplex::Param::RootAlgorithm, IloCplex::Primal);
     cplex->setParam(IloCplex::Param::MIP::Strategy::HeuristicFreq, 10);
+    */
 
+    /*
     cplex->setParam(IloCplex::Param::MIP::Cuts::BQP, -1);
     cplex->setParam(IloCplex::Param::MIP::Cuts::Cliques, -1);
     cplex->setParam(IloCplex::Param::MIP::Cuts::Covers, -1);
@@ -302,6 +309,7 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     cplex->setParam(IloCplex::Param::MIP::Cuts::PathCut, -1);
     cplex->setParam(IloCplex::Param::MIP::Cuts::RLT, -1);
     cplex->setParam(IloCplex::Param::MIP::Cuts::ZeroHalfCut, -1);
+    */
 
     // Add MIP start
     if (has_mip_start) {

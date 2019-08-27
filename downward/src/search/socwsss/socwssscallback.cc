@@ -83,9 +83,6 @@ bool SOCWSSSCallback::test_solution(const Context &ctxt, long rounded_z,
 bool SOCWSSSCallback::test_card(const Context &ctxt, double original_z,
                                 vector<double> &original_x, long rounded_z,
                                 OperatorCount &rounded_x) {
-    // We call our SAT sequencing procedure inside the python callback
-    // interface of Gurobi 5.6 if both the cardinality and objective of the
-    // rounded up operator count is within 20% of the linear count
     if (ctxt.inRelaxation()) {
         double original_card =
             accumulate(original_x.begin(), original_x.end(), 0);
@@ -137,7 +134,7 @@ pair<bool, shared_ptr<SequenceInfo>> SOCWSSSCallback::get_sat_sequence(
     }
 
     cout << "SEQUENCING WITH SAT..." << endl;
-    // cout.setstate(ios_base::failbit);
+
     seq++;
     printer_plots->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
                              restarts,
@@ -149,14 +146,10 @@ pair<bool, shared_ptr<SequenceInfo>> SOCWSSSCallback::get_sat_sequence(
                                       chrono::system_clock::now() - start)
                                       .count();
     printer_plots->plot_astar_time.emplace_back(elapsed_microseconds);
-    // cout.clear();
 
     auto info = make_shared<SequenceInfo>();
     if (sat_seq.sequenciable) {
-        // Get plan found by SAT
         info->plan = sat_seq.plan;
-
-        // Calculate plan cost
         info->plan_cost = accumulate(
             info->plan.begin(), info->plan.end(), 0,
             [&](int acc, OperatorID op_id) {
@@ -183,7 +176,6 @@ pair<bool, shared_ptr<SequenceInfo>> SOCWSSSCallback::get_astar_sequence(
 
     cout << "SEQUENCING WITH A*..." << endl;
 
-    // Setup A* search
     Options opts;
     shared_ptr<Evaluator> h;
 
@@ -287,13 +279,10 @@ pair<bool, shared_ptr<SequenceInfo>> SOCWSSSCallback::get_astar_sequence(
     vector<shared_ptr<Evaluator>> preferred_list;
     opts.set("preferred", preferred_list);
 
-    // Custom options
     opts.set("initial_op_count", op_count);
     opts.set("f_bound", f_bound);
     opts.set("constraint_type", constraint_type);
 
-    // Perform A* search
-    // cout.setstate(ios_base::failbit);
     seq++;
     printer_plots->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
                              restarts,
@@ -308,14 +297,10 @@ pair<bool, shared_ptr<SequenceInfo>> SOCWSSSCallback::get_astar_sequence(
     printer_plots->plot_astar_time.emplace_back(elapsed_microseconds);
     printer_plots->plot_nodes_expanded.emplace_back(
         astar->get_statistics().get_expanded());
-    // cout.clear();
 
     auto info = make_shared<SequenceInfo>();
     if (astar->found_solution()) {
-        // Get plan found by A*
         info->plan = astar->get_plan();
-
-        // Calculate plan cost
         info->plan_cost = accumulate(
             info->plan.begin(), info->plan.end(), 0,
             [&](int acc, OperatorID op_id) {
@@ -333,13 +318,14 @@ pair<bool, shared_ptr<SequenceInfo>> SOCWSSSCallback::get_astar_sequence(
     return {false, info};
 }
 
-void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
-                               OperatorCount &rounded_x) {
-    /*
+void SOCWSSSCallback::log(const Context &ctxt, long rounded_z,
+                          OperatorCount &rounded_x, bool found_in_cache,
+                          shared_ptr<SequenceInfo> info) {
     cerr << string(80, '*') << endl;
+    cerr << boolalpha << endl;
     cerr << "SEQ " << (seq + 1) << endl;
-    cerr << "\tIN CANDIDATE? " << ctxt.inCandidate() << endl;
-    cerr << "\tIN RELAXATION? " << ctxt.inRelaxation() << endl;
+    cerr << "\tIN CANDIDATE? " << (bool)ctxt.inCandidate() << endl;
+    cerr << "\tIN RELAXATION? " << (bool)ctxt.inRelaxation() << endl;
     cerr << "\tF-BOUND: " << rounded_z << endl;
     cerr << "\t" << accumulate(rounded_x.begin(), rounded_x.end(), 0)
          << " OPERATORS AVAILABLE: " << endl;
@@ -350,22 +336,9 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                  << task_proxy->get_operators()[op_id].get_name() << endl;
         }
     }
-    */
-
-    // Try to sequence current solution
-    // cout.setstate(ios_base::failbit);
-    bool found_in_cache = false;
-    shared_ptr<SequenceInfo> info;
-    if (sat_seq) {
-        tie(found_in_cache, info) = get_sat_sequence(rounded_x);
-    } else {
-        tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
-    }
-    // cout.clear();
-    // cerr << "\tIN CACHE? " << found_in_cache << endl;
+    cerr << "\tIN CACHE? " << found_in_cache << endl;
 
     if (info->sequenciable) {
-        /*
         cerr << "\tSEQUENCIABLE" << endl;
         cerr << "\tPLAN COST: " << info->plan_cost << endl;
         cerr << "\tPLAN:" << endl;
@@ -376,57 +349,63 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                  << task_proxy->get_operators()[op_id.get_index()].get_name()
                  << endl;
         }
-        */
+    } else {
+        cerr << "\tNOT SEQUENCIABLE" << endl;
+        if (info->learned_glc != nullptr) {
+            cerr << "\tLEARNED GLC (" << glcs->size() << ") WITH "
+                 << info->learned_glc->get_num_bounds() << " BOUNDS:" << endl;
+            cerr << "\t\t[YT >= " << info->learned_glc->yt_bound << "]" << endl;
+            for (auto i : info->learned_glc->ops_bounds) {
+                cerr << "\t\t["
+                     << task_proxy->get_operators()[i.first].get_name()
+                     << " >= " << i.second << "]" << endl;
+            }
+        } else {
+            cerr << "\tNULL LEARNED GLC" << endl;
+        }
+    }
+    cerr << string(80, '*') << endl;
+}
 
-        // If this plan has the same cost as the lower-bound found by the
-        // LP, to the nearest integer, then we have optimally solved the
-        // planning problem. If the plan cost is more than the lower bound,
-        // this solution can be used to bound the search process
+void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
+                               OperatorCount &rounded_x) {
+    cout.setstate(ios_base::failbit);
+    bool found_in_cache = false;
+    shared_ptr<SequenceInfo> info;
+    if (sat_seq) {
+        tie(found_in_cache, info) = get_sat_sequence(rounded_x);
+    } else {
+        tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
+    }
+    cout.clear();
+
+    // log(ctxt, rounded_z, rounded_x, found_in_cache, info);
+
+    if (info->sequenciable) {
         post_current_best_plan(ctxt);
     } else {
+        printer_plots->update(rounded_z, rounded_x, c->getSize(), x->getSize());
+
+        bool glc_in_cache = (info->learned_glc == nullptr);
         for (auto glc : (*glcs)) {
             if (info->learned_glc != nullptr &&
                 (*info->learned_glc) == (*glc)) {
-                info->learned_glc = nullptr;
+                glc_in_cache = true;
                 break;
             }
         }
 
-        if (info->learned_glc == nullptr) {
-            info->in_lp = true;
+        if (glc_in_cache) {
             if (ctxt.inCandidate()) {
                 ctxt.rejectCandidate();
             }
-            printer_plots->update(rounded_z, rounded_x, c->getSize(),
-                                  x->getSize());
-            return;
-        }
-
-        /*
-        cerr << "\tNOT SEQUENCIABLE" << endl;
-        cerr << "\tLEARNED GLC (" << glcs->size() << ") WITH "
-             << info->learned_glc->get_num_bounds() << " BOUNDS:" << endl;
-        cerr << "\t\t[YT >= " << info->learned_glc->yt_bound << "]" << endl;
-        for (auto i : info->learned_glc->ops_bounds) {
-            cerr << "\t\t[" << task_proxy->get_operators()[i.first].get_name()
-                 << " >= " << i.second << "]" << endl;
-        }
-        */
-
-        if (!info->in_lp && (constraint_type != 0 || sat_seq)) {
+        } else {
             glcs->emplace_back(info->learned_glc);
 
-            // Unless there is more than one missing bounds literal, the
-            // constraint still invalidates the current linear optimum. If a
-            // weakened constraint is generated that does not invalidate the
-            // current linear optimum, the MIP search is restarted after any
-            // weakened terms are replaced with the correct bounds literals
             auto [missing_bounds, cut] = get_cut(info->learned_glc);
             if (missing_bounds > 1) {
                 restart = true;
                 restarts++;
-                cache_op_counts.reset_in_lp();
-                // cerr << "\tRESTART" << endl;
                 ctxt.abort();
             }
 
@@ -434,16 +413,6 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                 ctxt.addUserCut(cut >= 1.0, IloCplex::UseCutForce, IloFalse);
             } else if (ctxt.inCandidate()) {
                 ctxt.rejectCandidate(cut >= 1.0);
-            }
-            info->in_lp = true;
-
-            printer_plots->update(rounded_z, rounded_x, c->getSize(),
-                                  x->getSize());
-            return;
-        } else {
-            if (ctxt.inCandidate()) {
-                ctxt.rejectCandidate();
-                return;
             }
         }
     }
