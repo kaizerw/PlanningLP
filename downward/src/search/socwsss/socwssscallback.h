@@ -184,9 +184,10 @@ struct SOCWSSSCallback : public Function {
         OperatorCount op_count);
     pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
         long f_bound, OperatorCount op_count);
-    void log(const Context &ctxt, long rounded_z, OperatorCount &rounded_x,
-             bool found_in_cache, shared_ptr<SequenceInfo> info);
-    void sequence(const Context &ctxt, long rounded_z,
+    void log(const Context &ctxt, long rounded_z, double original_z,
+             OperatorCount &rounded_x, bool found_in_cache,
+             shared_ptr<SequenceInfo> info);
+    void sequence(const Context &ctxt, long rounded_z, double original_z,
                   OperatorCount &rounded_x);
     void post_current_best_plan(const Context &ctxt);
     void invoke(const Context &ctxt);

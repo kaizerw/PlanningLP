@@ -319,56 +319,63 @@ pair<bool, shared_ptr<SequenceInfo>> SOCWSSSCallback::get_astar_sequence(
 }
 
 void SOCWSSSCallback::log(const Context &ctxt, long rounded_z,
-                          OperatorCount &rounded_x, bool found_in_cache,
-                          shared_ptr<SequenceInfo> info) {
+                          double original_z, OperatorCount &rounded_x,
+                          bool found_in_cache, shared_ptr<SequenceInfo> info) {
     cerr << string(80, '*') << endl;
-    cerr << boolalpha << endl;
-    cerr << "SEQ " << (seq + 1) << endl;
-    cerr << "\tIN CANDIDATE? " << (bool)ctxt.inCandidate() << endl;
-    cerr << "\tIN RELAXATION? " << (bool)ctxt.inRelaxation() << endl;
-    cerr << "\tF-BOUND: " << rounded_z << endl;
-    cerr << "\t" << accumulate(rounded_x.begin(), rounded_x.end(), 0)
+    cerr << boolalpha;
+    cerr << "SEQ: " << seq << endl;
+    cerr << "START: " << restarts << endl;
+    cerr << "NODE COUNT: "
+         << ctxt.getIntInfo(IloCplex::Callback::Context::Info::NodeCount)
+         << endl;
+    cerr << "IN CANDIDATE? " << (bool)ctxt.inCandidate() << endl;
+    cerr << "IN RELAXATION? " << (bool)ctxt.inRelaxation() << endl;
+    cerr << "Z: " << original_z << endl;
+    cerr << "F-BOUND: " << rounded_z << endl;
+    cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0)
          << " OPERATORS AVAILABLE: " << endl;
     for (int op_id = 0; op_id < n_ops; ++op_id) {
         if (rounded_x[op_id] > 0) {
-            cerr << "\t\t[" << rounded_x[op_id] << "] ("
+            cerr << "\t[" << rounded_x[op_id] << "] ("
                  << task_proxy->get_operators()[op_id].get_cost() << ") "
                  << task_proxy->get_operators()[op_id].get_name() << endl;
         }
     }
-    cerr << "\tIN CACHE? " << found_in_cache << endl;
+    cerr << "IN CACHE? " << found_in_cache << endl;
 
     if (info->sequenciable) {
-        cerr << "\tSEQUENCIABLE" << endl;
-        cerr << "\tPLAN COST: " << info->plan_cost << endl;
-        cerr << "\tPLAN:" << endl;
+        cerr << "SEQUENCIABLE" << endl;
+        cerr << "PLAN COST: " << info->plan_cost << endl;
+        cerr << "PLAN:" << endl;
         for (OperatorID op_id : info->plan) {
-            cerr << "\t\t("
+            cerr << "\t("
                  << task_proxy->get_operators()[op_id.get_index()].get_cost()
                  << ") "
                  << task_proxy->get_operators()[op_id.get_index()].get_name()
                  << endl;
         }
     } else {
-        cerr << "\tNOT SEQUENCIABLE" << endl;
+        cerr << "NOT SEQUENCIABLE" << endl;
         if (info->learned_glc != nullptr) {
-            cerr << "\tLEARNED GLC (" << glcs->size() << ") WITH "
+            cerr << "LEARNED GLC (" << glcs->size() << ") WITH "
                  << info->learned_glc->get_num_bounds() << " BOUNDS:" << endl;
-            cerr << "\t\t[YT >= " << info->learned_glc->yt_bound << "]" << endl;
+            if (info->learned_glc->yt_bound != -1) {
+                cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]"
+                     << endl;
+            }
             for (auto i : info->learned_glc->ops_bounds) {
-                cerr << "\t\t["
-                     << task_proxy->get_operators()[i.first].get_name()
+                cerr << "\t[" << task_proxy->get_operators()[i.first].get_name()
                      << " >= " << i.second << "]" << endl;
             }
         } else {
-            cerr << "\tNULL LEARNED GLC" << endl;
+            cerr << "NULL LEARNED GLC" << endl;
         }
     }
     cerr << string(80, '*') << endl;
 }
 
 void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
-                               OperatorCount &rounded_x) {
+                               double original_z, OperatorCount &rounded_x) {
     // cout.setstate(ios_base::failbit);
     bool found_in_cache = false;
     shared_ptr<SequenceInfo> info;
@@ -379,7 +386,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
     }
     // cout.clear();
 
-    // log(ctxt, rounded_z, rounded_x, found_in_cache, info);
+    // log(ctxt, rounded_z, original_z, rounded_x, found_in_cache, info);
 
     if (info->sequenciable) {
         post_current_best_plan(ctxt);
@@ -387,6 +394,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
         printer_plots->update(rounded_z, rounded_x, c->getSize(), x->getSize());
 
         bool glc_in_cache = (info->learned_glc == nullptr);
+
         for (auto glc : (*glcs)) {
             if (info->learned_glc != nullptr &&
                 (*info->learned_glc) == (*glc)) {
@@ -400,7 +408,7 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                 ctxt.rejectCandidate();
             }
         } else {
-            if (constraint_type == 0) {
+            if (constraint_type == 0 && !sat_seq) {
                 if (ctxt.inCandidate()) {
                     ctxt.rejectCandidate();
                 }
@@ -458,7 +466,7 @@ void SOCWSSSCallback::invoke(const Context &ctxt) {
 
         if (test_solution(ctxt, rounded_z, rounded_x) &&
             test_card(ctxt, original_z, original_x, rounded_z, rounded_x)) {
-            sequence(ctxt, rounded_z, rounded_x);
+            sequence(ctxt, rounded_z, original_z, rounded_x);
         }
     }
 }
