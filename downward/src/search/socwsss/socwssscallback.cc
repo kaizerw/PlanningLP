@@ -85,8 +85,14 @@ bool SOCWSSSCallback::test_card(const Context &ctxt, double original_z,
                                 OperatorCount &rounded_x) {
     if (ctxt.inRelaxation()) {
         double original_card =
-            accumulate(original_x.begin(), original_x.end(), 0);
+            accumulate(original_x.begin(), original_x.end(), 0.0);
         int rounded_card = accumulate(rounded_x.begin(), rounded_x.end(), 0);
+
+        rounded_z = 0;
+        for (int op_id = 0; op_id < n_ops; ++op_id) {
+            rounded_z += (rounded_x[op_id] *
+                          task_proxy->get_operators()[op_id].get_cost());
+        }
 
         if (rounded_z > (1.1 * original_z) ||
             rounded_card > (1.1 * original_card)) {
