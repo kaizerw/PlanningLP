@@ -17,8 +17,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 #################################################################################
 # Test SAT sequencing
 #opts="socwsss_cplex(constraint_type=3, constraint_generators=seq_landmarks, mip_start=false)"
-#opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, mip_start=false)"
-#$run_pref $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.pddl --search "$opts"
+opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, mip_start=false)"
+$run_pref $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.pddl --search "$opts"
 #################################################################################
 # Test MIP start
 #opts="eager_greedy([lmcut])"
@@ -28,8 +28,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 #opts="socwsss_cplex(sat_seq=true, mip_start=false)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem06-full.sas --search "$opts"
 
-opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks)"
-$run_pref $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts" # optimal solution: 195
+#opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks)"
+#$run_pref $DOWNWARD_BENCHMARKS/woodworking-opt11-strips/p01.sas --search "$opts" # optimal solution: 195
 
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=h+_flow, heuristic=operatorcounting)"
 #$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"

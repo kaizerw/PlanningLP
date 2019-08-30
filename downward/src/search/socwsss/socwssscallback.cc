@@ -440,21 +440,19 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
 }
 
 void SOCWSSSCallback::post_current_best_plan(const Context &ctxt) {
-    if (ctxt.inRelaxation()) {
-        auto [found, info] = cache_op_counts.get_min_plan();
-        if (found && info->sequenciable) {
-            OperatorCount plan_counts = plan_to_op_count(info, n_ops);
-            IloNumArray values(ctxt.getEnv());
-            for (int i = 0; i < x->getSize(); ++i) {
-                if (i < n_ops) {
-                    values.add(plan_counts[i]);
-                } else {
-                    values.add(NAN);
-                }
+    auto [found, info] = cache_op_counts.get_min_plan();
+    if (found && info->sequenciable) {
+        OperatorCount plan_counts = plan_to_op_count(info, n_ops);
+        IloNumArray values(ctxt.getEnv());
+        for (int i = 0; i < x->getSize(); ++i) {
+            if (i < n_ops) {
+                values.add(plan_counts[i]);
+            } else {
+                values.add(NAN);
             }
-            ctxt.postHeuristicSolution((*x), values, info->plan_cost,
-                                       Context::SolutionStrategy::Propagate);
         }
+        ctxt.postHeuristicSolution((*x), values, info->plan_cost,
+                                   Context::SolutionStrategy::Propagate);
     }
 }
 
