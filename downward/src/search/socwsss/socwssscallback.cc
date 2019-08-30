@@ -334,6 +334,9 @@ void SOCWSSSCallback::log(const Context &ctxt, long rounded_z,
     cerr << "NODE COUNT: "
          << ctxt.getIntInfo(IloCplex::Callback::Context::Info::NodeCount)
          << endl;
+    cerr << "INCUMBENT: "
+         << ctxt.getDoubleInfo(IloCplex::Callback::Context::Info::BestSolution)
+         << endl;
     cerr << "IN CANDIDATE? " << (bool)ctxt.inCandidate() << endl;
     cerr << "IN RELAXATION? " << (bool)ctxt.inRelaxation() << endl;
     cerr << "Z: " << original_z << endl;
@@ -382,7 +385,7 @@ void SOCWSSSCallback::log(const Context &ctxt, long rounded_z,
 
 void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
                                double original_z, OperatorCount &rounded_x) {
-    // cout.setstate(ios_base::failbit);
+    cout.setstate(ios_base::failbit);
     bool found_in_cache = false;
     shared_ptr<SequenceInfo> info;
     if (sat_seq) {
@@ -390,9 +393,9 @@ void SOCWSSSCallback::sequence(const Context &ctxt, long rounded_z,
     } else {
         tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
     }
-    // cout.clear();
+    cout.clear();
 
-    // log(ctxt, rounded_z, original_z, rounded_x, found_in_cache, info);
+    log(ctxt, rounded_z, original_z, rounded_x, found_in_cache, info);
 
     if (info->sequenciable) {
         post_current_best_plan(ctxt);
@@ -443,15 +446,24 @@ void SOCWSSSCallback::post_current_best_plan(const Context &ctxt) {
     auto [found, info] = cache_op_counts.get_min_plan();
     if (found && info->sequenciable) {
         OperatorCount plan_counts = plan_to_op_count(info, n_ops);
-        IloNumArray values(ctxt.getEnv());
+
+        IloNumVarArray vars((*env));
+        IloNumArray values((*env));
         for (int i = 0; i < x->getSize(); ++i) {
             if (i < n_ops) {
+                vars.add((*x)[i]);
                 values.add(plan_counts[i]);
-            } else {
-                values.add(NAN);
             }
         }
-        ctxt.postHeuristicSolution((*x), values, info->plan_cost,
+
+        cerr << "POSTING SOLUTION WITH COST: " << info->plan_cost << endl;
+        for (int i = 0; i < x->getSize(); ++i) {
+            if (i < n_ops) {
+                cerr << values[i] << " ";
+            }
+        }
+        cerr << endl;
+        ctxt.postHeuristicSolution(vars, values, info->plan_cost,
                                    Context::SolutionStrategy::Propagate);
     }
 }

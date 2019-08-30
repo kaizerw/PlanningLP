@@ -279,8 +279,8 @@ void SOCWSSSCplexSearch::create_cplex_data() {
 
     cplex = make_shared<IloCplex>((*model));
 
-    cplex->setOut(env->getNullStream());
-    cplex->setWarning(env->getNullStream());
+    // cplex->setOut(env->getNullStream());
+    // cplex->setWarning(env->getNullStream());
     cplex->setParam(IloCplex::MIPInterval, 1);
 
     cplex->setParam(IloCplex::MIPSearch, IloCplex::Traditional);
