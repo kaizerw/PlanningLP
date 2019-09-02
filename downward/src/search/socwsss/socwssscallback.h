@@ -132,8 +132,12 @@ struct CacheOperatorCounts {
 
 using Function = IloCplex::Callback::Function;
 using Context = IloCplex::Callback::Context;
+using GoalI = IloCplex::GoalI;
+using Goal = IloCplex::Goal;
+using GoalBaseI = IloCplex::GoalBaseI;
 using OperatorCount = vector<long>;
 
+/*
 struct SOCWSSSCallback : public Function {
     int constraint_type;
     string constraint_generators;
@@ -192,5 +196,93 @@ struct SOCWSSSCallback : public Function {
     void post_current_best_plan(const Context &ctxt);
     void invoke(const Context &ctxt);
 };
+*/
+
+struct SharedData {
+    int constraint_type;
+    string constraint_generators;
+    string heuristic;
+    bool sat_seq;
+    bool mip_start;
+    lp::LPSolverType lp_solver_type;
+    int cost_type;
+    double max_time;
+    int bound;
+    shared_ptr<PruningMethod> pruning;
+    int verbosity;
+
+    shared_ptr<TaskProxy> task_proxy;
+    shared_ptr<AbstractTask> task;
+    chrono::time_point<chrono::system_clock> start;
+
+    shared_ptr<vector<vector<int>>> bounds_literals;
+    shared_ptr<IloEnv> env;
+    shared_ptr<IloModel> model;
+    shared_ptr<IloNumVarArray> x;
+    shared_ptr<IloRangeArray> c;
+    shared_ptr<IloObjective> obj;
+    shared_ptr<IloCplex> cplex;
+    shared_ptr<vector<lp::LPVariable>> lp_variables;
+    shared_ptr<vector<lp::LPConstraint>> lp_constraints;
+
+    bool restart = false;
+    int restarts = 0, seq = 0, repeated_seqs = 0;
+    int n_ops, n_vars;
+    shared_ptr<vector<shared_ptr<GLC>>> glcs;
+    shared_ptr<PrinterPlots> printer_plots;
+
+    CacheOperatorCounts cache_op_counts;
+
+    SharedData(const Options &opts, shared_ptr<TaskProxy> task_proxy,
+               shared_ptr<AbstractTask> task)
+        : constraint_type(opts.get<int>("constraint_type")),
+          constraint_generators(opts.get<string>("constraint_generators")),
+          heuristic(opts.get<string>("heuristic")),
+          sat_seq(opts.get<bool>("sat_seq")),
+          mip_start(opts.get<bool>("mip_start")),
+          lp_solver_type(opts.get<lp::LPSolverType>("lp_solver_type")),
+          cost_type(opts.get<int>("cost_type")),
+          max_time(opts.get<double>("max_time")),
+          bound(opts.get<int>("bound")),
+          pruning(opts.get<shared_ptr<PruningMethod>>("pruning")),
+          verbosity(opts.get<int>("verbosity")),
+          task_proxy(task_proxy),
+          task(task),
+          start(chrono::system_clock::now()) {
+        n_ops = task_proxy->get_operators().size();
+        n_vars = task_proxy->get_variables().size();
+        glcs = make_shared<vector<shared_ptr<GLC>>>();
+        printer_plots = make_shared<PrinterPlots>(n_ops, n_vars, glcs, start);
+    }
+};
+
+class GoalCallbackI : public GoalI {
+   public:
+    GoalCallbackI(IloEnv env, shared_ptr<SharedData> shared_data)
+        : GoalI(env), shared_data(shared_data) {}
+    Goal execute();
+    Goal duplicateGoal();
+
+   private:
+    shared_ptr<SharedData> shared_data;
+
+    pair<double, vector<double>> extract_sol();
+    pair<long, OperatorCount> round_sol(double original_z,
+                                        vector<double> &original_x);
+    bool test_solution(long rounded_z, OperatorCount &rounded_x);
+    bool test_card(double original_z, vector<double> &original_x,
+                   long rounded_z, OperatorCount &rounded_x);
+    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
+    pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
+        OperatorCount op_count);
+    pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
+        long f_bound, OperatorCount op_count);
+    void log(long rounded_z, double original_z, OperatorCount &rounded_x,
+             bool found_in_cache, shared_ptr<SequenceInfo> info);
+    void sequence(long rounded_z, double original_z, OperatorCount &rounded_x);
+    void post_current_best_plan();
+};
+
+Goal GoalCallback(IloEnv env, shared_ptr<SharedData> shared_data);
 
 #endif

@@ -18,7 +18,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 # Test SAT sequencing
 #opts="socwsss_cplex(constraint_type=3, constraint_generators=seq_landmarks, mip_start=false)"
 opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, mip_start=false)"
-$run_pref $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.pddl --search "$opts"
+$run_pref $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.sas --search "$opts"
+#valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.sas
 #################################################################################
 # Test MIP start
 #opts="eager_greedy([lmcut])"
