@@ -244,7 +244,8 @@ void SOCWSSSCplexSearch::create_cplex_data() {
         const lp::LPVariable &variable = (*lp_variables)[vi];
         double lb = variable.lower_bound;
         double ub = variable.upper_bound;
-        x->add(IloNumVar((*env), lb, ub, ILOINT));
+        string var_name = (string("var_") + to_string(vi));
+        x->add(IloNumVar((*env), lb, ub, ILOINT, var_name.c_str()));
         obj->setLinearCoef((*x)[vi], variable.objective_coefficient);
     }
 
@@ -270,15 +271,16 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     for (auto &glc : (*shared_data->glcs)) {
         int yt_bound = glc->yt_bound;
 
-        IloExpr expr((*env));
+        IloRange range((*env), 1.0, IloInfinity);
+
         if (yt_bound > 0) {
-            expr += (*x)[(*bounds_literals)[n_ops][yt_bound]];
+            range.setLinearCoef((*x)[(*bounds_literals)[n_ops][yt_bound]], 1.0);
         }
         for (auto &[op_id, op_bound] : glc->ops_bounds) {
-            expr += (*x)[(*bounds_literals)[op_id][op_bound]];
+            range.setLinearCoef((*x)[(*bounds_literals)[op_id][op_bound]], 1.0);
         }
 
-        c->add(expr >= 1.0);
+        c->add(range);
     }
 
     model->add((*obj));

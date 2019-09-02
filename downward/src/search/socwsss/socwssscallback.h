@@ -265,22 +265,22 @@ class GoalCallbackI : public GoalI {
 
    private:
     shared_ptr<SharedData> shared_data;
+    double original_z;
+    vector<double> original_x;
+    long rounded_z;
+    OperatorCount rounded_x;
 
-    pair<double, vector<double>> extract_sol();
-    pair<long, OperatorCount> round_sol(double original_z,
-                                        vector<double> &original_x);
-    bool test_solution(long rounded_z, OperatorCount &rounded_x);
-    bool test_card(double original_z, vector<double> &original_x,
-                   long rounded_z, OperatorCount &rounded_x);
-    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
+    void extract_sol();
+    void round_sol();
+    bool test_solution();
+    bool test_card();
+    Goal sequence();
     pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
         OperatorCount op_count);
     pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
         long f_bound, OperatorCount op_count);
-    void log(long rounded_z, double original_z, OperatorCount &rounded_x,
-             bool found_in_cache, shared_ptr<SequenceInfo> info);
-    void sequence(long rounded_z, double original_z, OperatorCount &rounded_x);
-    void post_current_best_plan();
+    void log(bool found_in_cache, shared_ptr<SequenceInfo> info);
+    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
 };
 
 Goal GoalCallback(IloEnv env, shared_ptr<SharedData> shared_data);

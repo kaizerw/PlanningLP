@@ -495,23 +495,16 @@ Goal GoalCallbackI::duplicateGoal() {
     return retgoal;
 }
 
-pair<double, vector<double>> GoalCallbackI::extract_sol() {
-    double original_z = 0;
-    vector<double> original_x;
-
+void GoalCallbackI::extract_sol() {
     original_z = getObjValue();
+    original_x.clear();
     for (int i = 0; i < shared_data->n_ops; ++i) {
         original_x.emplace_back(getValue((*shared_data->x)[i]));
     }
-
-    return {original_z, original_x};
 }
 
-pair<long, OperatorCount> GoalCallbackI::round_sol(double original_z,
-                                                   vector<double> &original_x) {
-    long rounded_z = 0;
-    OperatorCount rounded_x;
-
+void GoalCallbackI::round_sol() {
+    rounded_x.clear();
     if (isIntegerFeasible()) {
         rounded_z = (long)original_z;
         transform(original_x.begin(), original_x.end(),
@@ -522,71 +515,106 @@ pair<long, OperatorCount> GoalCallbackI::round_sol(double original_z,
                   back_inserter(rounded_x),
                   [](double i) { return (long)ceil(i); });
     }
-
-    return {rounded_z, rounded_x};
 }
 
-bool GoalCallbackI::test_solution(long rounded_z, OperatorCount &rounded_x) {
-    bool ret = (rounded_z >= 0);
-    ret = (ret && all_of(rounded_x.begin(), rounded_x.end(),
-                         [](int c) { return c >= 0; }));
-    if (!ret && isIntegerFeasible()) {
-        // REJECT CANDIDATE
-    }
-    return ret;
+bool GoalCallbackI::test_solution() {
+    return (rounded_z >= 0) && all_of(rounded_x.begin(), rounded_x.end(),
+                                      [](int c) { return c >= 0; });
 }
 
-bool GoalCallbackI::test_card(double original_z, vector<double> &original_x,
-                              long rounded_z, OperatorCount &rounded_x) {
+bool GoalCallbackI::test_card() {
     double original_card =
         accumulate(original_x.begin(), original_x.end(), 0.0);
     int rounded_card = accumulate(rounded_x.begin(), rounded_x.end(), 0);
 
-    rounded_z = 0;
+    long calc_rounded_z = 0;
     for (int op_id = 0; op_id < shared_data->n_ops; ++op_id) {
-        rounded_z +=
+        calc_rounded_z +=
             (rounded_x[op_id] *
              shared_data->task_proxy->get_operators()[op_id].get_cost());
     }
 
-    if (rounded_z > (1.1 * original_z) ||
+    if (calc_rounded_z > (1.1 * original_z) ||
         rounded_card > (1.1 * original_card)) {
         return false;
     }
     return true;
 }
 
-pair<int, IloExpr> GoalCallbackI::get_cut(shared_ptr<GLC> learned_glc) {
-    int missing_bounds = 0;
-    IloExpr cut((*shared_data->env));
+Goal GoalCallbackI::sequence() {
+    cout.setstate(ios_base::failbit);
+    bool found_in_cache = false;
+    shared_ptr<SequenceInfo> info;
+    if (shared_data->sat_seq) {
+        tie(found_in_cache, info) = get_sat_sequence(rounded_x);
+    } else {
+        tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
+    }
+    cout.clear();
 
-    int yt_bound = learned_glc->yt_bound;
-    int last_yt_bound =
-        (*shared_data->bounds_literals)[shared_data->n_ops].size() - 1;
+    log(found_in_cache, info);
 
-    if (yt_bound > 0) {
-        if (yt_bound <= last_yt_bound) {
-            cut += (*shared_data->x)[(
-                *shared_data->bounds_literals)[shared_data->n_ops][yt_bound]];
+    if (info->sequenciable) {
+        OperatorCount plan_counts = plan_to_op_count(info, shared_data->n_ops);
+
+        IloNumVarArray vars(getEnv());
+        IloNumArray vals(getEnv());
+        for (int i = 0; i < shared_data->x->getSize(); ++i) {
+            if (i < shared_data->n_ops) {
+                vars.add((*shared_data->x)[i]);
+                vals.add(plan_counts[i]);
+            }
+        }
+
+        cerr << "POSTING SOLUTION WITH COST: " << info->plan_cost << endl;
+        for (int i = 0; i < shared_data->x->getSize(); ++i) {
+            if (i < shared_data->n_ops) {
+                cerr << vals[i] << " ";
+            }
+        }
+        cerr << endl;
+
+        return SolutionGoal(vars, vals);
+    } else {
+        shared_data->printer_plots->update(rounded_z, rounded_x,
+                                           shared_data->c->getSize(),
+                                           shared_data->x->getSize());
+
+        bool glc_in_cache = (info->learned_glc == nullptr);
+
+        for (auto glc : (*shared_data->glcs)) {
+            if (info->learned_glc != nullptr &&
+                (*info->learned_glc) == (*glc)) {
+                glc_in_cache = true;
+                break;
+            }
+        }
+
+        if (glc_in_cache) {
+            // IF CANDIDATE THEN REJECT
+            return FailGoal(getEnv());
         } else {
-            missing_bounds++;
-            cut += (1.0 / yt_bound) * (*shared_data->x)[shared_data->n_ops];
+            if (shared_data->constraint_type == 0 && !shared_data->sat_seq) {
+                // IF CANDIDATE THEN REJECT
+                return FailGoal(getEnv());
+            }
+
+            shared_data->glcs->emplace_back(info->learned_glc);
+
+            auto [missing_bounds, cut] = get_cut(info->learned_glc);
+            if (missing_bounds > 1) {
+                shared_data->restart = true;
+                shared_data->restarts++;
+                abort();
+            }
+
+            cout << "CUT: " << (cut >= 1.0) << endl;
+
+            return AndGoal(GlobalCutGoal(cut >= 1.0), this);
         }
     }
 
-    for (auto &[op_id, op_bound] : learned_glc->ops_bounds) {
-        int last_op_bound = (*shared_data->bounds_literals)[op_id].size() - 1;
-
-        if (op_bound <= last_op_bound) {
-            cut += (*shared_data
-                         ->x)[(*shared_data->bounds_literals)[op_id][op_bound]];
-        } else {
-            missing_bounds++;
-            cut += (1.0 / op_bound) * (*shared_data->x)[op_id];
-        }
-    }
-
-    return {missing_bounds, cut};
+    return 0;
 }
 
 pair<bool, shared_ptr<SequenceInfo>> GoalCallbackI::get_sat_sequence(
@@ -792,17 +820,18 @@ pair<bool, shared_ptr<SequenceInfo>> GoalCallbackI::get_astar_sequence(
     return {false, info};
 }
 
-void GoalCallbackI::log(long rounded_z, double original_z,
-                        OperatorCount &rounded_x, bool found_in_cache,
-                        shared_ptr<SequenceInfo> info) {
+void GoalCallbackI::log(bool found_in_cache, shared_ptr<SequenceInfo> info) {
     cerr << string(80, '*') << endl;
     cerr << boolalpha;
     cerr << "SEQ: " << shared_data->seq << endl;
     cerr << "START: " << shared_data->restarts << endl;
+    cerr << "NODE ID: " << getNodeId() << endl;
     cerr << "NODE COUNT: " << getNnodes() << endl;
     cerr << "INCUMBENT: " << getIncumbentObjValue() << endl;
     cerr << "IN CANDIDATE? " << (bool)isIntegerFeasible() << endl;
     cerr << "IN RELAXATION? " << (bool)(!isIntegerFeasible()) << endl;
+    cerr << "LP NUM ROWS: " << getNrows() << endl;
+    cerr << "LP NUM COLS: " << getNcols() << endl;
     cerr << "Z: " << original_z << endl;
     cerr << "F-BOUND: " << rounded_z << endl;
     cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0)
@@ -838,13 +867,20 @@ void GoalCallbackI::log(long rounded_z, double original_z,
                  << info->learned_glc->get_num_bounds() << " BOUNDS:" << endl;
             if (info->learned_glc->yt_bound != -1) {
                 cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]"
+                     << " id="
+                     << (*shared_data
+                              ->bounds_literals)[shared_data->n_ops]
+                                                [info->learned_glc->yt_bound]
                      << endl;
             }
             for (auto i : info->learned_glc->ops_bounds) {
                 cerr << "\t["
                      << shared_data->task_proxy->get_operators()[i.first]
                             .get_name()
-                     << " >= " << i.second << "]" << endl;
+                     << " >= " << i.second << "]"
+                     << " id="
+                     << (*shared_data->bounds_literals)[i.first][i.second]
+                     << endl;
             }
         } else {
             cerr << "NULL LEARNED GLC" << endl;
@@ -853,98 +889,52 @@ void GoalCallbackI::log(long rounded_z, double original_z,
     cerr << string(80, '*') << endl;
 }
 
-void GoalCallbackI::sequence(long rounded_z, double original_z,
-                             OperatorCount &rounded_x) {
-    cout.setstate(ios_base::failbit);
-    bool found_in_cache = false;
-    shared_ptr<SequenceInfo> info;
-    if (shared_data->sat_seq) {
-        tie(found_in_cache, info) = get_sat_sequence(rounded_x);
-    } else {
-        tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
-    }
-    cout.clear();
+pair<int, IloExpr> GoalCallbackI::get_cut(shared_ptr<GLC> learned_glc) {
+    auto env = (*shared_data->env);
+    auto bl = (*shared_data->bounds_literals);
+    auto n_ops = shared_data->n_ops;
+    auto x = (*shared_data->x);
 
-    log(rounded_z, original_z, rounded_x, found_in_cache, info);
+    int missing_bounds = 0;
+    IloExpr cut(env);
 
-    if (info->sequenciable) {
-        post_current_best_plan();
-    } else {
-        shared_data->printer_plots->update(rounded_z, rounded_x,
-                                           shared_data->c->getSize(),
-                                           shared_data->x->getSize());
+    int yt_bound = learned_glc->yt_bound;
+    int last_yt_bound = bl[n_ops].size() - 1;
 
-        bool glc_in_cache = (info->learned_glc == nullptr);
-
-        for (auto glc : (*shared_data->glcs)) {
-            if (info->learned_glc != nullptr &&
-                (*info->learned_glc) == (*glc)) {
-                glc_in_cache = true;
-                break;
-            }
-        }
-
-        if (glc_in_cache) {
-            // IF CANDIDATE THEN REJECT
+    if (yt_bound > 0) {
+        if (yt_bound <= last_yt_bound) {
+            cut += 1.0 * x[bl[n_ops][yt_bound]];
         } else {
-            if (shared_data->constraint_type == 0 && !shared_data->sat_seq) {
-                // IF CANDIDATE THEN REJECT
-                return;
-            }
-
-            shared_data->glcs->emplace_back(info->learned_glc);
-
-            auto [missing_bounds, cut] = get_cut(info->learned_glc);
-            if (missing_bounds > 1) {
-                shared_data->restart = true;
-                shared_data->restarts++;
-                abort();
-            }
-
-            // ADD GLOBAL CUT "cut >= 1.0"
+            missing_bounds++;
+            cut += (1.0 / yt_bound) * x[n_ops];
         }
     }
-}
 
-void GoalCallbackI::post_current_best_plan() {
-    auto [found, info] = shared_data->cache_op_counts.get_min_plan();
-    if (found && info->sequenciable) {
-        OperatorCount plan_counts = plan_to_op_count(info, shared_data->n_ops);
+    for (auto &[op_id, op_bound] : learned_glc->ops_bounds) {
+        int last_op_bound = bl[op_id].size() - 1;
 
-        IloNumVarArray vars(getEnv());
-        IloNumArray values(getEnv());
-        for (int i = 0; i < shared_data->x->getSize(); ++i) {
-            if (i < shared_data->n_ops) {
-                vars.add((*shared_data->x)[i]);
-                values.add(plan_counts[i]);
-            }
+        if (op_bound <= last_op_bound) {
+            cut += 1.0 * x[bl[op_id][op_bound]];
+        } else {
+            missing_bounds++;
+            cut += (1.0 / op_bound) * x[op_id];
         }
-
-        cerr << "POSTING SOLUTION WITH COST: " << info->plan_cost << endl;
-        for (int i = 0; i < shared_data->x->getSize(); ++i) {
-            if (i < shared_data->n_ops) {
-                cerr << values[i] << " ";
-            }
-        }
-        cerr << endl;
-        // ctxt.postHeuristicSolution(vars, values, info->plan_cost,
-        //                           Context::SolutionStrategy::Propagate);
-        // POST SOLUTION
     }
+
+    return {missing_bounds, cut};
 }
 
 Goal GoalCallbackI::execute() {
-    Goal goal = this;
+    Goal goal = 0;
 
-    auto [original_z, original_x] = extract_sol();
-    auto [rounded_z, rounded_x] = round_sol(original_z, original_x);
+    extract_sol();
+    round_sol();
 
-    if (test_solution(rounded_z, rounded_x) &&
-        test_card(original_z, original_x, rounded_z, rounded_x)) {
-        sequence(rounded_z, original_z, rounded_x);
+    if (test_solution() && test_card()) {
+        goal = sequence();
     }
 
-    return 0;
+    return goal;
 }
 
 Goal GoalCallback(IloEnv env, shared_ptr<SharedData> shared_data) {
