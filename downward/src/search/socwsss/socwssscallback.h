@@ -137,67 +137,6 @@ using Goal = IloCplex::Goal;
 using GoalBaseI = IloCplex::GoalBaseI;
 using OperatorCount = vector<long>;
 
-/*
-struct SOCWSSSCallback : public Function {
-    int constraint_type;
-    string constraint_generators;
-    string heuristic;
-    bool sat_seq;
-    bool mip_start;
-    lp::LPSolverType lp_solver_type;
-    int cost_type;
-    double max_time;
-    int bound;
-    shared_ptr<PruningMethod> pruning;
-    int verbosity;
-
-    shared_ptr<TaskProxy> task_proxy;
-    shared_ptr<AbstractTask> task;
-    chrono::time_point<chrono::system_clock> start;
-
-    shared_ptr<vector<vector<int>>> bounds_literals;
-    shared_ptr<IloEnv> env;
-    shared_ptr<IloModel> model;
-    shared_ptr<IloNumVarArray> x;
-    shared_ptr<IloRangeArray> c;
-    shared_ptr<IloObjective> obj;
-    shared_ptr<IloCplex> cplex;
-    shared_ptr<vector<lp::LPVariable>> lp_variables;
-    shared_ptr<vector<lp::LPConstraint>> lp_constraints;
-
-    bool restart = false;
-    int restarts = 0, seq = 0, repeated_seqs = 0;
-    int n_ops, n_vars;
-    shared_ptr<vector<shared_ptr<GLC>>> glcs;
-    shared_ptr<PrinterPlots> printer_plots;
-
-    CacheOperatorCounts cache_op_counts;
-
-    SOCWSSSCallback(const Options &opts, shared_ptr<TaskProxy> task_proxy,
-                    shared_ptr<AbstractTask> task);
-    pair<double, vector<double>> extract_sol(const Context &ctxt);
-    pair<long, OperatorCount> round_sol(const Context &ctxt, double original_z,
-                                        vector<double> &original_x);
-    bool test_solution(const Context &ctxt, long rounded_z,
-                       OperatorCount &rounded_x);
-    bool test_card(const Context &ctxt, double original_z,
-                   vector<double> &original_x, long rounded_z,
-                   OperatorCount &rounded_x);
-    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
-    pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
-        OperatorCount op_count);
-    pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
-        long f_bound, OperatorCount op_count);
-    void log(const Context &ctxt, long rounded_z, double original_z,
-             OperatorCount &rounded_x, bool found_in_cache,
-             shared_ptr<SequenceInfo> info);
-    void sequence(const Context &ctxt, long rounded_z, double original_z,
-                  OperatorCount &rounded_x);
-    void post_current_best_plan(const Context &ctxt);
-    void invoke(const Context &ctxt);
-};
-*/
-
 struct SharedData {
     int constraint_type;
     string constraint_generators;

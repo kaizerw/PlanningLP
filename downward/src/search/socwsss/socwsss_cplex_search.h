@@ -74,9 +74,6 @@ struct SOCWSSSCplexSearch : public SearchEngine {
 
     shared_ptr<SharedData> shared_data;
 
-    // shared_ptr<SOCWSSSCallback> socwsss_callback;
-    // long socwsss_callback_mask = 0;
-
     shared_ptr<IloCplex::Callback> lazy_callback;
     shared_ptr<IloCplex::Callback> usercut_callback;
     shared_ptr<IloCplex::Callback> heuristic_callback;

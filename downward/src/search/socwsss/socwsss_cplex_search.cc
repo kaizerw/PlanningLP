@@ -75,13 +75,6 @@ void SOCWSSSCplexSearch::initialize() {
     // Add constraints from constraint generators
     create_base_constraints();
 
-    // Initialize callback
-    // socwsss_callback = make_shared<SOCWSSSCallback>(
-    //    opts, make_shared<TaskProxy>(task_proxy), task);
-
-    // socwsss_callback_mask |= IloCplex::Callback::Context::Id::Relaxation;
-    // socwsss_callback_mask |= IloCplex::Callback::Context::Id::Candidate;
-
     shared_data =
         make_shared<SharedData>(opts, make_shared<TaskProxy>(task_proxy), task);
 
@@ -131,8 +124,6 @@ void SOCWSSSCplexSearch::initialize() {
             mip_start_info->sequenciable = true;
             mip_start_info->plan = plan;
             mip_start_info->plan_cost = plan_cost;
-            // socwsss_callback->cache_op_counts.add(mip_start_op_count,
-            //                                      mip_start_info);
             shared_data->cache_op_counts.add(mip_start_op_count,
                                              mip_start_info);
         }
@@ -222,7 +213,6 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     obj = make_shared<IloObjective>(IloMinimize((*env)));
 
     // Create new bounds literals if needed
-    // for (auto &glc : (*socwsss_callback->glcs)) {
     for (auto &glc : (*shared_data->glcs)) {
         int yt_bound = glc->yt_bound;
         int last_yt_bound = (*bounds_literals)[n_ops].size() - 1;
@@ -244,8 +234,7 @@ void SOCWSSSCplexSearch::create_cplex_data() {
         const lp::LPVariable &variable = (*lp_variables)[vi];
         double lb = variable.lower_bound;
         double ub = variable.upper_bound;
-        string var_name = (string("var_") + to_string(vi));
-        x->add(IloNumVar((*env), lb, ub, ILOINT, var_name.c_str()));
+        x->add(IloNumVar((*env), lb, ub, ILOINT));
         obj->setLinearCoef((*x)[vi], variable.objective_coefficient);
     }
 
@@ -267,7 +256,6 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     }
 
     // Adding learned constraints
-    // for (auto &glc : (*socwsss_callback->glcs)) {
     for (auto &glc : (*shared_data->glcs)) {
         int yt_bound = glc->yt_bound;
 
@@ -334,16 +322,6 @@ void SOCWSSSCplexSearch::create_cplex_data() {
         startVal.end();
         startVar.end();
     }
-
-    // socwsss_callback->bounds_literals = bounds_literals;
-    // socwsss_callback->env = env;
-    // socwsss_callback->model = model;
-    // socwsss_callback->x = x;
-    // socwsss_callback->c = c;
-    // socwsss_callback->obj = obj;
-    // socwsss_callback->cplex = cplex;
-    // socwsss_callback->lp_variables = lp_variables;
-    // socwsss_callback->lp_constraints = lp_constraints;
 
     shared_data->bounds_literals = bounds_literals;
     shared_data->env = env;
@@ -414,7 +392,6 @@ SearchStatus SOCWSSSCplexSearch::step() {
     // Execute a custom branch-and-cut
     while (true) {
         create_cplex_data();
-        // cplex->use(socwsss_callback.get(), socwsss_callback_mask);
 
         try {
             cout << "Starting SOCWSSS CPLEX search..." << endl;
@@ -443,10 +420,8 @@ SearchStatus SOCWSSSCplexSearch::step() {
             exit(25);
         }
 
-        // if (socwsss_callback->restart) {
         if (shared_data->restart) {
             cout << "RESTARTING..." << endl;
-            // socwsss_callback->restart = false;
             shared_data->restart = false;
         } else {
             break;
@@ -454,11 +429,6 @@ SearchStatus SOCWSSSCplexSearch::step() {
     }
 
     // Print out custom attributes
-    // socwsss_callback->printer_plots->show_data(
-    //    socwsss_callback->seq, cplex->getBestObjValue(),
-    //    socwsss_callback->repeated_seqs, socwsss_callback->restarts,
-    //    socwsss_callback->cache_op_counts.get_min_plan().second->plan_cost);
-
     shared_data->printer_plots->show_data(
         shared_data->seq, cplex->getBestObjValue(), shared_data->repeated_seqs,
         shared_data->restarts,
@@ -551,7 +521,6 @@ SearchStatus SOCWSSSCplexSearch::step() {
         for (IloInt i = 0; i < n_ops; ++i) {
             op_counts.emplace_back(cplex->getValue((*x)[i]));
         }
-        // Plan plan = socwsss_callback->cache_op_counts[op_counts]->plan;
         Plan plan = shared_data->cache_op_counts[op_counts]->plan;
         if (plan.size() == 0) {
             cout << "SOLUTION NOT FOUND" << endl;
