@@ -64,6 +64,8 @@ using pdbs::PatternCollectionGeneratorSystematic;
 #include <utility>
 #include <vector>
 
+using OperatorCount = vector<long>;
+
 using namespace std;
 
 class Evaluator;
@@ -117,7 +119,7 @@ struct CacheOperatorCounts {
         return map_op_count;
     }
 
-    pair<bool, shared_ptr<SequenceInfo>> get_min_plan() {
+    pair<bool, shared_ptr<SequenceInfo>> get_best_plan() {
         auto it = min_element(cache.begin(), cache.end(), [](auto i, auto j) {
             return i.second->plan_cost < j.second->plan_cost;
         });
@@ -129,13 +131,6 @@ struct CacheOperatorCounts {
         return {false, make_shared<SequenceInfo>()};
     }
 };
-
-using Function = IloCplex::Callback::Function;
-using Context = IloCplex::Callback::Context;
-using GoalI = IloCplex::GoalI;
-using Goal = IloCplex::Goal;
-using GoalBaseI = IloCplex::GoalBaseI;
-using OperatorCount = vector<long>;
 
 struct SharedData {
     int constraint_type;
@@ -172,116 +167,61 @@ struct SharedData {
 
     CacheOperatorCounts cache_op_counts;
 
+    double original_z;
+    vector<double> original_x;
+    long rounded_z;
+    OperatorCount rounded_x;
+    bool found_in_cache;
+    shared_ptr<SequenceInfo> info;
+    int missing_bounds;
+    IloExpr cut;
+
     SharedData(const Options &opts, shared_ptr<TaskProxy> task_proxy,
-               shared_ptr<AbstractTask> task)
-        : constraint_type(opts.get<int>("constraint_type")),
-          constraint_generators(opts.get<string>("constraint_generators")),
-          heuristic(opts.get<string>("heuristic")),
-          sat_seq(opts.get<bool>("sat_seq")),
-          mip_start(opts.get<bool>("mip_start")),
-          lp_solver_type(opts.get<lp::LPSolverType>("lp_solver_type")),
-          cost_type(opts.get<int>("cost_type")),
-          max_time(opts.get<double>("max_time")),
-          bound(opts.get<int>("bound")),
-          pruning(opts.get<shared_ptr<PruningMethod>>("pruning")),
-          verbosity(opts.get<int>("verbosity")),
-          task_proxy(task_proxy),
-          task(task),
-          start(chrono::system_clock::now()) {
-        n_ops = task_proxy->get_operators().size();
-        n_vars = task_proxy->get_variables().size();
-        glcs = make_shared<vector<shared_ptr<GLC>>>();
-        printer_plots = make_shared<PrinterPlots>(n_ops, n_vars, glcs, start);
-    }
+               shared_ptr<AbstractTask> task);
+    void extract_sol(IloCplex::ControlCallbackI *callback);
+    void round_sol();
+    bool test_solution();
+    bool test_card();
+    void sequence();
+    void learn();
+    pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
+        OperatorCount op_count);
+    pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
+        long f_bound, OperatorCount op_count);
+    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
+    void log(IloCplex::ControlCallbackI *callback, int type);
+    void post_best_solution(IloCplex::HeuristicCallbackI *callback);
 };
 
-class LazyCallbackI : public IloCplex::LazyConstraintCallbackI {
-   public:
+struct LazyCallbackI : public IloCplex::LazyConstraintCallbackI {
+    shared_ptr<SharedData> shared_data;
+
     ILOCOMMONCALLBACKSTUFF(LazyCallback)
     LazyCallbackI(IloEnv env, shared_ptr<SharedData> xx1)
         : IloCplex::LazyConstraintCallbackI(env), shared_data(xx1) {}
     void main();
-
-   private:
-    shared_ptr<SharedData> shared_data;
-    double original_z;
-    vector<double> original_x;
-    long rounded_z;
-    OperatorCount rounded_x;
-
-    void extract_sol();
-    void round_sol();
-    bool test_solution();
-    bool test_card();
-    void sequence();
-    pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
-        OperatorCount op_count);
-    pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
-        long f_bound, OperatorCount op_count);
-    void log(bool found_in_cache, shared_ptr<SequenceInfo> info);
-    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
 };
-
 IloCplex::Callback LazyCallback(IloEnv env, shared_ptr<SharedData> shared_data);
 
-class UserCutCallbackI : public IloCplex::UserCutCallbackI {
-   public:
+struct UserCutCallbackI : public IloCplex::UserCutCallbackI {
+    shared_ptr<SharedData> shared_data;
+
     ILOCOMMONCALLBACKSTUFF(UserCutCallback)
     UserCutCallbackI(IloEnv env, shared_ptr<SharedData> xx1)
         : IloCplex::UserCutCallbackI(env), shared_data(xx1) {}
     void main();
-
-   private:
-    shared_ptr<SharedData> shared_data;
-    double original_z;
-    vector<double> original_x;
-    long rounded_z;
-    OperatorCount rounded_x;
-
-    void extract_sol();
-    void round_sol();
-    bool test_solution();
-    bool test_card();
-    void sequence();
-    pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
-        OperatorCount op_count);
-    pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
-        long f_bound, OperatorCount op_count);
-    void log(bool found_in_cache, shared_ptr<SequenceInfo> info);
-    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
 };
-
 IloCplex::Callback UserCutCallback(IloEnv env,
                                    shared_ptr<SharedData> shared_data);
 
-class HeuristicCallbackI : public IloCplex::HeuristicCallbackI {
-   public:
+struct HeuristicCallbackI : public IloCplex::HeuristicCallbackI {
+    shared_ptr<SharedData> shared_data;
+
     ILOCOMMONCALLBACKSTUFF(HeuristicCallback)
     HeuristicCallbackI(IloEnv env, shared_ptr<SharedData> xx1)
         : IloCplex::HeuristicCallbackI(env), shared_data(xx1) {}
     void main();
-
-   private:
-    shared_ptr<SharedData> shared_data;
-    double original_z;
-    vector<double> original_x;
-    long rounded_z;
-    OperatorCount rounded_x;
-
-    void extract_sol();
-    void round_sol();
-    bool test_solution();
-    bool test_card();
-    void sequence();
-    pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
-        OperatorCount op_count);
-    pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
-        long f_bound, OperatorCount op_count);
-    void log(bool found_in_cache, shared_ptr<SequenceInfo> info);
-    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
-    void post_best_solution();
 };
-
 IloCplex::Callback HeuristicCallback(IloEnv env,
                                      shared_ptr<SharedData> shared_data);
 

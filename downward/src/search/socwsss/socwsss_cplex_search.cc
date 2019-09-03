@@ -432,7 +432,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
     shared_data->printer_plots->show_data(
         shared_data->seq, cplex->getBestObjValue(), shared_data->repeated_seqs,
         shared_data->restarts,
-        shared_data->cache_op_counts.get_min_plan().second->plan_cost);
+        shared_data->cache_op_counts.get_best_plan().second->plan_cost);
 
     /*
     cout << "\tALL LEARNED GLCS:" << endl;
