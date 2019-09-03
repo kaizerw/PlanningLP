@@ -270,7 +270,6 @@ class LazyCallbackI : public IloCplex::LazyConstraintCallbackI {
     long rounded_z;
     OperatorCount rounded_x;
 
-    bool check_int_feas();
     void extract_sol();
     void round_sol();
     bool test_solution();
@@ -300,7 +299,6 @@ class UserCutCallbackI : public IloCplex::UserCutCallbackI {
     long rounded_z;
     OperatorCount rounded_x;
 
-    bool check_int_feas();
     void extract_sol();
     void round_sol();
     bool test_solution();
@@ -331,7 +329,6 @@ class HeuristicCallbackI : public IloCplex::HeuristicCallbackI {
     long rounded_z;
     OperatorCount rounded_x;
 
-    bool check_int_feas();
     void extract_sol();
     void round_sol();
     bool test_solution();
@@ -343,6 +340,7 @@ class HeuristicCallbackI : public IloCplex::HeuristicCallbackI {
         long f_bound, OperatorCount op_count);
     void log(bool found_in_cache, shared_ptr<SequenceInfo> info);
     pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
+    void post_best_solution();
 };
 
 IloCplex::Callback HeuristicCallback(IloEnv env,

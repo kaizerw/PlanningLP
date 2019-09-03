@@ -491,20 +491,6 @@ void SOCWSSSCallback::invoke(const Context &ctxt) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool LazyCallbackI::check_int_feas() {
-    IntegerFeasibilityArray feas = IntegerFeasibilityArray(getEnv());
-    getFeasibilities(feas, (*shared_data->x));
-
-    bool feasible = true;
-    for (int i = 0; i < shared_data->x->getSize(); ++i) {
-        if (feas[i] == Infeasible) {
-            feasible = false;
-        }
-    }
-
-    return feasible;
-}
-
 void LazyCallbackI::extract_sol() {
     original_z = getObjValue();
     original_x.clear();
@@ -515,16 +501,9 @@ void LazyCallbackI::extract_sol() {
 
 void LazyCallbackI::round_sol() {
     rounded_x.clear();
-    // if (isIntegerFeasible()) {
-    rounded_z = (long)original_z;
+    rounded_z = round(original_z);
     transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
-              [](double i) { return (long)i; });
-    //} else {
-    //    rounded_z = round(original_z);
-    //    transform(original_x.begin(), original_x.end(),
-    //              back_inserter(rounded_x),
-    //              [](double i) { return (long)ceil(i); });
-    //}
+              [](double i) { return (long)ceil(i); });
 }
 
 bool LazyCallbackI::test_solution() {
@@ -564,66 +543,22 @@ void LazyCallbackI::sequence() {
 
     log(found_in_cache, info);
 
-    if (info->sequenciable) {
-        OperatorCount plan_counts = plan_to_op_count(info, shared_data->n_ops);
-
-        IloNumVarArray vars(getEnv());
-        IloNumArray vals(getEnv());
-        for (int i = 0; i < shared_data->x->getSize(); ++i) {
-            if (i < shared_data->n_ops) {
-                vars.add((*shared_data->x)[i]);
-                vals.add(plan_counts[i]);
-            }
-        }
-
-        cerr << "POSTING SOLUTION WITH COST: " << info->plan_cost << endl;
-        for (int i = 0; i < shared_data->x->getSize(); ++i) {
-            cerr << getValue((*shared_data->x)[i]) << " ";
-        }
-        cerr << endl;
-
-        // POST SOLUTION
-    } else {
+    if (!info->sequenciable) {
         shared_data->printer_plots->update(rounded_z, rounded_x,
                                            shared_data->c->getSize(),
                                            shared_data->x->getSize());
 
-        bool glc_in_cache = (info->learned_glc == nullptr);
+        shared_data->glcs->emplace_back(info->learned_glc);
 
-        for (auto glc : (*shared_data->glcs)) {
-            if (info->learned_glc != nullptr &&
-                (*info->learned_glc) == (*glc)) {
-                glc_in_cache = true;
-                break;
-            }
+        auto [missing_bounds, cut] = get_cut(info->learned_glc);
+        if (missing_bounds > 1) {
+            shared_data->restart = true;
+            shared_data->restarts++;
+            abort();
         }
 
-        if (glc_in_cache) {
-            // IF CANDIDATE THEN REJECT
-            return;
-        } else {
-            if (shared_data->constraint_type == 0 && !shared_data->sat_seq) {
-                // IF CANDIDATE THEN REJECT
-                return;
-            }
-
-            shared_data->glcs->emplace_back(info->learned_glc);
-
-            auto [missing_bounds, cut] = get_cut(info->learned_glc);
-            if (missing_bounds > 1) {
-                shared_data->restart = true;
-                shared_data->restarts++;
-                abort();
-            }
-
-            cerr << "CUT: " << (cut >= 1.0) << endl;
-            add(cut >= 1.0).end();
-
-            return;
-        }
+        add(cut >= 1.0);
     }
-
-    return;
 }
 
 pair<bool, shared_ptr<SequenceInfo>> LazyCallbackI::get_sat_sequence(
@@ -837,9 +772,6 @@ void LazyCallbackI::log(bool found_in_cache, shared_ptr<SequenceInfo> info) {
     cerr << "START: " << shared_data->restarts << endl;
     cerr << "NODE ID: " << getNodeId() << endl;
     cerr << "INCUMBENT: " << getIncumbentObjValue() << endl;
-    cerr << "INTEGER FEASIBLE? " << check_int_feas() << endl;
-    cerr << "LP NUM ROWS: " << getNrows() << endl;
-    cerr << "LP NUM COLS: " << getNcols() << endl;
     cerr << "Z: " << original_z << endl;
     cerr << "F-BOUND: " << rounded_z << endl;
     cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0)
@@ -854,9 +786,9 @@ void LazyCallbackI::log(bool found_in_cache, shared_ptr<SequenceInfo> info) {
         }
     }
     cerr << "IN CACHE? " << found_in_cache << endl;
+    cerr << "SEQUENCIABLE? " << info->sequenciable << endl;
 
     if (info->sequenciable) {
-        cerr << "SEQUENCIABLE" << endl;
         cerr << "PLAN COST: " << info->plan_cost << endl;
         cerr << "PLAN:" << endl;
         for (OperatorID op_id : info->plan) {
@@ -869,7 +801,6 @@ void LazyCallbackI::log(bool found_in_cache, shared_ptr<SequenceInfo> info) {
                  << endl;
         }
     } else {
-        cerr << "NOT SEQUENCIABLE" << endl;
         if (info->learned_glc != nullptr) {
             cerr << "LEARNED GLC (" << shared_data->glcs->size() << ") WITH "
                  << info->learned_glc->get_num_bounds() << " BOUNDS:" << endl;
@@ -941,20 +872,6 @@ IloCplex::Callback LazyCallback(IloEnv env,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool UserCutCallbackI::check_int_feas() {
-    IntegerFeasibilityArray feas = IntegerFeasibilityArray(getEnv());
-    getFeasibilities(feas, (*shared_data->x));
-
-    bool feasible = true;
-    for (int i = 0; i < shared_data->x->getSize(); ++i) {
-        if (feas[i] == Infeasible) {
-            feasible = false;
-        }
-    }
-
-    return feasible;
-}
-
 void UserCutCallbackI::extract_sol() {
     original_z = getObjValue();
     original_x.clear();
@@ -965,15 +882,9 @@ void UserCutCallbackI::extract_sol() {
 
 void UserCutCallbackI::round_sol() {
     rounded_x.clear();
-    // if (isIntegerFeasible()) {
-    // rounded_z = (long)original_z;
-    // transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
-    //          [](double i) { return (long)i; });
-    //} else {
     rounded_z = round(original_z);
     transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
               [](double i) { return (long)ceil(i); });
-    //}
 }
 
 bool UserCutCallbackI::test_solution() {
@@ -1013,68 +924,22 @@ void UserCutCallbackI::sequence() {
 
     log(found_in_cache, info);
 
-    if (info->sequenciable) {
-        OperatorCount plan_counts = plan_to_op_count(info, shared_data->n_ops);
-
-        IloNumVarArray vars(getEnv());
-        IloNumArray vals(getEnv());
-        for (int i = 0; i < shared_data->x->getSize(); ++i) {
-            if (i < shared_data->n_ops) {
-                vars.add((*shared_data->x)[i]);
-                vals.add(plan_counts[i]);
-            }
-        }
-
-        cerr << "POSTING SOLUTION WITH COST: " << info->plan_cost << endl;
-        for (int i = 0; i < shared_data->x->getSize(); ++i) {
-            if (i < shared_data->n_ops) {
-                cerr << vals[i] << " ";
-            }
-        }
-        cerr << endl;
-
-        // POST SOLUTION
-    } else {
+    if (!info->sequenciable) {
         shared_data->printer_plots->update(rounded_z, rounded_x,
                                            shared_data->c->getSize(),
                                            shared_data->x->getSize());
 
-        bool glc_in_cache = (info->learned_glc == nullptr);
+        shared_data->glcs->emplace_back(info->learned_glc);
 
-        for (auto glc : (*shared_data->glcs)) {
-            if (info->learned_glc != nullptr &&
-                (*info->learned_glc) == (*glc)) {
-                glc_in_cache = true;
-                break;
-            }
+        auto [missing_bounds, cut] = get_cut(info->learned_glc);
+        if (missing_bounds > 1) {
+            shared_data->restart = true;
+            shared_data->restarts++;
+            abort();
         }
 
-        if (glc_in_cache) {
-            // IF CANDIDATE THEN REJECT
-            return;
-        } else {
-            if (shared_data->constraint_type == 0 && !shared_data->sat_seq) {
-                // IF CANDIDATE THEN REJECT
-                return;
-            }
-
-            shared_data->glcs->emplace_back(info->learned_glc);
-
-            auto [missing_bounds, cut] = get_cut(info->learned_glc);
-            if (missing_bounds > 1) {
-                shared_data->restart = true;
-                shared_data->restarts++;
-                abort();
-            }
-
-            cerr << "CUT: " << (cut >= 1.0) << endl;
-            add(cut >= 1.0).end();
-
-            return;
-        }
+        add(cut >= 1.0);
     }
-
-    return;
 }
 
 pair<bool, shared_ptr<SequenceInfo>> UserCutCallbackI::get_sat_sequence(
@@ -1289,9 +1154,6 @@ void UserCutCallbackI::log(bool found_in_cache, shared_ptr<SequenceInfo> info) {
     cerr << "START: " << shared_data->restarts << endl;
     cerr << "NODE ID: " << getNodeId() << endl;
     cerr << "INCUMBENT: " << getIncumbentObjValue() << endl;
-    cerr << "INTEGER FEASIBLE? " << check_int_feas() << endl;
-    cerr << "LP NUM ROWS: " << getNrows() << endl;
-    cerr << "LP NUM COLS: " << getNcols() << endl;
     cerr << "Z: " << original_z << endl;
     cerr << "F-BOUND: " << rounded_z << endl;
     cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0)
@@ -1306,9 +1168,9 @@ void UserCutCallbackI::log(bool found_in_cache, shared_ptr<SequenceInfo> info) {
         }
     }
     cerr << "IN CACHE? " << found_in_cache << endl;
+    cerr << "SEQUENCIABLE? " << info->sequenciable << endl;
 
     if (info->sequenciable) {
-        cerr << "SEQUENCIABLE" << endl;
         cerr << "PLAN COST: " << info->plan_cost << endl;
         cerr << "PLAN:" << endl;
         for (OperatorID op_id : info->plan) {
@@ -1321,7 +1183,6 @@ void UserCutCallbackI::log(bool found_in_cache, shared_ptr<SequenceInfo> info) {
                  << endl;
         }
     } else {
-        cerr << "NOT SEQUENCIABLE" << endl;
         if (info->learned_glc != nullptr) {
             cerr << "LEARNED GLC (" << shared_data->glcs->size() << ") WITH "
                  << info->learned_glc->get_num_bounds() << " BOUNDS:" << endl;
@@ -1393,20 +1254,6 @@ IloCplex::Callback UserCutCallback(IloEnv env,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool HeuristicCallbackI::check_int_feas() {
-    IntegerFeasibilityArray feas = IntegerFeasibilityArray(getEnv());
-    getFeasibilities(feas, (*shared_data->x));
-
-    bool feasible = true;
-    for (int i = 0; i < shared_data->x->getSize(); ++i) {
-        if (feas[i] == Infeasible) {
-            feasible = false;
-        }
-    }
-
-    return feasible;
-}
-
 void HeuristicCallbackI::extract_sol() {
     original_z = getObjValue();
     original_x.clear();
@@ -1417,15 +1264,9 @@ void HeuristicCallbackI::extract_sol() {
 
 void HeuristicCallbackI::round_sol() {
     rounded_x.clear();
-    // if (isIntegerFeasible()) {
-    // rounded_z = (long)original_z;
-    // transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
-    //          [](double i) { return (long)i; });
-    //} else {
     rounded_z = round(original_z);
     transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
               [](double i) { return (long)ceil(i); });
-    //}
 }
 
 bool HeuristicCallbackI::test_solution() {
@@ -1464,43 +1305,6 @@ void HeuristicCallbackI::sequence() {
     cout.clear();
 
     log(found_in_cache, info);
-
-    if (info->sequenciable) {
-        OperatorCount plan_counts = plan_to_op_count(info, shared_data->n_ops);
-
-        IloNumVarArray vars(getEnv());
-        IloNumArray lb(getEnv());
-        IloNumArray ub(getEnv());
-
-        for (int i = 0; i < shared_data->n_ops; ++i) {
-            vars.add((*shared_data->x)[i]);
-            lb.add(plan_counts[i]);
-            ub.add(plan_counts[i]);
-        }
-
-        setBounds(vars, lb, ub);
-        solve();
-
-        vars.clear();
-        for (int i = 0; i < shared_data->x->getSize(); ++i) {
-            vars.add((*shared_data->x)[i]);
-        }
-        IloNumArray vals(getEnv());
-        getValues(vals, vars);
-        for (int i = 0; i < vars.getSize(); ++i) {
-            vals[i] = ceil(vals[i]);
-        }
-
-        cerr << "POSTING SOLUTION WITH COST: " << info->plan_cost << endl;
-        for (int i = 0; i < vars.getSize(); ++i) {
-            cerr << vals[i] << " ";
-        }
-        cerr << endl;
-
-        setSolution(vars, vals);
-    }
-
-    return;
 }
 
 pair<bool, shared_ptr<SequenceInfo>> HeuristicCallbackI::get_sat_sequence(
@@ -1715,9 +1519,6 @@ void HeuristicCallbackI::log(bool found_in_cache,
     cerr << "START: " << shared_data->restarts << endl;
     cerr << "NODE ID: " << getNodeId() << endl;
     cerr << "INCUMBENT: " << getIncumbentObjValue() << endl;
-    cerr << "INTEGER FEASIBLE? " << check_int_feas() << endl;
-    cerr << "LP NUM ROWS: " << getNrows() << endl;
-    cerr << "LP NUM COLS: " << getNcols() << endl;
     cerr << "Z: " << original_z << endl;
     cerr << "F-BOUND: " << rounded_z << endl;
     cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0)
@@ -1732,9 +1533,9 @@ void HeuristicCallbackI::log(bool found_in_cache,
         }
     }
     cerr << "IN CACHE? " << found_in_cache << endl;
+    cerr << "SEQUENCIABLE? " << info->sequenciable << endl;
 
     if (info->sequenciable) {
-        cerr << "SEQUENCIABLE" << endl;
         cerr << "PLAN COST: " << info->plan_cost << endl;
         cerr << "PLAN:" << endl;
         for (OperatorID op_id : info->plan) {
@@ -1746,8 +1547,6 @@ void HeuristicCallbackI::log(bool found_in_cache,
                         .get_name()
                  << endl;
         }
-    } else {
-        cerr << "NOT SEQUENCIABLE" << endl;
     }
     cerr << string(80, '*') << endl;
 }
@@ -1787,6 +1586,44 @@ pair<int, IloExpr> HeuristicCallbackI::get_cut(shared_ptr<GLC> learned_glc) {
     return {missing_bounds, cut};
 }
 
+void HeuristicCallbackI::post_best_solution() {
+    auto [found, info] = shared_data->cache_op_counts.get_min_plan();
+    if (found && info->sequenciable) {
+        OperatorCount plan_counts = plan_to_op_count(info, shared_data->n_ops);
+
+        IloNumVarArray vars(getEnv());
+        IloNumArray lb(getEnv());
+        IloNumArray ub(getEnv());
+
+        for (int i = 0; i < shared_data->n_ops; ++i) {
+            vars.add((*shared_data->x)[i]);
+            lb.add(plan_counts[i]);
+            ub.add(plan_counts[i]);
+        }
+
+        setBounds(vars, lb, ub);
+        solve();
+
+        vars.clear();
+        for (int i = 0; i < shared_data->x->getSize(); ++i) {
+            vars.add((*shared_data->x)[i]);
+        }
+        IloNumArray vals(getEnv());
+        getValues(vals, vars);
+        for (int i = 0; i < vars.getSize(); ++i) {
+            vals[i] = ceil(vals[i]);
+        }
+
+        cerr << "POSTING SOLUTION WITH COST: " << info->plan_cost << endl;
+        for (int i = 0; i < vars.getSize(); ++i) {
+            cerr << vals[i] << " ";
+        }
+        cerr << endl;
+
+        setSolution(vars, vals);
+    }
+}
+
 void HeuristicCallbackI::main() {
     extract_sol();
     round_sol();
@@ -1794,6 +1631,8 @@ void HeuristicCallbackI::main() {
     // if (test_solution() && test_card()) {
     sequence();
     //}
+
+    post_best_solution();
 }
 
 IloCplex::Callback HeuristicCallback(IloEnv env,

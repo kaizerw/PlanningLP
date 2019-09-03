@@ -295,6 +295,8 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     cplex->setParam(IloCplex::MIPSearch, IloCplex::Traditional);
     cplex->setParam(IloCplex::Param::Threads, 1);
 
+    cplex->setParam(IloCplex::HeurFreq, -1);
+
     /*
     cplex->setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
     cplex->setParam(IloCplex::Param::Preprocessing::Reduce, 0);
