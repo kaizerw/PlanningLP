@@ -72,11 +72,12 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     shared_ptr<IloObjective> obj;
     shared_ptr<IloCplex> cplex;
 
+    shared_ptr<SharedData> shared_data;
+
     // shared_ptr<SOCWSSSCallback> socwsss_callback;
     // long socwsss_callback_mask = 0;
 
-    shared_ptr<SharedData> shared_data;
-    shared_ptr<Goal> goal_callback;
+    shared_ptr<IloCplex::Callback> lazy_callback;
 
     virtual void initialize() override;
     void create_base_constraints();

@@ -256,12 +256,12 @@ struct SharedData {
     }
 };
 
-class GoalCallbackI : public GoalI {
+class LazyCallbackI : public IloCplex::LazyConstraintCallbackI {
    public:
-    GoalCallbackI(IloEnv env, shared_ptr<SharedData> shared_data)
-        : GoalI(env), shared_data(shared_data) {}
-    Goal execute();
-    Goal duplicateGoal();
+    ILOCOMMONCALLBACKSTUFF(LazyCallback)
+    LazyCallbackI(IloEnv env, shared_ptr<SharedData> xx1)
+        : IloCplex::LazyConstraintCallbackI(env), shared_data(xx1) {}
+    void main();
 
    private:
     shared_ptr<SharedData> shared_data;
@@ -270,11 +270,12 @@ class GoalCallbackI : public GoalI {
     long rounded_z;
     OperatorCount rounded_x;
 
+    bool check_int_feas();
     void extract_sol();
     void round_sol();
     bool test_solution();
     bool test_card();
-    Goal sequence();
+    void sequence();
     pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
         OperatorCount op_count);
     pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
@@ -283,6 +284,6 @@ class GoalCallbackI : public GoalI {
     pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
 };
 
-Goal GoalCallback(IloEnv env, shared_ptr<SharedData> shared_data);
+IloCplex::Callback LazyCallback(IloEnv env, shared_ptr<SharedData> shared_data);
 
 #endif

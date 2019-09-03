@@ -489,13 +489,21 @@ void SOCWSSSCallback::invoke(const Context &ctxt) {
 }
 */
 
-Goal GoalCallbackI::duplicateGoal() {
-    GoalBaseI *retgoal;
-    CPXNEW(retgoal, new GoalCallbackI(getEnv(), shared_data));
-    return retgoal;
+bool LazyCallbackI::check_int_feas() {
+    IntegerFeasibilityArray feas = IntegerFeasibilityArray(getEnv());
+    getFeasibilities(feas, (*shared_data->x));
+
+    bool feasible = true;
+    for (int i = 0; i < shared_data->x->getSize(); ++i) {
+        if (feas[i] == Infeasible) {
+            feasible = false;
+        }
+    }
+
+    return feasible;
 }
 
-void GoalCallbackI::extract_sol() {
+void LazyCallbackI::extract_sol() {
     original_z = getObjValue();
     original_x.clear();
     for (int i = 0; i < shared_data->n_ops; ++i) {
@@ -503,26 +511,26 @@ void GoalCallbackI::extract_sol() {
     }
 }
 
-void GoalCallbackI::round_sol() {
+void LazyCallbackI::round_sol() {
     rounded_x.clear();
-    if (isIntegerFeasible()) {
-        rounded_z = (long)original_z;
-        transform(original_x.begin(), original_x.end(),
-                  back_inserter(rounded_x), [](double i) { return (long)i; });
-    } else {
-        rounded_z = round(original_z);
-        transform(original_x.begin(), original_x.end(),
-                  back_inserter(rounded_x),
-                  [](double i) { return (long)ceil(i); });
-    }
+    // if (isIntegerFeasible()) {
+    rounded_z = (long)original_z;
+    transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
+              [](double i) { return (long)i; });
+    //} else {
+    //    rounded_z = round(original_z);
+    //    transform(original_x.begin(), original_x.end(),
+    //              back_inserter(rounded_x),
+    //              [](double i) { return (long)ceil(i); });
+    //}
 }
 
-bool GoalCallbackI::test_solution() {
+bool LazyCallbackI::test_solution() {
     return (rounded_z >= 0) && all_of(rounded_x.begin(), rounded_x.end(),
                                       [](int c) { return c >= 0; });
 }
 
-bool GoalCallbackI::test_card() {
+bool LazyCallbackI::test_card() {
     double original_card =
         accumulate(original_x.begin(), original_x.end(), 0.0);
     int rounded_card = accumulate(rounded_x.begin(), rounded_x.end(), 0);
@@ -541,7 +549,7 @@ bool GoalCallbackI::test_card() {
     return true;
 }
 
-Goal GoalCallbackI::sequence() {
+void LazyCallbackI::sequence() {
     cout.setstate(ios_base::failbit);
     bool found_in_cache = false;
     shared_ptr<SequenceInfo> info;
@@ -574,7 +582,7 @@ Goal GoalCallbackI::sequence() {
         }
         cerr << endl;
 
-        return SolutionGoal(vars, vals);
+        // POST SOLUTION
     } else {
         shared_data->printer_plots->update(rounded_z, rounded_x,
                                            shared_data->c->getSize(),
@@ -592,11 +600,11 @@ Goal GoalCallbackI::sequence() {
 
         if (glc_in_cache) {
             // IF CANDIDATE THEN REJECT
-            return FailGoal(getEnv());
+            return;
         } else {
             if (shared_data->constraint_type == 0 && !shared_data->sat_seq) {
                 // IF CANDIDATE THEN REJECT
-                return FailGoal(getEnv());
+                return;
             }
 
             shared_data->glcs->emplace_back(info->learned_glc);
@@ -608,16 +616,17 @@ Goal GoalCallbackI::sequence() {
                 abort();
             }
 
-            cout << "CUT: " << (cut >= 1.0) << endl;
+            cerr << "CUT: " << (cut >= 1.0) << endl;
+            add(cut >= 1.0).end();
 
-            return AndGoal(GlobalCutGoal(cut >= 1.0), this);
+            return;
         }
     }
 
-    return 0;
+    return;
 }
 
-pair<bool, shared_ptr<SequenceInfo>> GoalCallbackI::get_sat_sequence(
+pair<bool, shared_ptr<SequenceInfo>> LazyCallbackI::get_sat_sequence(
     OperatorCount op_count) {
     if (shared_data->cache_op_counts.has(op_count)) {
         shared_data->repeated_seqs++;
@@ -662,7 +671,7 @@ pair<bool, shared_ptr<SequenceInfo>> GoalCallbackI::get_sat_sequence(
     return {false, info};
 }
 
-pair<bool, shared_ptr<SequenceInfo>> GoalCallbackI::get_astar_sequence(
+pair<bool, shared_ptr<SequenceInfo>> LazyCallbackI::get_astar_sequence(
     long f_bound, OperatorCount op_count) {
     if (shared_data->cache_op_counts.has(op_count)) {
         shared_data->repeated_seqs++;
@@ -820,16 +829,15 @@ pair<bool, shared_ptr<SequenceInfo>> GoalCallbackI::get_astar_sequence(
     return {false, info};
 }
 
-void GoalCallbackI::log(bool found_in_cache, shared_ptr<SequenceInfo> info) {
+void LazyCallbackI::log(bool found_in_cache, shared_ptr<SequenceInfo> info) {
     cerr << string(80, '*') << endl;
     cerr << boolalpha;
+    cerr << "IN LAZY CONSTRAINT CALLBACK" << endl;
     cerr << "SEQ: " << shared_data->seq << endl;
     cerr << "START: " << shared_data->restarts << endl;
     cerr << "NODE ID: " << getNodeId() << endl;
     cerr << "NODE COUNT: " << getNnodes() << endl;
     cerr << "INCUMBENT: " << getIncumbentObjValue() << endl;
-    cerr << "IN CANDIDATE? " << (bool)isIntegerFeasible() << endl;
-    cerr << "IN RELAXATION? " << (bool)(!isIntegerFeasible()) << endl;
     cerr << "LP NUM ROWS: " << getNrows() << endl;
     cerr << "LP NUM COLS: " << getNcols() << endl;
     cerr << "Z: " << original_z << endl;
@@ -889,7 +897,7 @@ void GoalCallbackI::log(bool found_in_cache, shared_ptr<SequenceInfo> info) {
     cerr << string(80, '*') << endl;
 }
 
-pair<int, IloExpr> GoalCallbackI::get_cut(shared_ptr<GLC> learned_glc) {
+pair<int, IloExpr> LazyCallbackI::get_cut(shared_ptr<GLC> learned_glc) {
     auto env = (*shared_data->env);
     auto bl = (*shared_data->bounds_literals);
     auto n_ops = shared_data->n_ops;
@@ -924,21 +932,16 @@ pair<int, IloExpr> GoalCallbackI::get_cut(shared_ptr<GLC> learned_glc) {
     return {missing_bounds, cut};
 }
 
-Goal GoalCallbackI::execute() {
-    Goal goal = 0;
-
+void LazyCallbackI::main() {
     extract_sol();
     round_sol();
 
     if (test_solution() && test_card()) {
-        goal = sequence();
+        sequence();
     }
-
-    return goal;
 }
 
-Goal GoalCallback(IloEnv env, shared_ptr<SharedData> shared_data) {
-    GoalBaseI *retgoal;
-    CPXNEW(retgoal, new GoalCallbackI(env, shared_data));
-    return retgoal;
+IloCplex::Callback LazyCallback(IloEnv env,
+                                shared_ptr<SharedData> shared_data) {
+    return (IloCplex::Callback(new (env) LazyCallbackI(env, shared_data)));
 }
