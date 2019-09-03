@@ -416,9 +416,19 @@ SearchStatus SOCWSSSCplexSearch::step() {
 
         try {
             cout << "Starting SOCWSSS CPLEX search..." << endl;
+
             lazy_callback = make_shared<IloCplex::Callback>(
                 LazyCallback((*env), shared_data));
             cplex->use((*lazy_callback));
+
+            usercut_callback = make_shared<IloCplex::Callback>(
+                UserCutCallback((*env), shared_data));
+            cplex->use((*usercut_callback));
+
+            heuristic_callback = make_shared<IloCplex::Callback>(
+                HeuristicCallback((*env), shared_data));
+            cplex->use((*heuristic_callback));
+
             cplex->solve();
         } catch (IloException &ex) {
             string msg(ex.getMessage());

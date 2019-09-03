@@ -286,4 +286,66 @@ class LazyCallbackI : public IloCplex::LazyConstraintCallbackI {
 
 IloCplex::Callback LazyCallback(IloEnv env, shared_ptr<SharedData> shared_data);
 
+class UserCutCallbackI : public IloCplex::UserCutCallbackI {
+   public:
+    ILOCOMMONCALLBACKSTUFF(UserCutCallback)
+    UserCutCallbackI(IloEnv env, shared_ptr<SharedData> xx1)
+        : IloCplex::UserCutCallbackI(env), shared_data(xx1) {}
+    void main();
+
+   private:
+    shared_ptr<SharedData> shared_data;
+    double original_z;
+    vector<double> original_x;
+    long rounded_z;
+    OperatorCount rounded_x;
+
+    bool check_int_feas();
+    void extract_sol();
+    void round_sol();
+    bool test_solution();
+    bool test_card();
+    void sequence();
+    pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
+        OperatorCount op_count);
+    pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
+        long f_bound, OperatorCount op_count);
+    void log(bool found_in_cache, shared_ptr<SequenceInfo> info);
+    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
+};
+
+IloCplex::Callback UserCutCallback(IloEnv env,
+                                   shared_ptr<SharedData> shared_data);
+
+class HeuristicCallbackI : public IloCplex::HeuristicCallbackI {
+   public:
+    ILOCOMMONCALLBACKSTUFF(HeuristicCallback)
+    HeuristicCallbackI(IloEnv env, shared_ptr<SharedData> xx1)
+        : IloCplex::HeuristicCallbackI(env), shared_data(xx1) {}
+    void main();
+
+   private:
+    shared_ptr<SharedData> shared_data;
+    double original_z;
+    vector<double> original_x;
+    long rounded_z;
+    OperatorCount rounded_x;
+
+    bool check_int_feas();
+    void extract_sol();
+    void round_sol();
+    bool test_solution();
+    bool test_card();
+    void sequence();
+    pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
+        OperatorCount op_count);
+    pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
+        long f_bound, OperatorCount op_count);
+    void log(bool found_in_cache, shared_ptr<SequenceInfo> info);
+    pair<int, IloExpr> get_cut(shared_ptr<GLC> learned_glc);
+};
+
+IloCplex::Callback HeuristicCallback(IloEnv env,
+                                     shared_ptr<SharedData> shared_data);
+
 #endif

@@ -78,6 +78,8 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     // long socwsss_callback_mask = 0;
 
     shared_ptr<IloCplex::Callback> lazy_callback;
+    shared_ptr<IloCplex::Callback> usercut_callback;
+    shared_ptr<IloCplex::Callback> heuristic_callback;
 
     virtual void initialize() override;
     void create_base_constraints();
