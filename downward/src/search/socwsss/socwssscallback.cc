@@ -40,11 +40,22 @@ void SharedData::extract_sol(IloCplex::ControlCallbackI* callback) {
     }
 }
 
-void SharedData::round_sol() {
+void SharedData::round_sol(int type) {
     rounded_x.clear();
-    rounded_z = round(original_z);
-    transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
-              [](double i) { return (long)ceil(i); });
+    if (type == LAZY) {
+        transform(original_x.begin(), original_x.end(),
+                  back_inserter(rounded_x), [](double i) { return (long)i; });
+        rounded_z = (long)original_z;
+    } else if (type == USERCUT || type == HEURISTIC) {
+        transform(original_x.begin(), original_x.end(),
+                  back_inserter(rounded_x),
+                  [](double i) { return (long)ceil(i); });
+        rounded_z = 0;
+        for (int op_id = 0; op_id < n_ops; ++op_id) {
+            rounded_z += (rounded_x[op_id] *
+                          task_proxy->get_operators()[op_id].get_cost());
+        }
+    }
 }
 
 bool SharedData::test_solution() {
@@ -57,14 +68,8 @@ bool SharedData::test_card() {
         accumulate(original_x.begin(), original_x.end(), 0.0);
     int rounded_card = accumulate(rounded_x.begin(), rounded_x.end(), 0);
 
-    long calc_rounded_z = 0;
-    for (int op_id = 0; op_id < n_ops; ++op_id) {
-        calc_rounded_z +=
-            (rounded_x[op_id] * task_proxy->get_operators()[op_id].get_cost());
-    }
-
-    if (calc_rounded_z > (1.1 * original_z) ||
-        rounded_card > (1.1 * original_card)) {
+    if (rounded_z > (1.2 * original_z) ||
+        rounded_card > (1.2 * original_card)) {
         return false;
     }
     return true;
@@ -406,25 +411,34 @@ void SharedData::post_best_solution(IloCplex::HeuristicCallbackI* callback) {
         }
         IloNumArray vals(callback->getEnv());
         callback->getValues(vals, vars);
+        IloNumArray rounded_vals(callback->getEnv());
         for (int i = 0; i < vars.getSize(); ++i) {
-            vals[i] = ceil(vals[i]);
+            vals[i] = abs(vals[i]);
+            rounded_vals.add(ceil(abs(vals[i])));
         }
 
         if (callback->getObjValue() < callback->getIncumbentObjValue()) {
             cerr << "POSTING SOLUTION WITH COST: " << info->plan_cost << endl;
-            for (int i = 0; i < vars.getSize(); ++i) {
+            cerr << "ROUNDED: ";
+            for (int i = 0; i < rounded_vals.getSize(); ++i) {
+                cerr << rounded_vals[i] << " ";
+            }
+            cerr << endl;
+
+            cerr << "ORIGINAL: ";
+            for (int i = 0; i < vals.getSize(); ++i) {
                 cerr << vals[i] << " ";
             }
             cerr << endl;
 
-            callback->setSolution(vars, vals);
+            callback->setSolution(vars, rounded_vals);
         }
     }
 }
 
 void LazyCallbackI::main() {
     shared_data->extract_sol(this);
-    shared_data->round_sol();
+    shared_data->round_sol(LAZY);
 
     // if (shared_data->test_solution() && shared_data->test_card()) {
     shared_data->sequence();
@@ -441,7 +455,7 @@ IloCplex::Callback LazyCallback(IloEnv env,
 
 void UserCutCallbackI::main() {
     shared_data->extract_sol(this);
-    shared_data->round_sol();
+    shared_data->round_sol(USERCUT);
 
     // if (shared_data->test_solution() && shared_data->test_card()) {
     shared_data->sequence();
@@ -458,7 +472,7 @@ IloCplex::Callback UserCutCallback(IloEnv env,
 
 void HeuristicCallbackI::main() {
     shared_data->extract_sol(this);
-    shared_data->round_sol();
+    shared_data->round_sol(HEURISTIC);
 
     // if (shared_data->test_solution() && shared_data->test_card()) {
     shared_data->sequence();

@@ -179,7 +179,7 @@ struct SharedData {
     SharedData(const Options &opts, shared_ptr<TaskProxy> task_proxy,
                shared_ptr<AbstractTask> task);
     void extract_sol(IloCplex::ControlCallbackI *callback);
-    void round_sol();
+    void round_sol(int type);
     bool test_solution();
     bool test_card();
     void sequence();
