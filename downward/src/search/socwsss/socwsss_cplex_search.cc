@@ -282,15 +282,9 @@ void SOCWSSSCplexSearch::create_cplex_data() {
 
     cplex->setParam(IloCplex::MIPSearch, IloCplex::Traditional);
     cplex->setParam(IloCplex::Param::Threads, 1);
-
-    cplex->setParam(IloCplex::HeurFreq, -1);
-
-    /*
     cplex->setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
     cplex->setParam(IloCplex::Param::Preprocessing::Reduce, 0);
-    cplex->setParam(IloCplex::Param::RootAlgorithm, IloCplex::Primal);
-    cplex->setParam(IloCplex::Param::MIP::Strategy::HeuristicFreq, 10);
-    */
+    cplex->setParam(IloCplex::HeurFreq, -1);
 
     /*
     cplex->setParam(IloCplex::Param::MIP::Cuts::BQP, -1);
@@ -522,6 +516,16 @@ SearchStatus SOCWSSSCplexSearch::step() {
             op_counts.emplace_back(cplex->getValue((*x)[i]));
         }
         Plan plan = shared_data->cache_op_counts[op_counts]->plan;
+        if (plan.size() == 0) {
+            cout << "SOLUTION NOT FOUND" << endl;
+            exit(12);
+        }
+        set_plan(plan);
+    }
+
+    if (shared_data->early_abort) {
+        status = SOLVED;
+        Plan plan = shared_data->cache_op_counts.get_best_plan().second->plan;
         if (plan.size() == 0) {
             cout << "SOLUTION NOT FOUND" << endl;
             exit(12);

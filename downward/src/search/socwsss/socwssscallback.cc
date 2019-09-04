@@ -32,30 +32,36 @@ SharedData::SharedData(const Options& opts, shared_ptr<TaskProxy> task_proxy,
     printer_plots = make_shared<PrinterPlots>(n_ops, n_vars, glcs, start);
 }
 
-void SharedData::extract_sol(IloCplex::ControlCallbackI* callback) {
+bool SharedData::extract_sol(IloCplex::ControlCallbackI* callback, int type) {
     original_z = callback->getObjValue();
     original_x.clear();
     for (int i = 0; i < n_ops; ++i) {
         original_x.emplace_back(callback->getValue((*x)[i]));
     }
-}
 
-void SharedData::round_sol(int type) {
+    if (original_z > cache_op_counts.get_best_plan().second->plan_cost) {
+        early_abort = true;
+        callback->abort();
+        return false;
+    }
+
     rounded_x.clear();
     if (type == LAZY) {
         transform(original_x.begin(), original_x.end(),
-                  back_inserter(rounded_x), [](double i) { return (long)i; });
-        rounded_z = (long)original_z;
+                  back_inserter(rounded_x), [](double i) { return lround(i); });
+        rounded_z = lround(original_z);
     } else if (type == USERCUT || type == HEURISTIC) {
         transform(original_x.begin(), original_x.end(),
                   back_inserter(rounded_x),
-                  [](double i) { return (long)ceil(i); });
+                  [](double i) { return lround(ceil(i)); });
         rounded_z = 0;
         for (int op_id = 0; op_id < n_ops; ++op_id) {
             rounded_z += (rounded_x[op_id] *
                           task_proxy->get_operators()[op_id].get_cost());
         }
     }
+
+    return true;
 }
 
 bool SharedData::test_solution() {
@@ -85,7 +91,7 @@ void SharedData::sequence() {
     cout.clear();
 }
 
-void SharedData::learn() {
+void SharedData::learn(IloCplex::ControlCallbackI* callback) {
     if (!info->sequenciable) {
         printer_plots->update(rounded_z, rounded_x, c->getSize(), x->getSize());
 
@@ -95,7 +101,7 @@ void SharedData::learn() {
         if (missing_bounds > 1) {
             restart = true;
             restarts++;
-            abort();
+            callback->abort();
         }
     }
 }
@@ -437,15 +443,13 @@ void SharedData::post_best_solution(IloCplex::HeuristicCallbackI* callback) {
 }
 
 void LazyCallbackI::main() {
-    shared_data->extract_sol(this);
-    shared_data->round_sol(LAZY);
-
-    // if (shared_data->test_solution() && shared_data->test_card()) {
-    shared_data->sequence();
-    shared_data->learn();
-    add(shared_data->cut >= 1.0);
-    shared_data->log(this, LAZY);
-    //}
+    if (shared_data->extract_sol(this, LAZY) && shared_data->test_solution() &&
+        shared_data->test_card()) {
+        shared_data->sequence();
+        shared_data->learn(this);
+        add(shared_data->cut >= 1.0);
+        shared_data->log(this, LAZY);
+    }
 }
 
 IloCplex::Callback LazyCallback(IloEnv env,
@@ -454,15 +458,15 @@ IloCplex::Callback LazyCallback(IloEnv env,
 }
 
 void UserCutCallbackI::main() {
-    shared_data->extract_sol(this);
-    shared_data->round_sol(USERCUT);
-
-    // if (shared_data->test_solution() && shared_data->test_card()) {
-    shared_data->sequence();
-    shared_data->learn();
-    add(shared_data->cut >= 1.0);
-    shared_data->log(this, USERCUT);
-    //}
+    if (isAfterCutLoop()) {
+        if (shared_data->extract_sol(this, USERCUT) &&
+            shared_data->test_solution() && shared_data->test_card()) {
+            shared_data->sequence();
+            shared_data->learn(this);
+            add(shared_data->cut >= 1.0);
+            shared_data->log(this, USERCUT);
+        }
+    }
 }
 
 IloCplex::Callback UserCutCallback(IloEnv env,
@@ -471,14 +475,12 @@ IloCplex::Callback UserCutCallback(IloEnv env,
 }
 
 void HeuristicCallbackI::main() {
-    shared_data->extract_sol(this);
-    shared_data->round_sol(HEURISTIC);
-
-    // if (shared_data->test_solution() && shared_data->test_card()) {
-    shared_data->sequence();
-    shared_data->log(this, HEURISTIC);
-    shared_data->post_best_solution(this);
-    //}
+    if (shared_data->extract_sol(this, HEURISTIC) &&
+        shared_data->test_solution() && shared_data->test_card()) {
+        shared_data->sequence();
+        shared_data->log(this, HEURISTIC);
+        shared_data->post_best_solution(this);
+    }
 }
 
 IloCplex::Callback HeuristicCallback(IloEnv env,

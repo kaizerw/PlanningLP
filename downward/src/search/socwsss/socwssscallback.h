@@ -160,6 +160,7 @@ struct SharedData {
     shared_ptr<vector<lp::LPConstraint>> lp_constraints;
 
     bool restart = false;
+    bool early_abort = false;
     int restarts = 0, seq = 0, repeated_seqs = 0;
     int n_ops, n_vars;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;
@@ -178,12 +179,11 @@ struct SharedData {
 
     SharedData(const Options &opts, shared_ptr<TaskProxy> task_proxy,
                shared_ptr<AbstractTask> task);
-    void extract_sol(IloCplex::ControlCallbackI *callback);
-    void round_sol(int type);
+    bool extract_sol(IloCplex::ControlCallbackI *callback, int type);
     bool test_solution();
     bool test_card();
     void sequence();
-    void learn();
+    void learn(IloCplex::ControlCallbackI *callback);
     pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
         OperatorCount op_count);
     pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
