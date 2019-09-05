@@ -39,7 +39,7 @@ bool SharedData::extract_sol(IloCplex::ControlCallbackI* callback, int type) {
         original_x.emplace_back(callback->getValue((*x)[i]));
     }
 
-    if (original_z > cache_op_counts.get_best_plan().second->plan_cost) {
+    if (original_z >= cache_op_counts.get_best_plan().second->plan_cost) {
         early_abort = true;
         callback->abort();
         return false;
@@ -447,7 +447,9 @@ void LazyCallbackI::main() {
         shared_data->test_card()) {
         shared_data->sequence();
         shared_data->learn(this);
-        add(shared_data->cut >= 1.0);
+        if (!shared_data->info->sequenciable) {
+            add(shared_data->cut >= 1.0);
+        }
         shared_data->log(this, LAZY);
     }
 }
@@ -463,7 +465,9 @@ void UserCutCallbackI::main() {
             shared_data->test_solution() && shared_data->test_card()) {
             shared_data->sequence();
             shared_data->learn(this);
-            add(shared_data->cut >= 1.0);
+            if (!shared_data->info->sequenciable) {
+                add(shared_data->cut >= 1.0);
+            }
             shared_data->log(this, USERCUT);
         }
     }
