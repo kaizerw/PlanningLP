@@ -545,6 +545,10 @@ void PlanToMinisat::operator()() {
     save_file(base, base_filename);
     save_file(assumptions, assumptions_filename);
 
+    //make_minisat_input(base, "input.cnf");
+    //save_file(assumptions, "assumptions");
+    //exit(10);
+
     string cmd = (string("./sat_seq.py ") + string(" \"") + base_filename +
                   string("\" \"") + assumptions_filename + string("\""));
     string s = exec(cmd.c_str());
