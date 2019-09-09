@@ -234,7 +234,8 @@ void SOCWSSSCplexSearch::create_cplex_data() {
         const lp::LPVariable &variable = (*lp_variables)[vi];
         double lb = variable.lower_bound;
         double ub = variable.upper_bound;
-        x->add(IloNumVar((*env), lb, ub, ILOINT));
+        string name = string("var_") + to_string(vi);
+        x->add(IloNumVar((*env), lb, ub, ILOINT, name.c_str()));
         obj->setLinearCoef((*x)[vi], variable.objective_coefficient);
     }
 
@@ -516,16 +517,6 @@ SearchStatus SOCWSSSCplexSearch::step() {
             op_counts.emplace_back(cplex->getValue((*x)[i]));
         }
         Plan plan = shared_data->cache_op_counts[op_counts]->plan;
-        if (plan.size() == 0) {
-            cout << "SOLUTION NOT FOUND" << endl;
-            exit(12);
-        }
-        set_plan(plan);
-    }
-
-    if (shared_data->early_abort) {
-        status = SOLVED;
-        Plan plan = shared_data->cache_op_counts.get_best_plan().second->plan;
         if (plan.size() == 0) {
             cout << "SOLUTION NOT FOUND" << endl;
             exit(12);

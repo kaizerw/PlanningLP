@@ -160,7 +160,6 @@ struct SharedData {
     shared_ptr<vector<lp::LPConstraint>> lp_constraints;
 
     bool restart = false;
-    bool early_abort = false;
     int restarts = 0, seq = 0, repeated_seqs = 0;
     int n_ops, n_vars;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;

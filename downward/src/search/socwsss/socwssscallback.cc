@@ -39,12 +39,6 @@ bool SharedData::extract_sol(IloCplex::ControlCallbackI* callback, int type) {
         original_x.emplace_back(callback->getValue((*x)[i]));
     }
 
-    //if (original_z >= cache_op_counts.get_best_plan().second->plan_cost) {
-    //    early_abort = true;
-    //    callback->abort();
-    //    return false;
-    //}
-
     rounded_x.clear();
     if (type == LAZY) {
         transform(original_x.begin(), original_x.end(),
