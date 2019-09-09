@@ -352,19 +352,16 @@ void Shared::log(IloCplex::ControlCallbackI* callback, int type) {
                  << ops[op_id.get_index()].get_name() << endl;
         }
     } else {
-        if (type == LAZY || type == USERCUT) {
-            cerr << "LEARNED GLC WITH " << info->learned_glc->get_num_bounds()
-                 << " BOUNDS:" << endl;
-            if (info->learned_glc->yt_bound != -1) {
-                cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]"
-                     << endl;
-            }
-            for (auto i : info->learned_glc->ops_bounds) {
-                cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
-                     << "]" << endl;
-            }
-            cerr << "REPEATED GLC? " << repeated_glc << endl;
+        cerr << "LEARNED GLC WITH " << info->learned_glc->get_num_bounds()
+             << " BOUNDS:" << endl;
+        if (info->learned_glc->yt_bound != -1) {
+            cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]" << endl;
         }
+        for (auto i : info->learned_glc->ops_bounds) {
+            cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
+                 << "]" << endl;
+        }
+        cerr << "REPEATED GLC? " << repeated_glc << endl;
     }
     cerr << string(80, '*') << endl;
 }
