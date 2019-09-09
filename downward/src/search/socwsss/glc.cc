@@ -19,7 +19,7 @@ bool GLC::empty() {
     return (this->yt_bound == -1 && this->ops_bounds.size() == 0);
 }
 
-bool GLC::operator==(const GLC& other) {
+bool GLC::operator==(const GLC& other) const {
     return (this->yt_bound == other.yt_bound &&
             this->ops_bounds == other.ops_bounds);
 }

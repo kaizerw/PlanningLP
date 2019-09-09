@@ -75,8 +75,8 @@ void SOCWSSSCplexSearch::initialize() {
     // Add constraints from constraint generators
     create_base_constraints();
 
-    shared_data =
-        make_shared<SharedData>(opts, make_shared<TaskProxy>(task_proxy), task);
+    shared =
+        make_shared<Shared>(opts, make_shared<TaskProxy>(task_proxy), task);
 
     // Perform MIP start
     if (mip_start) {
@@ -109,10 +109,7 @@ void SOCWSSSCplexSearch::initialize() {
         if (greedy->found_solution()) {
             has_mip_start = true;
             auto plan = greedy->get_plan();
-            int plan_cost = accumulate(
-                plan.begin(), plan.end(), 0, [&](int acc, OperatorID op_id) {
-                    return acc + task_proxy.get_operators()[op_id].get_cost();
-                });
+            int plan_cost = plan2cost(plan, task_proxy.get_operators());
 
             mip_start_op_count =
                 OperatorCount(task_proxy.get_operators().size(), 0);
@@ -124,8 +121,7 @@ void SOCWSSSCplexSearch::initialize() {
             mip_start_info->sequenciable = true;
             mip_start_info->plan = plan;
             mip_start_info->plan_cost = plan_cost;
-            shared_data->cache_op_counts.add(mip_start_op_count,
-                                             mip_start_info);
+            shared->cache_op_counts.add(mip_start_op_count, mip_start_info);
         }
     }
 }
@@ -147,8 +143,7 @@ void SOCWSSSCplexSearch::create_base_constraints() {
                 [&](const vector<int> &op_ids, int) {
                     lp::LPConstraint landmark_constraint(1.0, infinity);
                     for (int op_id : op_ids) {
-                        landmark_constraint.insert((*bounds_literals)[op_id][1],
-                                                   1.0);
+                        landmark_constraint.insert(op_id, 1.0);
                     }
                     lp_constraints->emplace_back(landmark_constraint);
                 });
@@ -213,7 +208,7 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     obj = make_shared<IloObjective>(IloMinimize((*env)));
 
     // Create new bounds literals if needed
-    for (auto &glc : (*shared_data->glcs)) {
+    for (auto &glc : (*shared->glcs)) {
         int yt_bound = glc->yt_bound;
         int last_yt_bound = (*bounds_literals)[n_ops].size() - 1;
 
@@ -257,7 +252,7 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     }
 
     // Adding learned constraints
-    for (auto &glc : (*shared_data->glcs)) {
+    for (auto &glc : (*shared->glcs)) {
         int yt_bound = glc->yt_bound;
 
         IloRange range((*env), 1.0, IloInfinity);
@@ -318,15 +313,15 @@ void SOCWSSSCplexSearch::create_cplex_data() {
         startVar.end();
     }
 
-    shared_data->bounds_literals = bounds_literals;
-    shared_data->env = env;
-    shared_data->model = model;
-    shared_data->x = x;
-    shared_data->c = c;
-    shared_data->obj = obj;
-    shared_data->cplex = cplex;
-    shared_data->lp_variables = lp_variables;
-    shared_data->lp_constraints = lp_constraints;
+    shared->bounds_literals = bounds_literals;
+    shared->env = env;
+    shared->model = model;
+    shared->x = x;
+    shared->c = c;
+    shared->obj = obj;
+    shared->cplex = cplex;
+    shared->lp_variables = lp_variables;
+    shared->lp_constraints = lp_constraints;
 }
 
 void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
@@ -391,16 +386,16 @@ SearchStatus SOCWSSSCplexSearch::step() {
         try {
             cout << "Starting SOCWSSS CPLEX search..." << endl;
 
-            lazy_callback = make_shared<IloCplex::Callback>(
-                LazyCallback((*env), shared_data));
+            lazy_callback =
+                make_shared<IloCplex::Callback>(LazyCallback((*env), shared));
             cplex->use((*lazy_callback));
 
             usercut_callback = make_shared<IloCplex::Callback>(
-                UserCutCallback((*env), shared_data));
+                UserCutCallback((*env), shared));
             cplex->use((*usercut_callback));
 
             heuristic_callback = make_shared<IloCplex::Callback>(
-                HeuristicCallback((*env), shared_data));
+                HeuristicCallback((*env), shared));
             cplex->use((*heuristic_callback));
 
             cplex->solve();
@@ -415,25 +410,25 @@ SearchStatus SOCWSSSCplexSearch::step() {
             exit(25);
         }
 
-        if (shared_data->restart) {
+        if (shared->restart) {
             cout << "RESTARTING..." << endl;
-            shared_data->restart = false;
+            shared->restart = false;
         } else {
             break;
         }
     }
 
     // Print out custom attributes
-    shared_data->printer_plots->show_data(
-        shared_data->seq, cplex->getBestObjValue(), shared_data->repeated_seqs,
-        shared_data->restarts,
-        shared_data->cache_op_counts.get_best_plan().second->plan_cost);
+    shared->printer_plots->show_data(
+        shared->seq, cplex->getBestObjValue(), shared->repeated_seqs,
+        shared->restarts,
+        shared->cache_op_counts.get_best_plan().second->plan_cost);
 
     /*
     cout << "\tALL LEARNED GLCS:" << endl;
     int glc_id = 0;
     //for (auto glc : (*socwsss_callback->glcs)) {
-    for (auto glc : (*shared_data->glcs)) {
+    for (auto glc : (*shared->glcs)) {
         cout << "\t\t(" << glc_id << ") ";
         cout << "[YT >= " << glc->yt_bound << "] ";
         for (auto i : glc->ops_bounds) {
@@ -447,10 +442,10 @@ SearchStatus SOCWSSSCplexSearch::step() {
     cout << "\tREPEATED LEARNED GLCS:" << endl;
     int glc1_id = 0;
     //for (auto glc1 : (*socwsss_callback->glcs)) {
-    for (auto glc1 : (*shared_data->glcs)) {
+    for (auto glc1 : (*shared->glcs)) {
         int glc2_id = 0;
         //for (auto glc2 : (*socwsss_callback->glcs)) {
-        for (auto glc2 : (*shared_data->glcs)) {
+        for (auto glc2 : (*shared->glcs)) {
             if (glc1_id != glc2_id && (*glc1) == (*glc2)) {
                 cout << glc1_id << " EQUALS " << glc2_id << endl;
             }
@@ -461,7 +456,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
 
     cout << "\tALL PLANS IN CACHE:" << endl;
     //for (auto i : socwsss_callback->cache_op_counts.cache) {
-    for (auto i : shared_data->cache_op_counts.cache) {
+    for (auto i : shared->cache_op_counts.cache) {
         if (i.second->sequenciable) {
             cout << "\t\t" << i.second->plan_cost << " = ";
             for (auto j : i.second->plan) {
@@ -475,7 +470,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
             }
             int glc_id = 0;
             //for (auto glc : (*socwsss_callback->glcs)) {
-            for (auto glc : (*shared_data->glcs)) {
+            for (auto glc : (*shared->glcs)) {
                 int sat = 0;
                 int yt_bound = glc->yt_bound;
                 if (yt_bound != -1 && i.second->plan_cost >= yt_bound) {
@@ -516,7 +511,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
         for (IloInt i = 0; i < n_ops; ++i) {
             op_counts.emplace_back(cplex->getValue((*x)[i]));
         }
-        Plan plan = shared_data->cache_op_counts[op_counts]->plan;
+        Plan plan = shared->cache_op_counts[op_counts]->plan;
         if (plan.size() == 0) {
             cout << "SOLUTION NOT FOUND" << endl;
             exit(12);

@@ -22,7 +22,7 @@ struct GLC {
     GLC(const GLC &other);
     void add_op_bound(int op_id, long op_bound);
     bool empty();
-    bool operator==(const GLC &other);
+    bool operator==(const GLC &other) const;
     int get_num_bounds();
 };
 

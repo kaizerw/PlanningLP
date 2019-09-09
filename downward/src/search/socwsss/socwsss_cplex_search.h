@@ -72,7 +72,7 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     shared_ptr<IloObjective> obj;
     shared_ptr<IloCplex> cplex;
 
-    shared_ptr<SharedData> shared_data;
+    shared_ptr<Shared> shared;
 
     shared_ptr<IloCplex::Callback> lazy_callback;
     shared_ptr<IloCplex::Callback> usercut_callback;
