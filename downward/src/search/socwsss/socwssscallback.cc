@@ -366,53 +366,88 @@ void Shared::log(IloCplex::ControlCallbackI* callback, int type) {
             cerr << "REPEATED GLC? " << repeated_glc << endl;
         }
     }
-
-    if (type == HEURISTIC) {
-        auto [found, info] = cache_op_counts.get_best_plan();
-        if (found && info->sequenciable) {
-            if (lround(callback->getIncumbentObjValue()) == info->plan_cost) {
-                cerr << "SOLUTION POSTED" << endl;
-            } else {
-                cerr << "SOLUTION NOT POSTED" << endl;
-            }
-        }
-    }
-
     cerr << string(80, '*') << endl;
 }
 
-void Shared::post_best_solution(IloCplex::HeuristicCallbackI* callback) {
+void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
     auto [found, info] = cache_op_counts.get_best_plan();
     if (found && info->sequenciable &&
         info->plan_cost < callback->getIncumbentObjValue()) {
         OperatorCount plan_counts = plan2opcount(info, n_ops);
 
-        IloNumVarArray vars(callback->getEnv());
-        IloNumArray lb(callback->getEnv());
-        IloNumArray ub(callback->getEnv());
+        lp::LPSolver lp_solver(lp_solver_type);
+
+        vector<lp::LPVariable> local_variables;
+        vector<lp::LPConstraint> local_constraints;
+
+        copy(lp_variables->begin(), lp_variables->end(),
+             back_inserter(local_variables));
+        copy(lp_constraints->begin(), lp_constraints->end(),
+             back_inserter(local_constraints));
+
+        for (lp::LPVariable& variable : local_variables) {
+            variable.is_integer = true;
+        }
 
         for (int i = 0; i < n_ops; ++i) {
-            vars.add((*x)[i]);
-            lb.add(plan_counts[i]);
-            ub.add(plan_counts[i]);
+            local_variables[i].lower_bound = plan_counts[i];
+            local_variables[i].upper_bound = plan_counts[i];
+        }
+        if (sat_seq) {
+            local_variables[n_ops].lower_bound = info->plan.size();
+            local_variables[n_ops].upper_bound = info->plan.size();
+        } else {
+            local_variables[n_ops].lower_bound = info->plan_cost;
+            local_variables[n_ops].upper_bound = info->plan_cost;
         }
 
-        callback->setBounds(vars, lb, ub);
-        callback->solve();
+        for (auto& [glc, in_lp] : cache_glcs.cache) {
+            if (in_lp) {
+                lp::LPConstraint constraint(1.0, lp_solver.get_infinity());
 
-        vars.clear();
+                int yt_bound = glc->yt_bound;
+                int last_yt_bound = (*bounds_literals)[n_ops].size() - 1;
+
+                if (yt_bound > 0) {
+                    if (yt_bound <= last_yt_bound) {
+                        constraint.insert((*bounds_literals)[n_ops][yt_bound],
+                                          1.0);
+                    } else {
+                        constraint.insert(n_ops, (1.0 / yt_bound));
+                    }
+                }
+
+                for (auto& [op_id, op_bound] : glc->ops_bounds) {
+                    int last_op_bound = (*bounds_literals)[op_id].size() - 1;
+
+                    if (op_bound <= last_op_bound) {
+                        constraint.insert((*bounds_literals)[op_id][op_bound],
+                                          1.0);
+                    } else {
+                        constraint.insert(op_id, (1.0 / op_bound));
+                    }
+                }
+
+                local_constraints.emplace_back(constraint);
+            }
+        }
+
+        lp_solver.load_problem(lp::LPObjectiveSense::MINIMIZE, local_variables,
+                               local_constraints);
+
+        lp_solver.solve_mip();
+
+        vector<double> primal = lp_solver.extract_solution();
+
+        IloNumVarArray vars(callback->getEnv());
+        IloNumArray vals(callback->getEnv());
+
         for (int i = 0; i < x->getSize(); ++i) {
             vars.add((*x)[i]);
-        }
-        IloNumArray vals(callback->getEnv());
-        callback->getValues(vals, vars);
-        IloNumArray rounded_vals(callback->getEnv());
-        for (int i = 0; i < vars.getSize(); ++i) {
-            vals[i] = abs(vals[i]);
-            rounded_vals.add(ceil(abs(vals[i])));
+            vals.add(primal[i]);
         }
 
-        callback->setSolution(vars, rounded_vals);
+        callback->setSolution(vars, vals, info->plan_cost);
     }
 }
 
@@ -436,14 +471,14 @@ void UserCutCallbackI::main() {
     if (isAfterCutLoop()) {
         if (shared->extract_sol(this) && shared->test_card()) {
             shared->sequence();
-            for (auto& [glc, in_lp] : shared->cache_glcs.cache) {
-                if (!in_lp) {
-                    auto cut = shared->get_cut(glc, this);
-                    add(cut >= 1.0);
-                    shared->cache_glcs.set(glc, true);
-                }
-            }
             shared->log(this, USERCUT);
+        }
+        for (auto& [glc, in_lp] : shared->cache_glcs.cache) {
+            if (!in_lp) {
+                auto cut = shared->get_cut(glc, this);
+                add(cut >= 1.0);
+                shared->cache_glcs.set(glc, true);
+            }
         }
     }
 }
@@ -455,9 +490,9 @@ IloCplex::Callback UserCutCallback(IloEnv env, shared_ptr<Shared> shared) {
 void HeuristicCallbackI::main() {
     if (shared->extract_sol(this) && shared->test_card()) {
         shared->sequence();
-        shared->post_best_solution(this);
         shared->log(this, HEURISTIC);
     }
+    shared->post_best_plan(this);
 }
 
 IloCplex::Callback HeuristicCallback(IloEnv env, shared_ptr<Shared> shared) {

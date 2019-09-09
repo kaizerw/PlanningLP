@@ -509,8 +509,10 @@ SearchStatus SOCWSSSCplexSearch::step() {
         status = SOLVED;
         OperatorCount op_counts;
         for (IloInt i = 0; i < n_ops; ++i) {
-            op_counts.emplace_back(cplex->getValue((*x)[i]));
+            op_counts.emplace_back(
+                lround(ceil(cplex->getValue((*x)[i]) - 0.01)));
         }
+
         Plan plan = shared->cache_op_counts[op_counts]->plan;
         if (plan.size() == 0) {
             cout << "SOLUTION NOT FOUND" << endl;
@@ -532,7 +534,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.document_synopsis("SOCWSSS CPLEX Search", "SOCWSSS CPLEX Search");
 
     parser.add_option<int>("constraint_type", "", "1");
-    parser.add_option<string>("constraint_generators", "", "seq");
+    parser.add_option<string>("constraint_generators", "", "seq_landmarks");
     parser.add_option<string>("heuristic", "", "blind");
     parser.add_option<bool>("mip_start", "", "false");
     parser.add_option<bool>("sat_seq", "", "false");

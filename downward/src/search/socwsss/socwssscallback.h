@@ -222,7 +222,7 @@ struct Shared {
     IloExpr get_cut(shared_ptr<GLC> learned_glc,
                     IloCplex::ControlCallbackI *callback);
     void log(IloCplex::ControlCallbackI *callback, int type);
-    void post_best_solution(IloCplex::HeuristicCallbackI *callback);
+    void post_best_plan(IloCplex::HeuristicCallbackI *callback);
 };
 
 struct LazyCallbackI : public IloCplex::LazyConstraintCallbackI {
