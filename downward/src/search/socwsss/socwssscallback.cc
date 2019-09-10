@@ -445,6 +445,9 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
         }
 
         callback->setSolution(vars, vals, info->plan_cost);
+
+        vars.end();
+        vals.end();
     }
 }
 
@@ -453,7 +456,7 @@ void LazyCallbackI::main() {
         shared->sequence();
         if (!shared->info->sequenciable) {
             auto cut = shared->get_cut(shared->info->learned_glc, this);
-            add(cut >= 1.0);
+            add(cut >= 1.0).end();
             shared->cache_glcs.set(shared->info->learned_glc, true);
         }
         shared->log(this, LAZY);
@@ -473,7 +476,7 @@ void UserCutCallbackI::main() {
         for (auto& [glc, in_lp] : shared->cache_glcs.cache) {
             if (!in_lp) {
                 auto cut = shared->get_cut(glc, this);
-                add(cut >= 1.0);
+                add(cut >= 1.0).end();
                 shared->cache_glcs.set(glc, true);
             }
         }

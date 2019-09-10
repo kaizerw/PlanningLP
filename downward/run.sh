@@ -4,7 +4,7 @@
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas
 ################################################################################
 ./build.py
-run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1m"
+run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5m"
 ################################################################################
 #opts="astar(lmcut())"
 #opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks, heuristic=lmcut)"
@@ -16,8 +16,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 #$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 #################################################################################
 # Test SAT sequencing
-#opts="socwsss_cplex(constraint_type=3)"
-opts="socwsss_cplex(sat_seq=true)"
+opts="socwsss_cplex(constraint_type=3, mip_start=false)"
+#opts="socwsss_cplex(sat_seq=true, mip_start=false)"
 $run_pref $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.sas --search "$opts"
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.sas
 #################################################################################

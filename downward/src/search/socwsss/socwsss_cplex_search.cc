@@ -108,20 +108,15 @@ void SOCWSSSCplexSearch::initialize() {
 
         if (greedy->found_solution()) {
             has_mip_start = true;
-            auto plan = greedy->get_plan();
-            int plan_cost = plan2cost(plan, task_proxy.get_operators());
-
-            mip_start_op_count =
-                OperatorCount(task_proxy.get_operators().size(), 0);
-            for (OperatorID &op_id : plan) {
-                mip_start_op_count[op_id.get_index()]++;
-            }
 
             auto mip_start_info = make_shared<SequenceInfo>();
             mip_start_info->sequenciable = true;
-            mip_start_info->plan = plan;
-            mip_start_info->plan_cost = plan_cost;
+            mip_start_info->plan = greedy->get_plan();
+            mip_start_info->plan_cost =
+                plan2cost(mip_start_info->plan, task_proxy.get_operators());
             shared->cache_op_counts.add(mip_start_op_count, mip_start_info);
+
+            mip_start_op_count = plan2opcount(mip_start_info, n_ops);
         }
     }
 }
@@ -201,10 +196,8 @@ void SOCWSSSCplexSearch::create_base_constraints() {
 void SOCWSSSCplexSearch::create_cplex_data() {
     env = make_shared<IloEnv>();
     model = make_shared<IloModel>((*env));
-
     x = make_shared<IloNumVarArray>((*env));
     c = make_shared<IloRangeArray>((*env));
-
     obj = make_shared<IloObjective>(IloMinimize((*env)));
 
     // Create new bounds literals if needed
@@ -302,15 +295,15 @@ void SOCWSSSCplexSearch::create_cplex_data() {
 
     // Add MIP start
     if (has_mip_start) {
-        IloNumVarArray startVar((*env));
-        IloNumArray startVal((*env));
+        IloNumVarArray vars((*env));
+        IloNumArray vals((*env));
         for (int op_id = 0; op_id < n_ops; ++op_id) {
-            startVar.add((*x)[op_id]);
-            startVal.add(mip_start_op_count[op_id]);
+            vars.add((*x)[op_id]);
+            vals.add(mip_start_op_count[op_id]);
         }
-        cplex->addMIPStart(startVar, startVal);
-        startVal.end();
-        startVar.end();
+        cplex->addMIPStart(vars, vals);
+        vars.end();
+        vals.end();
     }
 
     shared->bounds_literals = bounds_literals;
@@ -508,7 +501,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
     if (cplex->getStatus() == IloAlgorithm::Status::Optimal) {
         status = SOLVED;
         OperatorCount op_counts;
-        for (IloInt i = 0; i < n_ops; ++i) {
+        for (int i = 0; i < n_ops; ++i) {
             op_counts.emplace_back(
                 lround(ceil(cplex->getValue((*x)[i]) - 0.01)));
         }
@@ -536,7 +529,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<int>("constraint_type", "", "1");
     parser.add_option<string>("constraint_generators", "", "seq_landmarks");
     parser.add_option<string>("heuristic", "", "blind");
-    parser.add_option<bool>("mip_start", "", "false");
+    parser.add_option<bool>("mip_start", "", "true");
     parser.add_option<bool>("sat_seq", "", "false");
 
     lp::add_lp_solver_option_to_parser(parser);
