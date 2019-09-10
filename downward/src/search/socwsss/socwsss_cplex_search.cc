@@ -107,16 +107,14 @@ void SOCWSSSCplexSearch::initialize() {
         cout.clear();
 
         if (greedy->found_solution()) {
-            has_mip_start = true;
-
             auto mip_start_info = make_shared<SequenceInfo>();
             mip_start_info->sequenciable = true;
             mip_start_info->plan = greedy->get_plan();
             mip_start_info->plan_cost =
                 plan2cost(mip_start_info->plan, task_proxy.get_operators());
-            shared->cache_op_counts.add(mip_start_op_count, mip_start_info);
 
-            mip_start_op_count = plan2opcount(mip_start_info, n_ops);
+            OperatorCount plan_counts = plan2opcount(mip_start_info, n_ops);
+            shared->cache_op_counts.add(plan_counts, mip_start_info);
         }
     }
 }
@@ -294,12 +292,16 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     */
 
     // Add MIP start
-    if (has_mip_start) {
+
+    auto [found, info] = shared->cache_op_counts.get_best_plan();
+    if (found && info->sequenciable) {
+        OperatorCount plan_counts = plan2opcount(info, n_ops);
+
         IloNumVarArray vars((*env));
         IloNumArray vals((*env));
         for (int op_id = 0; op_id < n_ops; ++op_id) {
             vars.add((*x)[op_id]);
-            vals.add(mip_start_op_count[op_id]);
+            vals.add(plan_counts[op_id]);
         }
         cplex->addMIPStart(vars, vals);
         vars.end();
