@@ -267,7 +267,8 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     }
 
     // Adding learned constraints
-    for (auto &glc : (*shared->glcs)) {
+    for (auto &it : shared->cache_glcs.cache) {
+        auto &glc = it.first;
         int yt_bound = glc->yt_bound;
 
         IloRange range((*env), 1.0, IloInfinity);

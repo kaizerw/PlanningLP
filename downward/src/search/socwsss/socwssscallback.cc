@@ -92,7 +92,10 @@ pair<bool, shared_ptr<SequenceInfo>> Shared::get_sat_sequence(
     OperatorCount op_count) {
     if (cache_op_counts.has(op_count)) {
         repeated_seqs++;
-        repeated_glc = cache_glcs.add(cache_op_counts[op_count]->learned_glc);
+        if (!cache_op_counts[op_count]->sequenciable) {
+            repeated_glc =
+                cache_glcs.add(cache_op_counts[op_count]->learned_glc);
+        }
         return {true, cache_op_counts[op_count]};
     }
 
@@ -132,7 +135,10 @@ pair<bool, shared_ptr<SequenceInfo>> Shared::get_astar_sequence(
     long f_bound, OperatorCount op_count) {
     if (cache_op_counts.has(op_count)) {
         repeated_seqs++;
-        repeated_glc = cache_glcs.add(cache_op_counts[op_count]->learned_glc);
+        if (!cache_op_counts[op_count]->sequenciable) {
+            repeated_glc =
+                cache_glcs.add(cache_op_counts[op_count]->learned_glc);
+        }
         return {true, cache_op_counts[op_count]};
     }
 
