@@ -292,7 +292,6 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     */
 
     // Add MIP start
-
     auto [found, info] = shared->cache_op_counts.get_best_plan();
     if (found && info->sequenciable) {
         OperatorCount plan_counts = plan2opcount(info, n_ops);
