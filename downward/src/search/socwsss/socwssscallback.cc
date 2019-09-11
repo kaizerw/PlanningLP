@@ -364,6 +364,18 @@ void Shared::log(IloCplex::ControlCallbackI* callback, int type) {
                  << "]" << endl;
         }
         cerr << "REPEATED GLC? " << repeated_glc << endl;
+
+        cerr << endl;
+        cerr << "Implied bound cuts: "
+             << callback->getNcuts(IloCplex::CutType::CutImplBd) << endl;
+        cerr << "Zero-half cuts: "
+             << callback->getNcuts(IloCplex::CutType::CutZeroHalf) << endl;
+        cerr << "Gomory fractional cuts: "
+             << callback->getNcuts(IloCplex::CutType::CutFrac) << endl;
+        cerr << "User cuts: " << callback->getNcuts(IloCplex::CutType::CutUser)
+             << endl;
+        cerr << "CUT: " << (get_cut(info->learned_glc, callback) >= 1) << endl;
+        cerr << endl;
     }
     cerr << string(80, '*') << endl;
 }

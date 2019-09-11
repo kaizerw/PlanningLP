@@ -215,12 +215,36 @@ void SOCWSSSCplexSearch::create_cplex_data() {
         }
     }
 
+    map<int, string> var_names;
+    for (int i = 0; i < (int)bounds_literals->size(); ++i) {
+        var_names[i] = string(
+            i == n_ops ? "YT" : task_proxy.get_operators()[i].get_name());
+
+        auto b = (*bounds_literals)[i];
+        for (int j = 0; j < (int)b.size(); ++j) {
+            string var_name;
+            var_name += string("[");
+            var_name += string(
+                i == n_ops ? "YT" : task_proxy.get_operators()[i].get_name());
+            var_name += string(" >= ");
+            var_name += to_string(j);
+            var_name += string("]");
+
+            var_names[(*bounds_literals)[i][j]] = var_name;
+        }
+    }
+
     // Create variables
     for (size_t vi = 0; vi < lp_variables->size(); ++vi) {
         const lp::LPVariable &variable = (*lp_variables)[vi];
         double lb = variable.lower_bound;
         double ub = variable.upper_bound;
-        string name = string("var_") + to_string(vi);
+        string name;
+        if (var_names.count(vi) > 0) {
+            name = var_names[vi];
+        } else {
+            name = string("var_") + to_string(vi);
+        }
         x->add(IloNumVar((*env), lb, ub, ILOINT, name.c_str()));
         obj->setLinearCoef((*x)[vi], variable.objective_coefficient);
     }
