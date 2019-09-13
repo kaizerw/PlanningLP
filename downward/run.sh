@@ -4,7 +4,7 @@
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas
 ################################################################################
 ./build.py
-run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5m"
+run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1m"
 ################################################################################
 #opts="astar(lmcut())"
 #opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks, heuristic=lmcut)"
@@ -16,9 +16,27 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 #$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 #################################################################################
 # Test SAT sequencing
-opts="socwsss_cplex(constraint_type=3, mip_start=false)"
+#opts="socwsss_cplex(constraint_type=3, mip_start=false)"
 #opts="socwsss_cplex(sat_seq=true, mip_start=false)"
-$run_pref $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.sas --search "$opts"
+#$run_pref $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.sas --search "$opts"
+#################################################################################
+# Run visitall without operator counting constraints and initial greedy solution
+
+declare -a instances=("problem02-half" "problem03-half" "problem04-half" "problem05-half" "problem02-full" "problem03-full" "problem04-full" "problem05-full")
+
+opts="socwsss_cplex(constraint_type=3, constraint_generators=_, mip_start=false)"
+rm -rf logs_t3 && mkdir logs_t3
+for i in ${instances[@]}; do
+	echo T3-$i
+	$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/$i.sas --search "$opts" > logs_t3/$i-output1 2> logs_t3/$i-output2
+done
+
+opts="socwsss_cplex(sat_seq=true, constraint_generators=_, mip_start=false)"
+rm -rf logs_sat && mkdir logs_sat
+for i in ${instances[@]}; do
+	echo SAT-$i
+	$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/$i.sas --search "$opts" > logs_sat/$i-output1 2> logs_sat/$i-output2
+done
 #################################################################################
 # CPLEX exception
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq_landmarks)"

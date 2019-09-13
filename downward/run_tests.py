@@ -39,8 +39,9 @@ class Slave:
             command += ['--search', self.config['search']]
             
             pathlib.Path(output_folder).mkdir(parents=True)
-            with open(os.path.join(output_folder, 'output.txt'), 'w') as output_file:
-                subprocess.run(command, stdout=output_file)
+            with open(os.path.join(output_folder, 'output1.txt'), 'w') as output1_file:
+                with open(os.path.join(output_folder, 'output2.txt'), 'w') as output2_file:
+                    subprocess.run(command, stdout=output1_file, stderr=output2_file)
             
             print(f'Test {name} saved', flush=True)
             send_email(self.args.name, f'Test {name} saved')
@@ -59,7 +60,7 @@ class Slave:
 
             lb = self.infos.loc[(self.domain, self.instance), 'lower_bound']
             
-            with open(os.path.join('.', 'OUTPUT', self.parsed_output['instance'], 'output.txt')) as file:
+            with open(os.path.join('.', 'OUTPUT', self.parsed_output['instance'], 'output1.txt')) as file:
                 for line in file:
                     for name, parser in self.parsers.items():
                         match = []
@@ -105,7 +106,7 @@ class Slave:
 
     @staticmethod
     def executed(name, domain, instance):
-        return pathlib.Path(os.path.join('.', 'OUTPUT', name, domain, instance, 'output.txt')).exists()
+        return pathlib.Path(os.path.join('.', 'OUTPUT', name, domain, instance, 'output1.txt')).exists()
 
 
 class Master:
