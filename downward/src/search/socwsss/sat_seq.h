@@ -42,14 +42,18 @@ struct PlanToMinisat : Minisat22::Solver {
 
     map<string, int> facts_to_ids;
     map<int, string> ids_to_facts;
+    map<int, tuple<int, int, int>> ids_to_facts_pairs;
+
     map<string, int> operators_to_ids;
     map<int, string> ids_to_operators;
     map<int, pair<int, int>> ids_to_operators_pairs;
-    map<string, int> all_to_ids;
-    map<int, string> ids_to_all;
+
     map<string, int> assumptions_to_ids;
     map<int, string> ids_to_assumptions;
     map<int, pair<int, int>> ids_to_assumptions_pairs;
+
+    map<string, int> all_to_ids;
+    map<int, string> ids_to_all;
 
     vector<vector<int>> base, assumptions;
 

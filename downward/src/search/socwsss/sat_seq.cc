@@ -76,7 +76,7 @@ void PlanToMinisat::initialize_ids() {
 
             all_to_ids[key.str()] = id;
             ids_to_all[id] = key.str();
-            ids_to_assumptions_pairs[id] = {op_id, l};
+            ids_to_operators_pairs[id] = {op_id, l};
 
             id_generator++;
         }
@@ -95,6 +95,7 @@ void PlanToMinisat::initialize_ids() {
 
                 all_to_ids[key.str()] = id;
                 ids_to_all[id] = key.str();
+                ids_to_facts_pairs[id] = {var_id, var_val, l};
 
                 id_generator++;
             }
@@ -609,9 +610,9 @@ void PlanToMinisat::operator()() {
     if (sequenciable) {
         vector<pair<int, int>> used_ops;
         for (int v : get_model()) {
-            if (v >= 0 && ids_to_assumptions_pairs.find(v) !=
-                              ids_to_assumptions_pairs.end()) {
-                auto [op_id, layer] = ids_to_assumptions_pairs[v];
+            if (v >= 0 && ids_to_operators_pairs.find(v) !=
+                              ids_to_operators_pairs.end()) {
+                auto [op_id, layer] = ids_to_operators_pairs[v];
                 used_ops.emplace_back(op_id, layer);
             }
         }
