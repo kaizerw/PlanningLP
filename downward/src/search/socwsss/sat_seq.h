@@ -26,22 +26,7 @@
 
 using namespace std;
 
-struct MinisatSolver {
-    Minisat22::Solver solver;
-    vector<vector<int>> base;
-    vector<int> assumptions;
-
-    MinisatSolver(vector<vector<int>> base, vector<vector<int>> assumptions);
-    void declare_vars(const int max_id);
-    void iterate(vector<int>& obj, Minisat22::vec<Minisat22::Lit>& v,
-                 int& max_var);
-    void add_cl(vector<int>& obj);
-    bool solve();
-    vector<int> get_core();
-    vector<int> get_model();
-};
-
-struct PlanToMinisat {
+struct PlanToMinisat : Minisat22::Solver {
     shared_ptr<TaskProxy> task_proxy;
     vector<long> op_counts;
     int n_layers;
@@ -65,6 +50,8 @@ struct PlanToMinisat {
     map<string, int> assumptions_to_ids;
     map<int, string> ids_to_assumptions;
     map<int, pair<int, int>> ids_to_assumptions_pairs;
+
+    vector<vector<int>> base, assumptions;
 
     map<int, vector<vector<int>>> part1, part2, part3, part4, part5, part6,
         part7, part8;
@@ -94,6 +81,12 @@ struct PlanToMinisat {
     string format(vector<vector<int>> part);
     string print();
     string exec(const char* cmd);
+    void declare_vars(const int max_id);
+    void iterate(vector<int>& obj, Minisat22::vec<Minisat22::Lit>& v,
+                 int& max_var);
+    bool sat();
+    vector<int> get_core();
+    vector<int> get_model();
     void operator()();
 };
 

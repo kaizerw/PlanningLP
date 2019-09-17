@@ -8,84 +8,6 @@ PlanToMinisat(make_shared<TaskProxy>(task_proxy), op_counts)();
 exit(0);
 */
 
-MinisatSolver::MinisatSolver(vector<vector<int>> base,
-                             vector<vector<int>> assumptions) {
-    this->base = base;
-    transform(assumptions.begin(), assumptions.end(),
-              back_inserter(this->assumptions), [](auto i) { return i[0]; });
-
-    for (vector<int>& cl : base) {
-        add_cl(cl);
-    }
-}
-
-void MinisatSolver::declare_vars(const int max_id) {
-    while (solver.nVars() < max_id + 1) {
-        solver.newVar();
-    }
-}
-
-void MinisatSolver::iterate(vector<int>& obj, Minisat22::vec<Minisat22::Lit>& v,
-                            int& max_var) {
-    for (int l : obj) {
-        v.push((l > 0) ? Minisat22::mkLit(l, false)
-                       : Minisat22::mkLit(-l, true));
-
-        if (abs(l) > max_var) {
-            max_var = abs(l);
-        }
-    }
-}
-
-void MinisatSolver::add_cl(vector<int>& obj) {
-    Minisat22::vec<Minisat22::Lit> cl;
-    int max_var = -1;
-
-    iterate(obj, cl, max_var);
-
-    if (max_var > 0) {
-        declare_vars(max_var);
-    }
-
-    solver.addClause(cl);
-}
-
-bool MinisatSolver::solve() {
-    Minisat22::vec<Minisat22::Lit> a;
-    int max_var = -1;
-
-    iterate(assumptions, a, max_var);
-
-    if (max_var > 0) {
-        declare_vars(max_var);
-    }
-
-    return solver.solve(a);
-}
-
-vector<int> MinisatSolver::get_core() {
-    Minisat22::vec<Minisat22::Lit>* c = &(solver.conflict);
-    vector<int> ret;
-    for (int i = 0; i < c->size(); ++i) {
-        int l = Minisat22::var((*c)[i]) * (Minisat22::sign((*c)[i]) ? 1 : -1);
-        ret.emplace_back(l);
-    }
-    return ret;
-}
-
-vector<int> MinisatSolver::get_model() {
-    Minisat22::vec<Minisat22::lbool>* m = &(solver.model);
-
-    Minisat22::lbool True = Minisat22::lbool((uint8_t)0);
-
-    vector<int> ret;
-    for (int i = 1; i < m->size(); ++i) {
-        int l = i * ((*m)[i] == True ? 1 : -1);
-        ret.emplace_back(l);
-    }
-    return ret;
-}
-
 PlanToMinisat::PlanToMinisat(shared_ptr<TaskProxy> task_proxy,
                              vector<long>& op_counts)
     : task_proxy(task_proxy),
@@ -609,16 +531,84 @@ string PlanToMinisat::exec(const char* cmd) {
     return result;
 }
 
+void PlanToMinisat::declare_vars(const int max_id) {
+    while (nVars() < max_id + 1) {
+        newVar();
+    }
+}
+
+void PlanToMinisat::iterate(vector<int>& obj, Minisat22::vec<Minisat22::Lit>& v,
+                            int& max_var) {
+    for (int l : obj) {
+        v.push((l > 0) ? Minisat22::mkLit(l, false)
+                       : Minisat22::mkLit(-l, true));
+
+        if (abs(l) > max_var) {
+            max_var = abs(l);
+        }
+    }
+}
+
+bool PlanToMinisat::sat() {
+    for (vector<int>& obj : base) {
+        Minisat22::vec<Minisat22::Lit> cl;
+        int max_var = -1;
+
+        iterate(obj, cl, max_var);
+
+        if (max_var > 0) {
+            declare_vars(max_var);
+        }
+
+        addClause(cl);
+    }
+
+    Minisat22::vec<Minisat22::Lit> a;
+    int max_var = -1;
+
+    vector<int> aa;
+    transform(assumptions.begin(), assumptions.end(), back_inserter(aa),
+              [](auto i) { return i[0]; });
+    iterate(aa, a, max_var);
+
+    if (max_var > 0) {
+        declare_vars(max_var);
+    }
+
+    return solve(a);
+}
+
+vector<int> PlanToMinisat::get_core() {
+    Minisat22::vec<Minisat22::Lit>* c = &(conflict);
+    vector<int> ret;
+    for (int i = 0; i < c->size(); ++i) {
+        int l = Minisat22::var((*c)[i]) * (Minisat22::sign((*c)[i]) ? 1 : -1);
+        ret.emplace_back(l);
+    }
+    return ret;
+}
+
+vector<int> PlanToMinisat::get_model() {
+    Minisat22::vec<Minisat22::lbool>* m = &(model);
+
+    Minisat22::lbool True = Minisat22::lbool((uint8_t)0);
+
+    vector<int> ret;
+    for (int i = 1; i < m->size(); ++i) {
+        int l = i * ((*m)[i] == True ? 1 : -1);
+        ret.emplace_back(l);
+    }
+    return ret;
+}
+
 void PlanToMinisat::operator()() {
-    vector<vector<int>> base = convert();
-    vector<vector<int>> assumptions = get_assumptions();
+    base = convert();
+    assumptions = get_assumptions();
 
-    MinisatSolver solver(base, assumptions);
-
-    sequenciable = solver.solve();
+    sequenciable = sat();
     if (sequenciable) {
         vector<pair<int, int>> used_ops;
-        for (int v : solver.get_model()) {
+        for (int v : get_model()) {
             if (v >= 0 && ids_to_assumptions_pairs.find(v) !=
                               ids_to_assumptions_pairs.end()) {
                 auto [op_id, layer] = ids_to_assumptions_pairs[v];
@@ -632,7 +622,7 @@ void PlanToMinisat::operator()() {
         transform(used_ops.begin(), used_ops.end(), back_inserter(plan), fn2);
     } else {
         learned_glc = make_shared<GLC>();
-        for (int v : solver.get_core()) {
+        for (int v : get_core()) {
             v = abs(v);
             auto [op_id, op_bound] = ids_to_assumptions_pairs[v];
 
