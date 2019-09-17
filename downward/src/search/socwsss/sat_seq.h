@@ -22,8 +22,24 @@
 #include "../plan_manager.h"
 #include "../task_proxy.h"
 #include "glc.h"
+#include "minisat22/core/Solver.h"
 
 using namespace std;
+
+struct MinisatSolver {
+    Minisat22::Solver solver;
+    vector<vector<int>> base;
+    vector<int> assumptions;
+
+    MinisatSolver(vector<vector<int>> base, vector<vector<int>> assumptions);
+    void declare_vars(const int max_id);
+    void iterate(vector<int>& obj, Minisat22::vec<Minisat22::Lit>& v,
+                 int& max_var);
+    void add_cl(vector<int>& obj);
+    bool solve();
+    vector<int> get_core();
+    vector<int> get_model();
+};
 
 struct PlanToMinisat {
     shared_ptr<TaskProxy> task_proxy;

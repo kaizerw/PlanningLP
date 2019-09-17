@@ -8,6 +8,84 @@ PlanToMinisat(make_shared<TaskProxy>(task_proxy), op_counts)();
 exit(0);
 */
 
+MinisatSolver::MinisatSolver(vector<vector<int>> base,
+                             vector<vector<int>> assumptions) {
+    this->base = base;
+    transform(assumptions.begin(), assumptions.end(),
+              back_inserter(this->assumptions), [](auto i) { return i[0]; });
+
+    for (vector<int>& cl : base) {
+        add_cl(cl);
+    }
+}
+
+void MinisatSolver::declare_vars(const int max_id) {
+    while (solver.nVars() < max_id + 1) {
+        solver.newVar();
+    }
+}
+
+void MinisatSolver::iterate(vector<int>& obj, Minisat22::vec<Minisat22::Lit>& v,
+                            int& max_var) {
+    for (int l : obj) {
+        v.push((l > 0) ? Minisat22::mkLit(l, false)
+                       : Minisat22::mkLit(-l, true));
+
+        if (abs(l) > max_var) {
+            max_var = abs(l);
+        }
+    }
+}
+
+void MinisatSolver::add_cl(vector<int>& obj) {
+    Minisat22::vec<Minisat22::Lit> cl;
+    int max_var = -1;
+
+    iterate(obj, cl, max_var);
+
+    if (max_var > 0) {
+        declare_vars(max_var);
+    }
+
+    solver.addClause(cl);
+}
+
+bool MinisatSolver::solve() {
+    Minisat22::vec<Minisat22::Lit> a;
+    int max_var = -1;
+
+    iterate(assumptions, a, max_var);
+
+    if (max_var > 0) {
+        declare_vars(max_var);
+    }
+
+    return solver.solve(a);
+}
+
+vector<int> MinisatSolver::get_core() {
+    Minisat22::vec<Minisat22::Lit>* c = &(solver.conflict);
+    vector<int> ret;
+    for (int i = 0; i < c->size(); ++i) {
+        int l = Minisat22::var((*c)[i]) * (Minisat22::sign((*c)[i]) ? 1 : -1);
+        ret.emplace_back(l);
+    }
+    return ret;
+}
+
+vector<int> MinisatSolver::get_model() {
+    Minisat22::vec<Minisat22::lbool>* m = &(solver.model);
+
+    Minisat22::lbool True = Minisat22::lbool((uint8_t)0);
+
+    vector<int> ret;
+    for (int i = 1; i < m->size(); ++i) {
+        int l = i * ((*m)[i] == True ? 1 : -1);
+        ret.emplace_back(l);
+    }
+    return ret;
+}
+
 PlanToMinisat::PlanToMinisat(shared_ptr<TaskProxy> task_proxy,
                              vector<long>& op_counts)
     : task_proxy(task_proxy),
@@ -535,58 +613,26 @@ void PlanToMinisat::operator()() {
     vector<vector<int>> base = convert();
     vector<vector<int>> assumptions = get_assumptions();
 
-    default_random_engine gen(
-        chrono::system_clock::now().time_since_epoch().count());
-    uniform_real_distribution<double> dist(0.0, 1.0);
+    MinisatSolver solver(base, assumptions);
 
-    string base_filename = to_string(dist(gen) * 100000);
-    string assumptions_filename = to_string(dist(gen) * 100000);
-
-    save_file(base, base_filename);
-    save_file(assumptions, assumptions_filename);
-
-    //make_minisat_input(base, "input.cnf");
-    //save_file(base, "base");
-    //save_file(assumptions, "assumptions");
-    //exit(10);
-
-    string cmd = (string("./sat_seq/sat_seq ") + string(" \"") + base_filename +
-                  string("\" \"") + assumptions_filename + string("\""));
-    string s = exec(cmd.c_str());
-
-    remove(base_filename.c_str());
-    remove(assumptions_filename.c_str());
-
-    size_t pos = 0;
-    string token;
-    string delimiter = " ";
-    vector<int> minisat_output;
-    while ((pos = s.find(delimiter)) != string::npos) {
-        token = s.substr(0, pos);
-        minisat_output.emplace_back(atoi(token.c_str()));
-        s.erase(0, pos + delimiter.length());
-    }
-    minisat_output.emplace_back(atoi(s.c_str()));
-
-    sequenciable = (bool)(minisat_output[0]);
-    minisat_output.erase(minisat_output.begin());
+    sequenciable = solver.solve();
     if (sequenciable) {
-        for (int v : minisat_output) {
-            vector<pair<int, int>> used_ops;
+        vector<pair<int, int>> used_ops;
+        for (int v : solver.get_model()) {
             if (v >= 0 && ids_to_assumptions_pairs.find(v) !=
                               ids_to_assumptions_pairs.end()) {
                 auto [op_id, layer] = ids_to_assumptions_pairs[v];
                 used_ops.emplace_back(op_id, layer);
             }
-            auto fn1 = [](auto i, auto j) { return i.second < j.second; };
-            sort(used_ops.begin(), used_ops.end(), fn1);
-            auto fn2 = [](auto i) { return OperatorID(i.first); };
-            transform(used_ops.begin(), used_ops.end(), back_inserter(plan),
-                      fn2);
         }
+
+        auto fn1 = [](auto i, auto j) { return i.second < j.second; };
+        sort(used_ops.begin(), used_ops.end(), fn1);
+        auto fn2 = [](auto i) { return OperatorID(i.first); };
+        transform(used_ops.begin(), used_ops.end(), back_inserter(plan), fn2);
     } else {
         learned_glc = make_shared<GLC>();
-        for (int v : minisat_output) {
+        for (int v : solver.get_core()) {
             v = abs(v);
             auto [op_id, op_bound] = ids_to_assumptions_pairs[v];
 

@@ -20,8 +20,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <math.h>
 
-#include "minisat22/mtl/Sort.h"
-#include "minisat22/core/Solver.h"
+#include "../mtl/Sort.h"
+#include "../core/Solver.h"
 
 using namespace Minisat22;
 
