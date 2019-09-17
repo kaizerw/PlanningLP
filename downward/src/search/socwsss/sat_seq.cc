@@ -464,25 +464,58 @@ string PlanToMinisat::tos(vector<vector<int>> encoded) {
     return file.str();
 }
 
-string PlanToMinisat::format(vector<vector<int>> part) {
-    string formula;
+string PlanToMinisat::format(vector<vector<int>> part, bool ignore_aux) {
+    string formula = "\t";
 
     for (vector<int>& clause : part) {
         string clause_str;
 
-        for (int var_id : clause) {
+        for (int i = 0; i < (int)clause.size(); ++i) {
+            int var_id = clause[i];
             string var_name;
             if (var_id < 0) {
                 var_name = "~";
                 var_id = abs(var_id);
             }
             if (ids_to_all.count(var_id) > 0) {
-                var_name += ids_to_all[var_id];
+                // var_name += ids_to_all[var_id];
+
+                if (ids_to_facts_pairs.count(var_id) > 0) {
+                    int var_val, l;
+                    tie(var_id, var_val, l) = ids_to_facts_pairs[var_id];
+                    var_name += task_proxy->get_variables()[var_id]
+                                    .get_fact(var_val)
+                                    .get_name() +
+                                "_" + to_string(l);
+                } else if (ids_to_operators_pairs.count(var_id) > 0) {
+                    int op_id, l;
+                    tie(op_id, l) = ids_to_operators_pairs[var_id];
+                    var_name += task_proxy->get_operators()[op_id].get_name() +
+                                "_" + to_string(l);
+                } else if (ids_to_assumptions_pairs.count(var_id) > 0) {
+                    int op_id, op_bound;
+                    tie(op_id, op_bound) = ids_to_assumptions_pairs[var_id];
+                    if (op_id == -1) {
+                        var_name += "[YT >= " + to_string(op_bound) + "]";
+                    } else {
+                        var_name +=
+                            "[" +
+                            task_proxy->get_operators()[op_id].get_name() +
+                            " >= " + to_string(op_bound) + "]";
+                    }
+                }
             } else {
                 var_name += "Aux" + to_string(var_id);
+                if (ignore_aux) {
+                    var_name = "";
+                }
             }
 
-            clause_str += var_name + " | ";
+            if (i < ((int)clause.size() - 1) && var_name != "") {
+                var_name += " | ";
+            }
+
+            clause_str += var_name;
         }
 
         formula += clause_str + "\n\t";
@@ -602,11 +635,56 @@ vector<int> PlanToMinisat::get_model() {
     return ret;
 }
 
+void PlanToMinisat::print_solver_info() {
+    cout << string(80, '*') << endl;
+
+    vector<vector<int>> proc_conflict;
+    proc_conflict.emplace_back(vector<int>());
+    for (int i = 0; i < conflict.size(); ++i) {
+        int l = Minisat22::var(conflict[i]) *
+                (Minisat22::sign(conflict[i]) ? 1 : -1);
+        proc_conflict[0].emplace_back(l);
+    }
+
+    vector<vector<int>> proc_learnts;
+    for (int i = 0; i < learnts.size(); ++i) {
+        Minisat22::Clause& c = ca[learnts[i]];
+        vector<int> learnt;
+        for (int j = 0; j < c.size(); ++j) {
+            int l = Minisat22::var(c[j]) * (Minisat22::sign(c[j]) ? 1 : -1);
+            learnt.emplace_back(l);
+        }
+        proc_learnts.emplace_back(learnt);
+    }
+
+    vector<vector<int>> proc_reasons;
+    for (int i = 0; i < trail.size(); i++) {
+        Minisat22::Var v = var(trail[i]);
+        if (reason(v) != Minisat22::CRef_Undef) {
+            Minisat22::Clause& c = ca[reason(v)];
+            vector<int> reason;
+            for (int i = 0; i < c.size(); ++i) {
+                int l = Minisat22::var(c[i]) * (Minisat22::sign(c[i]) ? 1 : -1);
+                reason.emplace_back(l);
+            }
+            proc_reasons.emplace_back(reason);
+        }
+    }
+
+    cout << "CONFLICT: \n" << format(proc_conflict, true) << endl;
+    cout << "LEARNTS: \n" << format(proc_learnts, true) << endl;
+    cout << "REASONS: \n" << format(proc_reasons, true) << endl;
+
+    cout << string(80, '*') << endl;
+}
+
 void PlanToMinisat::operator()() {
     base = convert();
     assumptions = get_assumptions();
 
     sequenciable = sat();
+    // print_solver_info();
+
     if (sequenciable) {
         vector<pair<int, int>> used_ops;
         for (int v : get_model()) {

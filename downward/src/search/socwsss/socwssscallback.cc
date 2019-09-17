@@ -78,13 +78,13 @@ bool Shared::test_card() {
 }
 
 void Shared::sequence() {
-    // cout.setstate(ios_base::failbit);
+    cout.setstate(ios_base::failbit);
     if (sat_seq) {
         tie(found_in_cache, info) = get_sat_sequence(rounded_x);
     } else {
         tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
     }
-    // cout.clear();
+    cout.clear();
     printer_plots->update(rounded_z, rounded_x, c->getSize(), x->getSize());
 }
 

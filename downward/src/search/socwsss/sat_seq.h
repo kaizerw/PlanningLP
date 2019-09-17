@@ -82,13 +82,14 @@ struct PlanToMinisat : Minisat22::Solver {
     void make_minisat_input(vector<vector<int>> encoded, string filename);
     void save_file(vector<vector<int>> encoded, string filename);
     string tos(vector<vector<int>> encoded);
-    string format(vector<vector<int>> part);
+    string format(vector<vector<int>> part, bool ignore_aux = false);
     string print();
     string exec(const char* cmd);
     void declare_vars(const int max_id);
     void iterate(vector<int>& obj, Minisat22::vec<Minisat22::Lit>& v,
                  int& max_var);
     bool sat();
+    void print_solver_info();
     vector<int> get_core();
     vector<int> get_model();
     void operator()();
