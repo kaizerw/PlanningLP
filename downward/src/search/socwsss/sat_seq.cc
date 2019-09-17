@@ -636,7 +636,7 @@ vector<int> PlanToMinisat::get_model() {
 }
 
 void PlanToMinisat::print_solver_info() {
-    cout << string(80, '*') << endl;
+    cerr << string(80, '*') << endl;
 
     vector<vector<int>> proc_conflict;
     proc_conflict.emplace_back(vector<int>());
@@ -671,11 +671,11 @@ void PlanToMinisat::print_solver_info() {
         }
     }
 
-    cout << "CONFLICT: \n" << format(proc_conflict, true) << endl;
-    cout << "LEARNTS: \n" << format(proc_learnts, true) << endl;
-    cout << "REASONS: \n" << format(proc_reasons, true) << endl;
+    cerr << "CONFLICT: \n" << format(proc_conflict, true) << endl;
+    cerr << "LEARNTS: \n" << format(proc_learnts, true) << endl;
+    cerr << "REASONS: \n" << format(proc_reasons, true) << endl;
 
-    cout << string(80, '*') << endl;
+    cerr << string(80, '*') << endl;
 }
 
 void PlanToMinisat::operator()() {
@@ -683,7 +683,7 @@ void PlanToMinisat::operator()() {
     assumptions = get_assumptions();
 
     sequenciable = sat();
-    // print_solver_info();
+    print_solver_info();
 
     if (sequenciable) {
         vector<pair<int, int>> used_ops;
