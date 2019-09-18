@@ -674,6 +674,8 @@ void PlanToMinisat::print_solver_info() {
 
     cerr << "CONFLICT: \n" << format(proc_conflict, true) << endl;
     cerr << "LEARNTS: \n" << format(proc_learnts, true) << endl;
+    cerr << "N VARS: \t" << nVars() << endl;
+    cerr << "N CLAUSES: \t" << clauses.size() << endl;
     // cerr << "REASONS: \n" << format(proc_reasons, true) << endl;
 
     cerr << string(80, '*') << endl;
