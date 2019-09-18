@@ -486,12 +486,12 @@ string PlanToMinisat::format(vector<vector<int>> part, bool ignore_aux) {
                     var_name += task_proxy->get_variables()[var_id]
                                     .get_fact(var_val)
                                     .get_name() +
-                                "_" + to_string(l);
+                                "_l" + to_string(l);
                 } else if (ids_to_operators_pairs.count(var_id) > 0) {
                     int op_id, l;
                     tie(op_id, l) = ids_to_operators_pairs[var_id];
                     var_name += task_proxy->get_operators()[op_id].get_name() +
-                                "_" + to_string(l);
+                                "_l" + to_string(l);
                 } else if (ids_to_assumptions_pairs.count(var_id) > 0) {
                     int op_id, op_bound;
                     tie(op_id, op_bound) = ids_to_assumptions_pairs[var_id];
@@ -639,11 +639,10 @@ void PlanToMinisat::print_solver_info() {
     cerr << string(80, '*') << endl;
 
     vector<vector<int>> proc_conflict;
-    proc_conflict.emplace_back(vector<int>());
     for (int i = 0; i < conflict.size(); ++i) {
         int l = Minisat22::var(conflict[i]) *
                 (Minisat22::sign(conflict[i]) ? 1 : -1);
-        proc_conflict[0].emplace_back(l);
+        proc_conflict.emplace_back(vector<int>({l}));
     }
 
     vector<vector<int>> proc_learnts;
@@ -657,6 +656,7 @@ void PlanToMinisat::print_solver_info() {
         proc_learnts.emplace_back(learnt);
     }
 
+    /*
     vector<vector<int>> proc_reasons;
     for (int i = 0; i < trail.size(); i++) {
         Minisat22::Var v = var(trail[i]);
@@ -670,10 +670,11 @@ void PlanToMinisat::print_solver_info() {
             proc_reasons.emplace_back(reason);
         }
     }
+    */
 
     cerr << "CONFLICT: \n" << format(proc_conflict, true) << endl;
     cerr << "LEARNTS: \n" << format(proc_learnts, true) << endl;
-    cerr << "REASONS: \n" << format(proc_reasons, true) << endl;
+    // cerr << "REASONS: \n" << format(proc_reasons, true) << endl;
 
     cerr << string(80, '*') << endl;
 }
@@ -683,7 +684,7 @@ void PlanToMinisat::operator()() {
     assumptions = get_assumptions();
 
     sequenciable = sat();
-    print_solver_info();
+    // print_solver_info();
 
     if (sequenciable) {
         vector<pair<int, int>> used_ops;

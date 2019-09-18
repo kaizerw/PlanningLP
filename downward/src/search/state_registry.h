@@ -345,6 +345,8 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     const_iterator end() const { return const_iterator(*this, size()); }
 
     OperatorCount lookup_op_count(StateID id) const;
+
+    bool is_new(const GlobalState &state);
 };
 
 #endif

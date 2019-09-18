@@ -169,14 +169,16 @@ SearchStatus SOCAStarSearch::step() {
 
     ////////////////////////////////////////////////////////////////////////////
     // Use f_bound to bound search
-    EvaluationContext eval_context2(node->get_state(), node->get_g(), false,
-                                    &statistics);
-    long node_f = eval_context2.get_evaluator_value(f_evaluator.get());
+    long node_f =
+        EvaluationContext(node->get_state(), node->get_g(), false, &statistics)
+            .get_evaluator_value(f_evaluator.get());
 
     /*
+    cout << string(80, '-') << endl;
     node->get_state().dump_pddl();
     cout << "NODE_F=" << node_f << endl;
     cout << "NODE_G=" << node->get_g() << endl;
+    cout << string(80, '-') << endl;
     */
 
     if (node_f > f_bound) {
@@ -248,11 +250,11 @@ SearchStatus SOCAStarSearch::step() {
                 // 3. Add operators o that could generate states s' from states
                 // s only if s' is a new state and f(s') <= f_bound
             } else if (constraint_type == 3) {
-                long new_succ_g = node->get_g() + get_adjusted_cost(op);
-                EvaluationContext eval_context2(succ_node.get_state(),
-                                                new_succ_g, false, &statistics);
                 long new_succ_f =
-                    eval_context2.get_evaluator_value(f_evaluator.get());
+                    EvaluationContext(succ_node.get_state(),
+                                      node->get_g() + get_adjusted_cost(op),
+                                      false, &statistics)
+                        .get_evaluator_value(f_evaluator.get());
 
                 if (succ_node.is_new()) {
                     if (new_succ_f <= f_bound) {

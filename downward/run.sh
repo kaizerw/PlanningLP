@@ -17,8 +17,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 #################################################################################
 # Test SAT sequencing
 #opts="socwsss_cplex(constraint_type=3, mip_start=false)"
-opts="socwsss_cplex(sat_seq=true, mip_start=false)"
-$run_pref $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.sas --search "$opts"
+#opts="socwsss_cplex(sat_seq=true, mip_start=false)"
+#$run_pref $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.sas --search "$opts"
 #################################################################################
 # Run visitall without operator counting constraints and initial greedy solution
 
@@ -36,8 +36,9 @@ $run_pref $DOWNWARD_BENCHMARKS/simplegripper/robot_at_left.sas --search "$opts"
 #	$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/$i.sas --search "$opts" > logs_sat/$i-output1 2> logs_sat/$i-output2
 #done
 
-#opts="socwsss_cplex(constraint_type=3, constraint_generators=_, mip_start=false)"
-#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem02-full.sas --search "$opts"
+opts="socwsss_cplex(constraint_type=3, constraint_generators=_, mip_start=false)"
+#opts="socwsss_cplex(sat_seq=true, constraint_generators=_, mip_start=false)"
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem02-full.sas --search "$opts"
 #################################################################################
 # CPLEX exception
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq_landmarks)"

@@ -195,3 +195,19 @@ OperatorCount StateRegistry::lookup_op_count(StateID id) const {
     }
     return op_count;
 }
+
+bool StateRegistry::is_new(const GlobalState &state) {
+    if (soc) {
+        state_data_pool.push_back(state.get_packed_buffer());
+
+        StateID id(state_data_pool.size() - 1);
+        pair<int, bool> result = registered_states.insert(id.value);
+        bool is_new_entry = result.second;
+
+        if (!is_new_entry) {
+            state_data_pool.pop_back();
+        }
+        return is_new_entry;
+    }
+    return false;
+}
