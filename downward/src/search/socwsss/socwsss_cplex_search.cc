@@ -35,12 +35,33 @@ void SOCWSSSCplexSearch::initialize() {
     n_ops = task_proxy.get_operators().size();
     n_vars = task_proxy.get_variables().size();
 
+    // Calculate epsilon for recost
+    if (sat_seq) {
+        vector<int> diffs;
+        for (int op_id1 = 0; op_id1 < n_ops; ++op_id1) {
+            for (int op_id2 = 0; op_id2 < n_ops; ++op_id2) {
+                int c1 = task_proxy.get_operators()[op_id1].get_cost();
+                int c2 = task_proxy.get_operators()[op_id2].get_cost();
+                if (op_id1 != op_id2 && c1 > c2 && c1 > 0 && c2 > 0) {
+                    diffs.emplace_back(c1 - c2);
+                }
+            }
+        }
+        int delta;
+        if (diffs.size() > 0) {
+            delta = (double)*min_element(diffs.begin(), diffs.end());
+            double l = k_prealloc_bounds_yt;
+            epsilon = delta / l;
+        }
+    }
+
     lp_variables = make_shared<vector<lp::LPVariable>>();
     lp_constraints = make_shared<vector<lp::LPConstraint>>();
 
     // Create initial variables for LP
     for (OperatorProxy op : task_proxy.get_operators()) {
-        lp_variables->emplace_back(0, infinity, op.get_cost());
+        lp_variables->emplace_back(0, infinity,
+                                   get_op_cost(op, sat_seq, epsilon));
     }
 
     // Create variable Y_T
@@ -53,7 +74,8 @@ void SOCWSSSCplexSearch::initialize() {
         if (sat_seq) {
             constraint_yt.insert(op.get_id(), 1);
         } else {
-            constraint_yt.insert(op.get_id(), op.get_cost());
+            constraint_yt.insert(op.get_id(),
+                                 get_op_cost(op, sat_seq, epsilon));
         }
     }
     constraint_yt.insert(n_ops, -1.0);
@@ -66,11 +88,14 @@ void SOCWSSSCplexSearch::initialize() {
     // Initialize bounds_literals
     bounds_literals =
         make_shared<vector<vector<int>>>(n_ops + 1, vector<int>());
-    for (int op_id = 0; op_id < n_ops + 1; ++op_id) {
+    for (int op_id = 0; op_id < n_ops; ++op_id) {
         (*bounds_literals)[op_id].emplace_back(lp_variables->size());
         lp_variables->emplace_back(0, 1, 0);
-        get_domain_constraints(op_id, k_prealloc_bounds, 0);
+        get_domain_constraints(op_id, k_prealloc_bounds_ops, 0);
     }
+    (*bounds_literals)[n_ops].emplace_back(lp_variables->size());
+    lp_variables->emplace_back(0, 1, 0);
+    get_domain_constraints(n_ops, k_prealloc_bounds_yt, 0);
 
     // Add constraints from constraint generators
     create_base_constraints();
@@ -111,7 +136,8 @@ void SOCWSSSCplexSearch::initialize() {
             mip_start_info->sequenciable = true;
             mip_start_info->plan = greedy->get_plan();
             mip_start_info->plan_cost =
-                plan2cost(mip_start_info->plan, task_proxy.get_operators());
+                plan2cost(mip_start_info->plan, task_proxy.get_operators(),
+                          sat_seq, epsilon);
 
             OperatorCount plan_counts = plan2opcount(mip_start_info, n_ops);
             shared->cache_op_counts.add(plan_counts, mip_start_info);
@@ -341,6 +367,7 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     shared->cplex = cplex;
     shared->lp_variables = lp_variables;
     shared->lp_constraints = lp_constraints;
+    shared->epsilon = epsilon;
 }
 
 void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,

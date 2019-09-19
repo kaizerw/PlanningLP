@@ -55,10 +55,12 @@ struct SOCWSSSCplexSearch : public SearchEngine {
 
     double infinity = IloInfinity;
     int n_ops, n_vars;
+    double epsilon;
 
     shared_ptr<vector<lp::LPVariable>> lp_variables;
     shared_ptr<vector<lp::LPConstraint>> lp_constraints;
-    int k_prealloc_bounds = 2;
+    int k_prealloc_bounds_ops = 2;
+    int k_prealloc_bounds_yt = 50;
     shared_ptr<vector<vector<int>>> bounds_literals;
     shared_ptr<vector<pair<int, int>>> c23_ops;
 

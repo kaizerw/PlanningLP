@@ -160,9 +160,12 @@ struct CacheOperatorCounts {
 
 OperatorCount plan2opcount(shared_ptr<SequenceInfo> info, int n_ops);
 
-long opcount2cost(OperatorCount &op_count, OperatorsProxy ops);
+long opcount2cost(OperatorCount &op_count, OperatorsProxy ops, bool sat_seq,
+                  double epsilon);
 
-long plan2cost(Plan &plan, OperatorsProxy ops);
+long plan2cost(Plan &plan, OperatorsProxy ops, bool sat_seq, double epsilon);
+
+double get_op_cost(OperatorProxy op, bool sat_seq, double epsilon);
 
 struct Shared {
     int constraint_type;
@@ -196,6 +199,7 @@ struct Shared {
     bool restart = false;
     int restarts = 0, seq = 0, repeated_seqs = 0;
     int n_ops, n_vars;
+    double epsilon = 0;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;
     shared_ptr<PrinterPlots> printer_plots;
 
