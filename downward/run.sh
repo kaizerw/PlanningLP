@@ -40,11 +40,9 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 #opts="socwsss_cplex(sat_seq=true, constraint_generators=_, mip_start=false)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem02-full.sas --search "$opts"
 
-#opts="socwsss_cplex(sat_seq=true, constraint_generators=_, mip_start=false)"
-#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
-
-opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, mip_start=false)"
-$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
+opts="socwsss_cplex(sat_seq=true, constraint_generators=_, mip_start=false)"
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
+#valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas
 #################################################################################
 # CPLEX exception
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq_landmarks)"

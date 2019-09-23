@@ -46,6 +46,7 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     string heuristic;
     bool sat_seq;
     bool mip_start;
+    bool recost;
     lp::LPSolverType lp_solver_type;
     int cost_type;
     double max_time;

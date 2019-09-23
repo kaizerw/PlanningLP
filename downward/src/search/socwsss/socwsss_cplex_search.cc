@@ -8,6 +8,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       heuristic(opts.get<string>("heuristic")),
       sat_seq(opts.get<bool>("sat_seq")),
       mip_start(opts.get<bool>("mip_start")),
+      recost(opts.get<bool>("recost")),
       lp_solver_type(lp::LPSolverType(opts.get_enum("lpsolver"))),
       cost_type(opts.get<int>("cost_type")),
       max_time(opts.get<double>("max_time")),
@@ -20,6 +21,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
     this->opts.set("heuristic", opts.get<string>("heuristic"));
     this->opts.set("sat_seq", opts.get<bool>("sat_seq"));
     this->opts.set("mip_start", opts.get<bool>("mip_start"));
+    this->opts.set("recost", opts.get<bool>("recost"));
     this->opts.set("lp_solver_type",
                    lp::LPSolverType(opts.get_enum("lpsolver")));
     this->opts.set("cost_type", opts.get<int>("cost_type"));
@@ -35,8 +37,12 @@ void SOCWSSSCplexSearch::initialize() {
     n_ops = task_proxy.get_operators().size();
     n_vars = task_proxy.get_variables().size();
 
+    // Initialize shared
+    shared =
+        make_shared<Shared>(opts, make_shared<TaskProxy>(task_proxy), task);
+
     // Calculate epsilon for recost
-    if (sat_seq) {
+    if (recost && sat_seq) {
         vector<int> diffs;
         for (int op_id1 = 0; op_id1 < n_ops; ++op_id1) {
             for (int op_id2 = 0; op_id2 < n_ops; ++op_id2) {
@@ -60,8 +66,7 @@ void SOCWSSSCplexSearch::initialize() {
 
     // Create initial variables for LP
     for (OperatorProxy op : task_proxy.get_operators()) {
-        lp_variables->emplace_back(0, infinity,
-                                   get_op_cost(op, sat_seq, epsilon));
+        lp_variables->emplace_back(0, infinity, shared->get_op_cost(op));
     }
 
     // Create variable Y_T
@@ -74,8 +79,7 @@ void SOCWSSSCplexSearch::initialize() {
         if (sat_seq) {
             constraint_yt.insert(op.get_id(), 1);
         } else {
-            constraint_yt.insert(op.get_id(),
-                                 get_op_cost(op, sat_seq, epsilon));
+            constraint_yt.insert(op.get_id(), shared->get_op_cost(op));
         }
     }
     constraint_yt.insert(n_ops, -1.0);
@@ -99,9 +103,6 @@ void SOCWSSSCplexSearch::initialize() {
 
     // Add constraints from constraint generators
     create_base_constraints();
-
-    shared =
-        make_shared<Shared>(opts, make_shared<TaskProxy>(task_proxy), task);
 
     // Perform MIP start
     if (mip_start) {
@@ -135,11 +136,9 @@ void SOCWSSSCplexSearch::initialize() {
             auto mip_start_info = make_shared<SequenceInfo>();
             mip_start_info->sequenciable = true;
             mip_start_info->plan = greedy->get_plan();
-            mip_start_info->plan_cost =
-                plan2cost(mip_start_info->plan, task_proxy.get_operators(),
-                          sat_seq, epsilon);
+            mip_start_info->plan_cost = shared->plan2cost(mip_start_info->plan);
 
-            OperatorCount plan_counts = plan2opcount(mip_start_info, n_ops);
+            OperatorCount plan_counts = shared->plan2opcount(mip_start_info);
             shared->cache_op_counts.add(plan_counts, mip_start_info);
         }
     }
@@ -319,6 +318,7 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     cplex->setParam(IloCplex::MIPInterval, 1);
 
     cplex->setParam(IloCplex::MIPSearch, IloCplex::Traditional);
+    cplex->setParam(IloCplex::NodeSel, IloCplex::BestBound);
     cplex->setParam(IloCplex::Param::Threads, 1);
     cplex->setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
     cplex->setParam(IloCplex::Param::Preprocessing::Reduce, 0);
@@ -345,7 +345,7 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     // Add MIP start
     auto [found, info] = shared->cache_op_counts.get_best_plan();
     if (found && info->sequenciable) {
-        OperatorCount plan_counts = plan2opcount(info, n_ops);
+        OperatorCount plan_counts = shared->plan2opcount(info);
 
         IloNumVarArray vars((*env));
         IloNumArray vals((*env));
@@ -582,8 +582,9 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<int>("constraint_type", "", "1");
     parser.add_option<string>("constraint_generators", "", "seq_landmarks");
     parser.add_option<string>("heuristic", "", "blind");
-    parser.add_option<bool>("mip_start", "", "true");
+    parser.add_option<bool>("mip_start", "", "false");
     parser.add_option<bool>("sat_seq", "", "false");
+    parser.add_option<bool>("recost", "", "false");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);

@@ -158,21 +158,13 @@ struct CacheOperatorCounts {
     }
 };
 
-OperatorCount plan2opcount(shared_ptr<SequenceInfo> info, int n_ops);
-
-long opcount2cost(OperatorCount &op_count, OperatorsProxy ops, bool sat_seq,
-                  double epsilon);
-
-long plan2cost(Plan &plan, OperatorsProxy ops, bool sat_seq, double epsilon);
-
-double get_op_cost(OperatorProxy op, bool sat_seq, double epsilon);
-
 struct Shared {
     int constraint_type;
     string constraint_generators;
     string heuristic;
     bool sat_seq;
     bool mip_start;
+    bool recost;
     lp::LPSolverType lp_solver_type;
     int cost_type;
     double max_time;
@@ -227,6 +219,11 @@ struct Shared {
                     IloCplex::ControlCallbackI *callback);
     void log(IloCplex::ControlCallbackI *callback, int type);
     void post_best_plan(IloCplex::HeuristicCallbackI *callback);
+
+    OperatorCount plan2opcount(shared_ptr<SequenceInfo> info);
+    long opcount2cost(OperatorCount &op_count);
+    long plan2cost(Plan &plan);
+    double get_op_cost(OperatorProxy op);
 };
 
 struct LazyCallbackI : public IloCplex::LazyConstraintCallbackI {
