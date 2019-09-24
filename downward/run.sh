@@ -43,6 +43,24 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 opts="socwsss_cplex(sat_seq=true, constraint_generators=_, mip_start=false)"
 $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas
+
+# sat fast increment
+#d1="sat_fast_increment"
+#rm -rf "$d1" && mkdir "$d1"
+#opts="socwsss_cplex(sat_seq=true, constraint_generators=_, mip_start=false)"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts" > "$d1"/p04_full_output1 2> "$d1"/p04_full_output2
+
+# seqs_lmcut_greater_blind
+#d1="seqs_lmcut_greater_blind"
+#d2="$d1/p04_full"
+#d3="$d1/p05_half"
+#rm -rf "$d1" && mkdir "$d1" && mkdir "$d2" && mkdir "$d3"
+#opts="socwsss_cplex(constraint_type=3, constraint_generators=seq_landmarks, mip_start=false, heuristic=blind)"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts" > "$d2"/blind_output1 2> "$d2"/blind_output2
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem05-half.sas --search "$opts" > "$d3"/blind_output1 2> "$d3"/blind_output2
+#opts="socwsss_cplex(constraint_type=3, constraint_generators=seq_landmarks, mip_start=false, heuristic=lmcut)"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts" > "$d2"/lmcut_output1 2> "$d2"/lmcut_output2
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem05-half.sas --search "$opts" > "$d3"/lmcut_output1 2> "$d3"/lmcut_output2
 #################################################################################
 # CPLEX exception
 #opts="socwsss_cplex(constraint_type=1, constraint_generators=seq_landmarks)"

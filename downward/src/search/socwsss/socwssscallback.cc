@@ -318,6 +318,8 @@ void Shared::log(IloCplex::ControlCallbackI* callback, int type) {
     cerr << "START: " << restarts << endl;
     cerr << "NODE ID: " << callback->getNodeId() << endl;
     cerr << "INCUMBENT: " << callback->getIncumbentObjValue() << endl;
+    cerr << "BEST OBJ VALUE: " << callback->getBestObjValue() << endl;
+    cerr << "MIP GAP: " << callback->getMIPRelativeGap() << endl;
     cerr << "Z: " << original_z << endl;
     cerr << "F-BOUND: " << rounded_z << endl;
     cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0)
