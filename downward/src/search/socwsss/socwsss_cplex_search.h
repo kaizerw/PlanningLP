@@ -44,15 +44,10 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     int constraint_type;
     string constraint_generators;
     string heuristic;
-    bool sat_seq;
     bool mip_start;
+    bool sat_seq;
     bool recost;
-    lp::LPSolverType lp_solver_type;
-    int cost_type;
-    double max_time;
-    int bound;
-    shared_ptr<PruningMethod> pruning;
-    int verbosity;
+    bool hstar;
 
     double infinity = IloInfinity;
     int n_ops, n_vars;

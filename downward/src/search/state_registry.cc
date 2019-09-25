@@ -133,6 +133,26 @@ const GlobalState &StateRegistry::get_initial_state() {
     return *cached_initial_state;
 }
 
+const GlobalState &StateRegistry::get_initial_state(GlobalState state) {
+    if (cached_initial_state == 0) {
+        PackedStateBin *buffer = new PackedStateBin[get_bins_per_state()];
+        // Avoid garbage values in half-full bins.
+        fill_n(buffer, get_bins_per_state(), 0);
+
+        State initial_state = state.unpack();
+        for (size_t i = 0; i < initial_state.size(); ++i) {
+            state_packer.set(buffer, i, initial_state[i].get_value());
+        }
+        state_data_pool.push_back(buffer);
+        // buffer is copied by push_back
+        delete[] buffer;
+
+        StateID id = insert_id_or_pop_state();
+        cached_initial_state = new GlobalState(lookup_state(id));
+    }
+    return *cached_initial_state;
+}
+
 // TODO it would be nice to move the actual state creation (and operator
 // application) out of the StateRegistry. This could for example be done by
 // global functions operating on state buffers (PackedStateBin *).
@@ -194,20 +214,4 @@ OperatorCount StateRegistry::lookup_op_count(StateID id) const {
         }
     }
     return op_count;
-}
-
-bool StateRegistry::is_new(const GlobalState &state) {
-    if (soc) {
-        state_data_pool.push_back(state.get_packed_buffer());
-
-        StateID id(state_data_pool.size() - 1);
-        pair<int, bool> result = registered_states.insert(id.value);
-        bool is_new_entry = result.second;
-
-        if (!is_new_entry) {
-            state_data_pool.pop_back();
-        }
-        return is_new_entry;
-    }
-    return false;
 }

@@ -5,6 +5,7 @@
 #include "../ext/optional.hh"
 #include "../global_state.h"
 #include "../heuristic.h"
+#include "../open_list_factory.h"
 #include "../option_parser.h"
 #include "../pruning_method.h"
 #include "../search_engines/eager_search.h"
@@ -15,30 +16,44 @@
 #include "../utils/collections.h"
 #include "../utils/hash.h"
 #include "hmax/hmax_heuristic.h"
+#include "mini_search.h"
 
 #include "glc.h"
 
 #include <iostream>
 #include <numeric>
+#include <unordered_map>
 
 using eager_search::EagerSearch;
 using OperatorCount = vector<long>;
 using soc_hmax_heuristic::SOCHMaxHeuristic;
 
+namespace options {
+class Options;
+}
+
 using namespace std;
 
 namespace soc_astar_search {
 struct SOCAStarSearch : public EagerSearch {
+    Options opts;
+    int constraint_type;
+    string constraint_generators;
+    string heuristic;
+    bool mip_start;
+    bool sat_seq;
+    bool recost;
+    bool hstar;
+
     OperatorCount initial_op_count;
     int initial_n_ops;
     long f_bound;
-    int constraint_type;
     double max_f_found;
     vector<bool> ops_learned_constraint;
     long yt_bound;
     StateRegistry state_registry;
     SearchSpace search_space;
-
+    shared_ptr<CacheHStar> cache_hstar;
     shared_ptr<GLC> learned_glc;
 
     bool check_goal_and_set_plan(const GlobalState &state);

@@ -3,17 +3,25 @@
 namespace soc_astar_search {
 SOCAStarSearch::SOCAStarSearch(const Options &opts)
     : EagerSearch(opts),
+      opts(opts),
+      constraint_type(opts.get<int>("constraint_type")),
+      constraint_generators(opts.get<string>("constraint_generators")),
+      heuristic(opts.get<string>("heuristic")),
+      mip_start(opts.get<bool>("mip_start")),
+      sat_seq(opts.get<bool>("sat_seq")),
+      recost(opts.get<bool>("recost")),
+      hstar(opts.get<bool>("hstar")),
       initial_op_count(opts.get<OperatorCount>("initial_op_count")),
       initial_n_ops(
           accumulate(initial_op_count.begin(), initial_op_count.end(), 0)),
       f_bound(opts.get<long>("f_bound")),
-      constraint_type(opts.get<int>("constraint_type")),
       max_f_found(0),
       ops_learned_constraint(task_proxy.get_operators().size(),
                              (constraint_type == 1)),
       yt_bound(numeric_limits<int>::max()),
       state_registry(task_proxy, true, initial_op_count),
-      search_space(state_registry) {
+      search_space(state_registry),
+      cache_hstar(make_shared<CacheHStar>(opts, task_proxy)) {
     cout << "Initializing SOC A* search..." << endl;
 }
 
@@ -169,9 +177,10 @@ SearchStatus SOCAStarSearch::step() {
 
     ////////////////////////////////////////////////////////////////////////////
     // Use f_bound to bound search
-    long node_f =
-        EvaluationContext(node->get_state(), node->get_g(), false, &statistics)
-            .get_evaluator_value(f_evaluator.get());
+    long node_f = (hstar ? node->get_g() + (*cache_hstar)[node->get_state()]
+                         : EvaluationContext(node->get_state(), node->get_g(),
+                                             false, &statistics)
+                               .get_evaluator_value(f_evaluator.get()));
 
     /*
     cout << string(80, '-') << endl;
@@ -251,10 +260,13 @@ SearchStatus SOCAStarSearch::step() {
                 // s only if s' is a new state and f(s') <= f_bound
             } else if (constraint_type == 3) {
                 long new_succ_f =
-                    EvaluationContext(succ_node.get_state(),
-                                      node->get_g() + get_adjusted_cost(op),
-                                      false, &statistics)
-                        .get_evaluator_value(f_evaluator.get());
+                    (hstar ? node->get_g() + get_adjusted_cost(op) +
+                                 (*cache_hstar)[succ_state]
+                           : EvaluationContext(
+                                 succ_node.get_state(),
+                                 node->get_g() + get_adjusted_cost(op), false,
+                                 &statistics)
+                                 .get_evaluator_value(f_evaluator.get()));
 
                 if (succ_node.is_new()) {
                     if (new_succ_f <= f_bound) {

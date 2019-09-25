@@ -282,6 +282,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
       cheap.
     */
     const GlobalState &get_initial_state();
+    const GlobalState &get_initial_state(GlobalState state);
 
     /*
       Returns the state that results from applying op to predecessor and
@@ -345,8 +346,6 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     const_iterator end() const { return const_iterator(*this, size()); }
 
     OperatorCount lookup_op_count(StateID id) const;
-
-    bool is_new(const GlobalState &state);
 };
 
 #endif

@@ -780,6 +780,7 @@ fast_downward_plugin(
         socwsss/minisat22/core/Solver
         socwsss/minisat22/utils/Options
         socwsss/minisat22/utils/System
+        socwsss/mini_search
         socwsss/sat_seq
         socwsss/socwsss_cplex_search
     DEPENDS OPERATOR_COUNTING PRIORITY_QUEUES SEARCH_COMMON LP_SOLVER NULL_PRUNING_METHOD ORDERED_SET SUCCESSOR_GENERATOR

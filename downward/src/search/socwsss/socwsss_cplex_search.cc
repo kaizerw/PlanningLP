@@ -3,33 +3,14 @@
 namespace SOCWSSS_cplex_search {
 SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
     : SearchEngine(opts),
+      opts(opts),
       constraint_type(opts.get<int>("constraint_type")),
       constraint_generators(opts.get<string>("constraint_generators")),
       heuristic(opts.get<string>("heuristic")),
-      sat_seq(opts.get<bool>("sat_seq")),
       mip_start(opts.get<bool>("mip_start")),
+      sat_seq(opts.get<bool>("sat_seq")),
       recost(opts.get<bool>("recost")),
-      lp_solver_type(lp::LPSolverType(opts.get_enum("lpsolver"))),
-      cost_type(opts.get<int>("cost_type")),
-      max_time(opts.get<double>("max_time")),
-      bound(opts.get<int>("bound")),
-      pruning(opts.get<shared_ptr<PruningMethod>>("pruning")),
-      verbosity(opts.get<int>("verbosity")) {
-    this->opts.set("constraint_type", opts.get<int>("constraint_type"));
-    this->opts.set("constraint_generators",
-                   opts.get<string>("constraint_generators"));
-    this->opts.set("heuristic", opts.get<string>("heuristic"));
-    this->opts.set("sat_seq", opts.get<bool>("sat_seq"));
-    this->opts.set("mip_start", opts.get<bool>("mip_start"));
-    this->opts.set("recost", opts.get<bool>("recost"));
-    this->opts.set("lp_solver_type",
-                   lp::LPSolverType(opts.get_enum("lpsolver")));
-    this->opts.set("cost_type", opts.get<int>("cost_type"));
-    this->opts.set("max_time", opts.get<double>("max_time"));
-    this->opts.set("bound", opts.get<int>("bound"));
-    this->opts.set("pruning", opts.get<shared_ptr<PruningMethod>>("pruning"));
-    this->opts.set("verbosity", opts.get<int>("verbosity"));
-}
+      hstar(opts.get<bool>("hstar")) {}
 
 void SOCWSSSCplexSearch::initialize() {
     cout << "Initializing SOCWSSS CPLEX search..." << endl;
@@ -111,16 +92,10 @@ void SOCWSSSCplexSearch::initialize() {
         opts_lmcut.set("cache_estimates", true);
         auto lmcut = make_shared<LandmarkCutHeuristic>(opts_lmcut);
 
-        options::Options opts_greedy;
+        options::Options opts_greedy(opts);
         opts_greedy.set("evals", vector<shared_ptr<Evaluator>>({lmcut}));
         opts_greedy.set("preferred", vector<shared_ptr<Evaluator>>());
         opts_greedy.set("boost", 0);
-        opts_greedy.set("pruning", pruning);
-        opts_greedy.set("cost_type", cost_type);
-        opts_greedy.set("bound", bound);
-        opts_greedy.set("max_time", max_time);
-        opts_greedy.set("verbosity", verbosity);
-
         opts_greedy.set("open", search_common::create_greedy_open_list_factory(
                                     opts_greedy));
         opts_greedy.set("reopen_closed", false);
@@ -183,9 +158,9 @@ void SOCWSSSCplexSearch::create_base_constraints() {
     // Compute dynamic merging
     if (constraint_generators.find("dynamicmerging") != string::npos) {
         cout << "Using dynamic merging constraints" << endl;
-        DynamicMerging dm(lp_solver_type, make_shared<TaskProxy>(task_proxy),
-                          infinity, lp_variables->size(),
-                          lp_constraints->size());
+        DynamicMerging dm(lp::LPSolverType(opts.get_enum("lpsolver")),
+                          make_shared<TaskProxy>(task_proxy), infinity,
+                          lp_variables->size(), lp_constraints->size());
 
         // Copy dynamic merging constraints and variables
         copy(dm.lp_variables.begin(), dm.lp_variables.end(),
@@ -585,6 +560,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("mip_start", "", "false");
     parser.add_option<bool>("sat_seq", "", "false");
     parser.add_option<bool>("recost", "", "false");
+    parser.add_option<bool>("hstar", "", "false");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);

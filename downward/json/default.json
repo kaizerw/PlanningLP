@@ -1,21 +1,18 @@
 [
-    {
-        "name": "T0",
-        "search": "socwsss_cplex(constraint_type=0)",
-        "domains": [
-            "elevators-opt11-strips", 
-            "parcprinter-opt11-strips", 
-            "visitall-opt11-strips", 
-            "woodworking-opt11-strips"
-        ]
-   },
    {
         "name": "T1",
         "search": "socwsss_cplex(constraint_type=1)",
         "domains": [
-            "elevators-opt11-strips", 
-            "parcprinter-opt11-strips", 
-            "visitall-opt11-strips", 
+            "barman-opt11-strips",
+            "elevators-opt11-strips",
+            "nomystery-opt11-strips",
+            "openstacks-opt11-strips",
+            "parcprinter-opt11-strips",
+            "pegsol-opt11-strips",
+            "scanalyzer-opt11-strips",
+            "sokoban-opt11-strips",
+            "transport-opt11-strips",
+            "visitall-opt11-strips",
             "woodworking-opt11-strips"
         ]
    },
@@ -23,9 +20,16 @@
         "name": "T2",
         "search": "socwsss_cplex(constraint_type=2)",
         "domains": [
-            "elevators-opt11-strips", 
-            "parcprinter-opt11-strips", 
-            "visitall-opt11-strips", 
+            "barman-opt11-strips",
+            "elevators-opt11-strips",
+            "nomystery-opt11-strips",
+            "openstacks-opt11-strips",
+            "parcprinter-opt11-strips",
+            "pegsol-opt11-strips",
+            "scanalyzer-opt11-strips",
+            "sokoban-opt11-strips",
+            "transport-opt11-strips",
+            "visitall-opt11-strips",
             "woodworking-opt11-strips"
         ]
     },
@@ -33,9 +37,16 @@
         "name": "T3",
         "search": "socwsss_cplex(constraint_type=3)",
         "domains": [
-            "elevators-opt11-strips", 
-            "parcprinter-opt11-strips", 
-            "visitall-opt11-strips", 
+            "barman-opt11-strips",
+            "elevators-opt11-strips",
+            "nomystery-opt11-strips",
+            "openstacks-opt11-strips",
+            "parcprinter-opt11-strips",
+            "pegsol-opt11-strips",
+            "scanalyzer-opt11-strips",
+            "sokoban-opt11-strips",
+            "transport-opt11-strips",
+            "visitall-opt11-strips",
             "woodworking-opt11-strips"
         ]
     },
@@ -43,9 +54,16 @@
         "name": "SAT",
         "search": "socwsss_cplex(sat_seq=true)",
         "domains": [
-            "elevators-opt11-strips", 
-            "parcprinter-opt11-strips", 
-            "visitall-opt11-strips", 
+            "barman-opt11-strips",
+            "elevators-opt11-strips",
+            "nomystery-opt11-strips",
+            "openstacks-opt11-strips",
+            "parcprinter-opt11-strips",
+            "pegsol-opt11-strips",
+            "scanalyzer-opt11-strips",
+            "sokoban-opt11-strips",
+            "transport-opt11-strips",
+            "visitall-opt11-strips",
             "woodworking-opt11-strips"
         ]
     }

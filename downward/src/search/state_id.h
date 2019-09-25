@@ -8,7 +8,6 @@
 
 class StateID {
     friend class StateRegistry;
-    friend class SOCStateRegistry;
     friend std::ostream &operator<<(std::ostream &os, StateID id);
     template <typename>
     friend class PerStateInformation;

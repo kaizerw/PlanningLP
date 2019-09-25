@@ -4,18 +4,14 @@ enum CallbackType { LAZY, USERCUT, HEURISTIC };
 
 Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
                shared_ptr<AbstractTask> task)
-    : constraint_type(opts.get<int>("constraint_type")),
+    : opts(opts),
+      constraint_type(opts.get<int>("constraint_type")),
       constraint_generators(opts.get<string>("constraint_generators")),
       heuristic(opts.get<string>("heuristic")),
-      sat_seq(opts.get<bool>("sat_seq")),
       mip_start(opts.get<bool>("mip_start")),
+      sat_seq(opts.get<bool>("sat_seq")),
       recost(opts.get<bool>("recost")),
-      lp_solver_type(opts.get<lp::LPSolverType>("lp_solver_type")),
-      cost_type(opts.get<int>("cost_type")),
-      max_time(opts.get<double>("max_time")),
-      bound(opts.get<int>("bound")),
-      pruning(opts.get<shared_ptr<PruningMethod>>("pruning")),
-      verbosity(opts.get<int>("verbosity")),
+      hstar(opts.get<bool>("hstar")),
       task_proxy(task_proxy),
       ops(task_proxy->get_operators()),
       vars(task_proxy->get_variables()),
@@ -123,7 +119,6 @@ pair<bool, shared_ptr<SequenceInfo>> Shared::get_astar_sequence(
 
     cout << "SEQUENCING WITH A*..." << endl;
 
-    Options opts;
     shared_ptr<Evaluator> h;
 
     if (heuristic.find("blind") != string::npos) {
@@ -213,28 +208,25 @@ pair<bool, shared_ptr<SequenceInfo>> Shared::get_astar_sequence(
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
-    opts.set("eval", h);
-    opts.set("cost_type", cost_type);
-    opts.set("max_time", max_time);
-    opts.set("bound", bound);
-    opts.set("pruning", pruning);
-    opts.set("verbosity", verbosity);
-    auto temp = search_common::create_astar_open_list_factory_and_f_eval(opts);
-    opts.set("open", temp.first);
-    opts.set("f_eval", temp.second);
-    opts.set("reopen_closed", true);
+    Options opts_astar(opts);
+    opts_astar.set("eval", h);
+    auto temp =
+        search_common::create_astar_open_list_factory_and_f_eval(opts_astar);
+    opts_astar.set("open", temp.first);
+    opts_astar.set("f_eval", temp.second);
+    opts_astar.set("reopen_closed", true);
     vector<shared_ptr<Evaluator>> preferred_list;
-    opts.set("preferred", preferred_list);
+    opts_astar.set("preferred", preferred_list);
 
-    opts.set("initial_op_count", op_count);
-    opts.set("f_bound", f_bound);
-    opts.set("constraint_type", constraint_type);
+    opts_astar.set("initial_op_count", op_count);
+    opts_astar.set("f_bound", f_bound);
+    opts_astar.set("constraint_type", constraint_type);
 
     seq++;
     printer_plots->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
                              restarts,
                              cache_op_counts.get_best_plan().second->plan_cost);
-    auto astar = make_shared<soc_astar_search::SOCAStarSearch>(opts);
+    auto astar = make_shared<soc_astar_search::SOCAStarSearch>(opts_astar);
     auto start = chrono::system_clock::now();
     astar->search();
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
@@ -374,7 +366,7 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
         info->plan_cost < callback->getIncumbentObjValue()) {
         OperatorCount plan_counts = plan2opcount(info);
 
-        lp::LPSolver lp_solver(lp_solver_type);
+        lp::LPSolver lp_solver(lp::LPSolverType(opts.get_enum("lpsolver")));
 
         vector<lp::LPVariable> local_variables;
         vector<lp::LPConstraint> local_constraints;
