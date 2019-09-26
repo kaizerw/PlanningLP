@@ -53,13 +53,13 @@ bool Shared::test_card() {
 }
 
 void Shared::sequence() {
-    // cout.setstate(ios_base::failbit);
+    cout.setstate(ios_base::failbit);
     if (sat_seq) {
         tie(found_in_cache, info) = get_sat_sequence(rounded_x);
     } else {
         tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
     }
-    // cout.clear();
+    cout.clear();
     printer_plots->update(rounded_z, rounded_x, c->getSize(), x->getSize());
 }
 
@@ -285,7 +285,6 @@ IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc,
 
     if (missing_bounds > 1) {
         restart = true;
-        restarts++;
         callback->abort();
     }
 
@@ -476,10 +475,16 @@ double Shared::get_op_cost(OperatorProxy op) {
 }
 
 void LazyCallbackI::main() {
+    if (shared->restart) {
+        return;
+    }
     if (shared->extract_sol(this) && shared->test_card()) {
         shared->sequence();
         if (!shared->info->sequenciable) {
             auto cut = shared->get_cut(shared->info->learned_glc, this);
+            if (shared->restart) {
+                return;
+            }
             add(cut >= 1.0).end();
             shared->cache_glcs.set(shared->info->learned_glc, true);
         }
@@ -492,6 +497,9 @@ IloCplex::Callback LazyCallback(IloEnv env, shared_ptr<Shared> shared) {
 }
 
 void UserCutCallbackI::main() {
+    if (shared->restart) {
+        return;
+    }
     if (isAfterCutLoop()) {
         if (shared->extract_sol(this) && shared->test_card()) {
             shared->sequence();
@@ -500,6 +508,9 @@ void UserCutCallbackI::main() {
         for (auto& [glc, in_lp] : shared->cache_glcs.cache) {
             if (!in_lp) {
                 auto cut = shared->get_cut(glc, this);
+                if (shared->restart) {
+                    return;
+                }
                 add(cut >= 1.0).end();
                 shared->cache_glcs.set(glc, true);
             }
