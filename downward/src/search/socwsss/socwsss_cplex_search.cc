@@ -293,10 +293,11 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     cplex->setParam(IloCplex::MIPInterval, 1);
 
     cplex->setParam(IloCplex::MIPSearch, IloCplex::Traditional);
-    cplex->setParam(IloCplex::NodeSel, IloCplex::BestBound);
     cplex->setParam(IloCplex::Param::Threads, 1);
-    cplex->setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
-    cplex->setParam(IloCplex::Param::Preprocessing::Reduce, 0);
+    cplex->setParam(IloCplex::PreInd, IloFalse);
+    cplex->setParam(IloCplex::Reduce, IloFalse);
+    cplex->setParam(IloCplex::NodeSel, IloCplex::BestBound);
+    cplex->setParam(IloCplex::MIPOrdType, 2);
     cplex->setParam(IloCplex::HeurFreq, -1);
     cplex->setParam(IloCplex::RINSHeur, -1);
 
