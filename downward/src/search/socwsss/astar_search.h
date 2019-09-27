@@ -44,6 +44,7 @@ struct SOCAStarSearch : public EagerSearch {
     bool sat_seq;
     bool recost;
     bool hstar;
+    string callbacks;
 
     OperatorCount initial_op_count;
     int initial_n_ops;

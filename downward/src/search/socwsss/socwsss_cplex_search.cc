@@ -10,7 +10,8 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       mip_start(opts.get<bool>("mip_start")),
       sat_seq(opts.get<bool>("sat_seq")),
       recost(opts.get<bool>("recost")),
-      hstar(opts.get<bool>("hstar")) {}
+      hstar(opts.get<bool>("hstar")),
+      callbacks(opts.get<string>("callbacks")) {}
 
 void SOCWSSSCplexSearch::initialize() {
     cout << "Initializing SOCWSSS CPLEX search..." << endl;
@@ -409,17 +410,24 @@ SearchStatus SOCWSSSCplexSearch::step() {
         try {
             cout << "Starting SOCWSSS CPLEX search..." << endl;
 
-            lazy_callback =
-                make_shared<IloCplex::Callback>(LazyCallback((*env), shared));
-            cplex->use((*lazy_callback));
-
-            usercut_callback = make_shared<IloCplex::Callback>(
-                UserCutCallback((*env), shared));
-            cplex->use((*usercut_callback));
-
-            heuristic_callback = make_shared<IloCplex::Callback>(
-                HeuristicCallback((*env), shared));
-            cplex->use((*heuristic_callback));
+            if (callbacks.find("lazy") != string::npos) {
+                cout << "USING LAZY CONSTRAINT CALLBACK" << endl;
+                lazy_callback = make_shared<IloCplex::Callback>(
+                    LazyCallback((*env), shared));
+                cplex->use((*lazy_callback));
+            }
+            if (callbacks.find("usercut") != string::npos) {
+                cout << "USING USERCUT CALLBACK" << endl;
+                usercut_callback = make_shared<IloCplex::Callback>(
+                    UserCutCallback((*env), shared));
+                cplex->use((*usercut_callback));
+            }
+            if (callbacks.find("heuristic") != string::npos) {
+                cout << "USING HEURISTIC CALLBACK" << endl;
+                heuristic_callback = make_shared<IloCplex::Callback>(
+                    HeuristicCallback((*env), shared));
+                cplex->use((*heuristic_callback));
+            }
 
             cplex->solve();
         } catch (IloException &ex) {
@@ -564,6 +572,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("sat_seq", "", "false");
     parser.add_option<bool>("recost", "", "false");
     parser.add_option<bool>("hstar", "", "false");
+    parser.add_option<string>("callbacks", "", "lazy_usercut_heuristic");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);

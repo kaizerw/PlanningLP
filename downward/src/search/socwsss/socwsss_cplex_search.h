@@ -48,6 +48,7 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     bool sat_seq;
     bool recost;
     bool hstar;
+    string callbacks;
 
     double infinity = IloInfinity;
     int n_ops, n_vars;

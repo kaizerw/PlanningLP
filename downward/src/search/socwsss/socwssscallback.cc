@@ -12,6 +12,7 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       sat_seq(opts.get<bool>("sat_seq")),
       recost(opts.get<bool>("recost")),
       hstar(opts.get<bool>("hstar")),
+      callbacks(opts.get<string>("callbacks")),
       task_proxy(task_proxy),
       ops(task_proxy->get_operators()),
       vars(task_proxy->get_variables()),
@@ -53,13 +54,13 @@ bool Shared::test_card() {
 }
 
 void Shared::sequence() {
-    cout.setstate(ios_base::failbit);
+    // cout.setstate(ios_base::failbit);
     if (sat_seq) {
         tie(found_in_cache, info) = get_sat_sequence(rounded_x);
     } else {
         tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
     }
-    cout.clear();
+    // cout.clear();
     printer_plots->update(rounded_z, rounded_x, c->getSize(), x->getSize());
 }
 

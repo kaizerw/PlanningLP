@@ -207,10 +207,10 @@ int CacheHStar::operator[](GlobalState state) {
     if (cache.count(values) == 0) {
         Options options(opts);
         options.set("state", state);
-        // cout.setstate(ios_base::failbit);
+        cout.setstate(ios_base::failbit);
         MiniSearch minisearch(options);
         minisearch.search();
-        // cout.clear();
+        cout.clear();
         cache[values] = minisearch.plan_cost;
     }
     return cache[values];

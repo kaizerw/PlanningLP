@@ -11,6 +11,7 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       sat_seq(opts.get<bool>("sat_seq")),
       recost(opts.get<bool>("recost")),
       hstar(opts.get<bool>("hstar")),
+      callbacks(opts.get<string>("callbacks")),
       initial_op_count(opts.get<OperatorCount>("initial_op_count")),
       initial_n_ops(
           accumulate(initial_op_count.begin(), initial_op_count.end(), 0)),

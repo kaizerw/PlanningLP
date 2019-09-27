@@ -167,6 +167,7 @@ struct Shared {
     bool sat_seq;
     bool recost;
     bool hstar;
+    string callbacks;
 
     shared_ptr<TaskProxy> task_proxy;
     OperatorsProxy ops;
