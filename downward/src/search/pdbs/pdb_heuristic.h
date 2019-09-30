@@ -16,14 +16,16 @@ class PatternDatabase;
 // Implements a heuristic for a single PDB.
 class PDBHeuristic : public Heuristic {
     std::shared_ptr<PatternDatabase> pdb;
-protected:
+    // protected:
+   public:
     virtual int compute_heuristic(const GlobalState &global_state) override;
     /* TODO: we want to get rid of compute_heuristic(const GlobalState &state)
        and change the interface to only use State objects. While we are doing
        this, the following method already allows to get the heuristic value
        for a State object. */
     int compute_heuristic(const State &state) const;
-public:
+
+   public:
     /*
       Important: It is assumed that the pattern (passed via Options) is
       sorted, contains no duplicates and is small enough so that the
@@ -36,6 +38,6 @@ public:
     PDBHeuristic(const options::Options &opts);
     virtual ~PDBHeuristic() override = default;
 };
-}
+}  // namespace pdbs
 
 #endif

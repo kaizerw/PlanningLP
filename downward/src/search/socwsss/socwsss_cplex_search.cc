@@ -10,7 +10,9 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       mip_start(opts.get<bool>("mip_start")),
       sat_seq(opts.get<bool>("sat_seq")),
       recost(opts.get<bool>("recost")),
-      hstar(opts.get<bool>("hstar")),
+      hstar_search(opts.get<bool>("hstar_search")),
+      hstar_pdb(opts.get<bool>("hstar_pdb")),
+      cstar(opts.get<int>("cstar")),
       callbacks(opts.get<string>("callbacks")),
       n_ops(task_proxy.get_operators().size()),
       n_vars(task_proxy.get_variables().size()) {}
@@ -80,6 +82,13 @@ void SOCWSSSCplexSearch::add_base_constraints() {
     }
     (*bounds_literals)[n_ops].emplace_back(-1);  // dummy index for [Y >= 0]
     get_domain_constraints(n_ops, k_prealloc_bounds_yt, 0);
+
+    // Add constraint YT >= C*
+    if (cstar > 0) {
+        lp::LPConstraint constraint_cstar(cstar, infinity);
+        constraint_cstar.insert(n_ops, 1.0);
+        lp_constraints->emplace_back(constraint_cstar);
+    }
 }
 
 void SOCWSSSCplexSearch::add_heuristic_constraints() {
@@ -563,7 +572,9 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("mip_start", "", "false");
     parser.add_option<bool>("sat_seq", "", "false");
     parser.add_option<bool>("recost", "", "false");
-    parser.add_option<bool>("hstar", "", "false");
+    parser.add_option<bool>("hstar_search", "", "false");
+    parser.add_option<bool>("hstar_pdb", "", "false");
+    parser.add_option<int>("cstar", "", "0");
     parser.add_option<string>("callbacks", "", "lazy_usercut_heuristic");
 
     lp::add_lp_solver_option_to_parser(parser);

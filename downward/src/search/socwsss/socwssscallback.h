@@ -28,6 +28,8 @@
 #include "../operator_counting/operator_counting_heuristic.h"
 #include "../operator_counting/state_equation_constraints.h"
 #include "../pdbs/pattern_collection_generator_systematic.h"
+#include "../pdbs/pattern_generator_manual.h"
+#include "../pdbs/pdb_heuristic.h"
 #include "glcs_constraints.h"
 
 using blind_search_heuristic::BlindSearchHeuristic;
@@ -166,7 +168,9 @@ struct Shared {
     bool mip_start;
     bool sat_seq;
     bool recost;
-    bool hstar;
+    bool hstar_search;
+    bool hstar_pdb;
+    int cstar;
     string callbacks;
 
     shared_ptr<TaskProxy> task_proxy;
@@ -174,6 +178,7 @@ struct Shared {
     VariablesProxy vars;
     shared_ptr<AbstractTask> task;
     chrono::time_point<chrono::system_clock> start;
+    shared_ptr<Evaluator> full_pdb;
 
     shared_ptr<vector<vector<int>>> bounds_literals;
     shared_ptr<IloEnv> env;

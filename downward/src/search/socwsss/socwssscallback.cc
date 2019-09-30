@@ -11,7 +11,9 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       mip_start(opts.get<bool>("mip_start")),
       sat_seq(opts.get<bool>("sat_seq")),
       recost(opts.get<bool>("recost")),
-      hstar(opts.get<bool>("hstar")),
+      hstar_search(opts.get<bool>("hstar_search")),
+      hstar_pdb(opts.get<bool>("hstar_pdb")),
+      cstar(opts.get<int>("cstar")),
       callbacks(opts.get<string>("callbacks")),
       task_proxy(task_proxy),
       ops(task_proxy->get_operators()),
@@ -22,6 +24,28 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
     n_vars = task_proxy->get_variables().size();
     glcs = make_shared<vector<shared_ptr<GLC>>>();
     printer_plots = make_shared<PrinterPlots>(n_ops, n_vars, glcs, start);
+    if (hstar_pdb && !sat_seq) {
+        vector<int> pattern;
+        for (int var_id = 0; var_id < n_vars; ++var_id) {
+            pattern.emplace_back(var_id);
+        }
+
+        Options opts_pattern;
+        opts_pattern.set("pattern", pattern);
+        shared_ptr<pdbs::PatternGenerator> pattern_generator =
+            make_shared<pdbs::PatternGeneratorManual>(opts_pattern);
+
+        Options opts_h;
+        opts_h.set("pattern", pattern_generator);
+        opts_h.set("transform", task);
+        opts_h.set("cache_estimates", true);
+
+        full_pdb = make_shared<pdbs::PDBHeuristic>(opts_h);
+
+        // shared_ptr<pdbs::PDBHeuristic> hstar =
+        //    dynamic_pointer_cast<pdbs::PDBHeuristic>(full_pdb);
+        // hstar->compute_heuristic(task_proxy->get_initial_state());
+    }
 }
 
 bool Shared::extract_sol(IloCplex::ControlCallbackI* callback) {
@@ -122,7 +146,10 @@ pair<bool, shared_ptr<SequenceInfo>> Shared::get_astar_sequence(
 
     shared_ptr<Evaluator> h;
 
-    if (heuristic.find("blind") != string::npos) {
+    if (hstar_pdb) {
+        cout << "USING H* HEURISTIC FROM FULL PDB" << endl;
+        h = full_pdb;
+    } else if (heuristic.find("blind") != string::npos) {
         cout << "USING BLIND HEURISTIC" << endl;
         Options opts_h;
         opts_h.set("transform", task);
@@ -492,7 +519,7 @@ void LazyCallbackI::main() {
             add(cut >= 1.0).end();
             shared->cache_glcs.set(shared->info->learned_glc, true);
         }
-        shared->log(this, LAZY);
+        // shared->log(this, LAZY);
     }
 }
 
@@ -507,7 +534,7 @@ void UserCutCallbackI::main() {
     if (isAfterCutLoop()) {
         if (shared->extract_sol(this) && shared->test_card()) {
             shared->sequence();
-            shared->log(this, USERCUT);
+            // shared->log(this, USERCUT);
         }
         for (auto& [glc, in_lp] : shared->cache_glcs.cache) {
             if (!in_lp) {
@@ -529,7 +556,7 @@ IloCplex::Callback UserCutCallback(IloEnv env, shared_ptr<Shared> shared) {
 void HeuristicCallbackI::main() {
     if (shared->extract_sol(this) && shared->test_card()) {
         shared->sequence();
-        shared->log(this, HEURISTIC);
+        // shared->log(this, HEURISTIC);
     }
     shared->post_best_plan(this);
 }

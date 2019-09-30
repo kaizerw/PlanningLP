@@ -10,7 +10,9 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       mip_start(opts.get<bool>("mip_start")),
       sat_seq(opts.get<bool>("sat_seq")),
       recost(opts.get<bool>("recost")),
-      hstar(opts.get<bool>("hstar")),
+      hstar_search(opts.get<bool>("hstar_search")),
+      hstar_pdb(opts.get<bool>("hstar_pdb")),
+      cstar(opts.get<int>("cstar")),
       callbacks(opts.get<string>("callbacks")),
       initial_op_count(opts.get<OperatorCount>("initial_op_count")),
       initial_n_ops(
@@ -178,10 +180,11 @@ SearchStatus SOCAStarSearch::step() {
 
     ////////////////////////////////////////////////////////////////////////////
     // Use f_bound to bound search
-    long node_f = (hstar ? node->get_g() + (*cache_hstar)[node->get_state()]
-                         : EvaluationContext(node->get_state(), node->get_g(),
-                                             false, &statistics)
-                               .get_evaluator_value(f_evaluator.get()));
+    long node_f =
+        (hstar_search ? node->get_g() + (*cache_hstar)[node->get_state()]
+                      : EvaluationContext(node->get_state(), node->get_g(),
+                                          false, &statistics)
+                            .get_evaluator_value(f_evaluator.get()));
 
     /*
     cout << string(80, '-') << endl;
@@ -194,7 +197,7 @@ SearchStatus SOCAStarSearch::step() {
     if (node_f > f_bound) {
         // In T2 and T3 we add the YT bound if A* selects for expansion a state
         // with f > f_bound
-        if (constraint_type == 2 || constraint_type == 3) {
+        if ((constraint_type == 2 || constraint_type == 3) && cstar == 0) {
             yt_bound = min(yt_bound, node_f);
         }
 
@@ -261,22 +264,25 @@ SearchStatus SOCAStarSearch::step() {
                 // s only if s' is a new state and f(s') <= f_bound
             } else if (constraint_type == 3) {
                 long new_succ_f =
-                    (hstar ? node->get_g() + get_adjusted_cost(op) +
-                                 (*cache_hstar)[succ_state]
-                           : EvaluationContext(
-                                 succ_node.get_state(),
-                                 node->get_g() + get_adjusted_cost(op), false,
-                                 &statistics)
-                                 .get_evaluator_value(f_evaluator.get()));
+                    (hstar_search
+                         ? node->get_g() + get_adjusted_cost(op) +
+                               (*cache_hstar)[succ_state]
+                         : EvaluationContext(
+                               succ_node.get_state(),
+                               node->get_g() + get_adjusted_cost(op), false,
+                               &statistics)
+                               .get_evaluator_value(f_evaluator.get()));
 
                 if (succ_node.is_new()) {
                     if (new_succ_f <= f_bound) {
                         ops_learned_constraint[op.get_id()] = true;
                     } else {
-                        // In T3, we add the YT bound if a state with f >
-                        // f_bound could be generated if there were one more
-                        // of the operator
-                        yt_bound = min(yt_bound, new_succ_f);
+                        if (cstar == 0) {
+                            // In T3, we add the YT bound if a state with f >
+                            // f_bound could be generated if there were one more
+                            // of the operator
+                            yt_bound = min(yt_bound, new_succ_f);
+                        }
                     }
                 }
             }
