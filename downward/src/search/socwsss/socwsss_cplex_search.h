@@ -59,7 +59,7 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     int k_prealloc_bounds_ops = 2;
     int k_prealloc_bounds_yt = 2;
     shared_ptr<vector<vector<int>>> bounds_literals;
-    shared_ptr<vector<pair<int, int>>> c23_ops;
+    shared_ptr<vector<int>> c2_ops;
 
     shared_ptr<IloEnv> env;
     shared_ptr<IloModel> model;

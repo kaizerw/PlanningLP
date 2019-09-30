@@ -67,20 +67,17 @@ void SOCWSSSCplexSearch::initialize() {
     constraint_yt.insert(n_ops, -1.0);
     lp_constraints->emplace_back(constraint_yt);
 
-    // Initialize c23_ops
-    c23_ops =
-        make_shared<vector<pair<int, int>>>(vector(n_ops + 1, pair(-1, -1)));
+    // Initialize c2_ops
+    c2_ops = make_shared<vector<int>>(vector(n_ops + 1, -1));
 
     // Initialize bounds_literals
     bounds_literals =
         make_shared<vector<vector<int>>>(n_ops + 1, vector<int>());
     for (int op_id = 0; op_id < n_ops; ++op_id) {
-        (*bounds_literals)[op_id].emplace_back(lp_variables->size());
-        lp_variables->emplace_back(0, 1, 0);
+        (*bounds_literals)[op_id].emplace_back(-1);  // dummy index for [Y >= 0]
         get_domain_constraints(op_id, k_prealloc_bounds_ops, 0);
     }
-    (*bounds_literals)[n_ops].emplace_back(lp_variables->size());
-    lp_variables->emplace_back(0, 1, 0);
+    (*bounds_literals)[n_ops].emplace_back(-1);  // dummy index for [Y >= 0]
     get_domain_constraints(n_ops, k_prealloc_bounds_yt, 0);
 
     // Add constraints from constraint generators
@@ -137,7 +134,8 @@ void SOCWSSSCplexSearch::create_base_constraints() {
                 [&](const vector<int> &op_ids, int) {
                     lp::LPConstraint landmark_constraint(1.0, infinity);
                     for (int op_id : op_ids) {
-                        landmark_constraint.insert(op_id, 1.0);
+                        landmark_constraint.insert((*bounds_literals)[op_id][1],
+                                                   1.0);
                     }
                     lp_constraints->emplace_back(landmark_constraint);
                 });
@@ -293,14 +291,14 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     // cplex->setWarning(env->getNullStream());
     cplex->setParam(IloCplex::MIPInterval, 1);
 
-    cplex->setParam(IloCplex::MIPSearch, IloCplex::Traditional);
     cplex->setParam(IloCplex::Param::Threads, 1);
-    cplex->setParam(IloCplex::PreInd, IloFalse);
-    cplex->setParam(IloCplex::Reduce, IloFalse);
-    cplex->setParam(IloCplex::NodeSel, IloCplex::BestBound);
-    cplex->setParam(IloCplex::MIPOrdType, 2);
-    cplex->setParam(IloCplex::HeurFreq, -1);
-    cplex->setParam(IloCplex::RINSHeur, -1);
+    // cplex->setParam(IloCplex::MIPSearch, IloCplex::Traditional);
+    // cplex->setParam(IloCplex::PreInd, IloFalse);
+    // cplex->setParam(IloCplex::Reduce, IloFalse);
+    // cplex->setParam(IloCplex::NodeSel, IloCplex::BestBound);
+    // cplex->setParam(IloCplex::MIPOrdType, 2);
+    // cplex->setParam(IloCplex::HeurFreq, -1);
+    // cplex->setParam(IloCplex::RINSHeur, -1);
 
     /*
     cplex->setParam(IloCplex::Param::MIP::Cuts::BQP, -1);
@@ -358,6 +356,11 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
 
     // Create constraints (1): [Yo >= k] - [Yo >= k - 1] <= 0
     for (int i = current_bound; i > previous_bound; --i) {
+        if (i == 1) {
+            // We do not create [Yo >= 1] - [Yo >= 0] <= 0
+            continue;
+        }
+
         lp::LPConstraint c1(-infinity, 0.0);
 
         int id_k = (*bounds_literals)[op_id][i];
@@ -377,26 +380,24 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
     }
     c2.insert(op_id, -1.0);
 
+    // Update constraint 2 of this operator
+    int ix2 = (*c2_ops)[op_id];
+    if (ix2 == -1) {
+        // If constraint 2 doesn't exist for this operator then create it
+        lp_constraints->emplace_back(c2);
+        (*c2_ops)[op_id] = (lp_constraints->size() - 1);
+    } else {
+        // If constraint 2 already exists for this operator then update it
+        (*lp_constraints)[ix2] = c2;
+    }
+
     // Create constraint (3): Yo - M*[Yo >= k] <= k - 1
     double M = 1e10;
-    lp::LPConstraint c3(-infinity, current_bound - 1);
-    c3.insert(op_id, 1.0);
-    c3.insert((*bounds_literals)[op_id][current_bound], -M);
-
-    // Update constraints 2 and 3 of this operator
-    auto [ix2, ix3] = (*c23_ops)[op_id];
-    if (ix2 == -1 && ix3 == -1) {
-        // If constraints 2 and 3 don't exist for this operator then create them
-        lp_constraints->emplace_back(c2);
+    for (int i = current_bound; i > previous_bound; --i) {
+        lp::LPConstraint c3(-infinity, i - 1);
+        c3.insert(op_id, 1.0);
+        c3.insert((*bounds_literals)[op_id][i], -M);
         lp_constraints->emplace_back(c3);
-
-        (*c23_ops)[op_id] = {lp_constraints->size() - 2,
-                             lp_constraints->size() - 1};
-    } else {
-        // If constraints 2 and 3 already exist for this operator then update
-        // them
-        (*lp_constraints)[ix2] = c2;
-        (*lp_constraints)[ix3] = c3;
     }
 }
 
