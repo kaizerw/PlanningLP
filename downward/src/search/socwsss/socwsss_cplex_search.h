@@ -75,8 +75,11 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     shared_ptr<IloCplex::Callback> heuristic_callback;
 
     virtual void initialize() override;
-    void create_base_constraints();
-    void create_cplex_data();
+    void calc_epsilon_recost();
+    void add_base_constraints();
+    void add_heuristic_constraints();
+    void add_mip_start();
+    void create_cplex_model();
     void get_domain_constraints(int op_id, int current_bound,
                                 int previous_bound);
     virtual SearchStatus step() override;

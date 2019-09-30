@@ -11,19 +11,22 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       sat_seq(opts.get<bool>("sat_seq")),
       recost(opts.get<bool>("recost")),
       hstar(opts.get<bool>("hstar")),
-      callbacks(opts.get<string>("callbacks")) {}
+      callbacks(opts.get<string>("callbacks")),
+      n_ops(task_proxy.get_operators().size()),
+      n_vars(task_proxy.get_variables().size()) {}
 
 void SOCWSSSCplexSearch::initialize() {
     cout << "Initializing SOCWSSS CPLEX search..." << endl;
 
-    n_ops = task_proxy.get_operators().size();
-    n_vars = task_proxy.get_variables().size();
-
-    // Initialize shared
     shared =
         make_shared<Shared>(opts, make_shared<TaskProxy>(task_proxy), task);
+    calc_epsilon_recost();
+    add_base_constraints();
+    add_heuristic_constraints();
+    add_mip_start();
+}
 
-    // Calculate epsilon for recost
+void SOCWSSSCplexSearch::calc_epsilon_recost() {
     if (recost && sat_seq) {
         vector<int> diffs;
         for (int op_id1 = 0; op_id1 < n_ops; ++op_id1) {
@@ -40,18 +43,18 @@ void SOCWSSSCplexSearch::initialize() {
             delta = (double)*min_element(diffs.begin(), diffs.end());
             double l = k_prealloc_bounds_yt;
             epsilon = delta / l;
+            shared->epsilon = epsilon;
         }
     }
+}
 
+void SOCWSSSCplexSearch::add_base_constraints() {
     lp_variables = make_shared<vector<lp::LPVariable>>();
     lp_constraints = make_shared<vector<lp::LPConstraint>>();
 
-    // Create initial variables for LP
     for (OperatorProxy op : task_proxy.get_operators()) {
         lp_variables->emplace_back(0, infinity, shared->get_op_cost(op));
     }
-
-    // Create variable Y_T
     lp_variables->emplace_back(0, infinity, 0);
 
     // Create constraint:
@@ -67,10 +70,8 @@ void SOCWSSSCplexSearch::initialize() {
     constraint_yt.insert(n_ops, -1.0);
     lp_constraints->emplace_back(constraint_yt);
 
-    // Initialize c2_ops
     c2_ops = make_shared<vector<int>>(vector(n_ops + 1, -1));
 
-    // Initialize bounds_literals
     bounds_literals =
         make_shared<vector<vector<int>>>(n_ops + 1, vector<int>());
     for (int op_id = 0; op_id < n_ops; ++op_id) {
@@ -79,11 +80,75 @@ void SOCWSSSCplexSearch::initialize() {
     }
     (*bounds_literals)[n_ops].emplace_back(-1);  // dummy index for [Y >= 0]
     get_domain_constraints(n_ops, k_prealloc_bounds_yt, 0);
+}
 
-    // Add constraints from constraint generators
-    create_base_constraints();
+void SOCWSSSCplexSearch::add_heuristic_constraints() {
+    if (constraint_generators.find("seq") != string::npos) {
+        cout << "Using SEQ constraints" << endl;
+        SEQConstraints()(task, (*lp_constraints), infinity,
+                         task_proxy.get_initial_state());
+    }
 
-    // Perform MIP start
+    if (constraint_generators.find("landmarks") != string::npos) {
+        cout << "Using lmcut constraints" << endl;
+        LandmarkCutLandmarks(task_proxy)
+            .compute_landmarks(
+                task_proxy.get_initial_state(), nullptr,
+                [&](const vector<int> &op_ids, int) {
+                    lp::LPConstraint landmark_constraint(1.0, infinity);
+                    for (int op_id : op_ids) {
+                        landmark_constraint.insert((*bounds_literals)[op_id][1],
+                                                   1.0);
+                    }
+                    lp_constraints->emplace_back(landmark_constraint);
+                });
+    }
+
+    // Add relaxed exploration action landmarks
+    /*
+    if (true) {
+        cout << "Using relaxed exploration landmarks" << endl;
+        auto landmarks = RelaxedExplorationLandmarks(task_proxy)();
+        for (int op_id : landmarks) {
+            lp::LPConstraint landmark_constraint(1.0, infinity);
+            landmark_constraint.insert(op_id, 1.0);
+            lp_constraints->emplace_back(landmark_constraint);
+        }
+    }
+    */
+
+    if (constraint_generators.find("dynamicmerging") != string::npos) {
+        cout << "Using dynamic merging constraints" << endl;
+        DynamicMerging dm(lp::LPSolverType(opts.get_enum("lpsolver")),
+                          make_shared<TaskProxy>(task_proxy), infinity,
+                          lp_variables->size(), lp_constraints->size());
+
+        copy(dm.lp_variables.begin(), dm.lp_variables.end(),
+             back_inserter((*lp_variables)));
+        copy(dm.lp_constraints.begin(), dm.lp_constraints.end(),
+             back_inserter((*lp_constraints)));
+    }
+
+    if (constraint_generators.find("h+") != string::npos) {
+        cout << "Using delete relaxation constraints" << endl;
+        FlorianDeleteRelaxationConstraints(
+            make_shared<TaskProxy>(task_proxy), infinity, (*lp_variables),
+            (*lp_constraints), task_proxy.get_initial_state());
+    }
+
+    if (constraint_generators.find("flow") != string::npos) {
+        cout << "Using flow constraints" << endl;
+        FlorianFlowConstraints fc(task, lp_variables->size(), infinity,
+                                  task_proxy.get_initial_state());
+
+        copy(fc.lp_variables.begin(), fc.lp_variables.end(),
+             back_inserter((*lp_variables)));
+        copy(fc.lp_constraints.begin(), fc.lp_constraints.end(),
+             back_inserter((*lp_constraints)));
+    }
+}
+
+void SOCWSSSCplexSearch::add_mip_start() {
     if (mip_start) {
         Options opts_lmcut;
         opts_lmcut.set("transform", task);
@@ -117,80 +182,7 @@ void SOCWSSSCplexSearch::initialize() {
     }
 }
 
-void SOCWSSSCplexSearch::create_base_constraints() {
-    // Create state-equation constraints
-    if (constraint_generators.find("seq") != string::npos) {
-        cout << "Using SEQ constraints" << endl;
-        SEQConstraints()(task, (*lp_constraints), infinity,
-                         task_proxy.get_initial_state());
-    }
-
-    // Add lmcut landmark constraints with bounds literals
-    if (constraint_generators.find("landmarks") != string::npos) {
-        cout << "Using lmcut constraints" << endl;
-        LandmarkCutLandmarks(task_proxy)
-            .compute_landmarks(
-                task_proxy.get_initial_state(), nullptr,
-                [&](const vector<int> &op_ids, int) {
-                    lp::LPConstraint landmark_constraint(1.0, infinity);
-                    for (int op_id : op_ids) {
-                        landmark_constraint.insert((*bounds_literals)[op_id][1],
-                                                   1.0);
-                    }
-                    lp_constraints->emplace_back(landmark_constraint);
-                });
-    }
-
-    // Add relaxed exploration action landmarks
-    /*
-    if (true) {
-        cout << "Using relaxed exploration landmarks" << endl;
-        auto landmarks = RelaxedExplorationLandmarks(task_proxy)();
-        for (int op_id : landmarks) {
-            lp::LPConstraint landmark_constraint(1.0, infinity);
-            landmark_constraint.insert(op_id, 1.0);
-            lp_constraints->emplace_back(landmark_constraint);
-        }
-    }
-    */
-
-    // Compute dynamic merging
-    if (constraint_generators.find("dynamicmerging") != string::npos) {
-        cout << "Using dynamic merging constraints" << endl;
-        DynamicMerging dm(lp::LPSolverType(opts.get_enum("lpsolver")),
-                          make_shared<TaskProxy>(task_proxy), infinity,
-                          lp_variables->size(), lp_constraints->size());
-
-        // Copy dynamic merging constraints and variables
-        copy(dm.lp_variables.begin(), dm.lp_variables.end(),
-             back_inserter((*lp_variables)));
-        copy(dm.lp_constraints.begin(), dm.lp_constraints.end(),
-             back_inserter((*lp_constraints)));
-    }
-
-    // Florian delete relaxation constraints
-    if (constraint_generators.find("h+") != string::npos) {
-        cout << "Using delete relaxation constraints" << endl;
-        FlorianDeleteRelaxationConstraints(
-            make_shared<TaskProxy>(task_proxy), infinity, (*lp_variables),
-            (*lp_constraints), task_proxy.get_initial_state());
-    }
-
-    // Florian flow constraints
-    if (constraint_generators.find("flow") != string::npos) {
-        cout << "Using flow constraints" << endl;
-        FlorianFlowConstraints fc(task, lp_variables->size(), infinity,
-                                  task_proxy.get_initial_state());
-
-        // Copy flow constraints and variables
-        copy(fc.lp_variables.begin(), fc.lp_variables.end(),
-             back_inserter((*lp_variables)));
-        copy(fc.lp_constraints.begin(), fc.lp_constraints.end(),
-             back_inserter((*lp_constraints)));
-    }
-}
-
-void SOCWSSSCplexSearch::create_cplex_data() {
+void SOCWSSSCplexSearch::create_cplex_model() {
     env = make_shared<IloEnv>();
     model = make_shared<IloModel>((*env));
     x = make_shared<IloNumVarArray>((*env));
@@ -296,8 +288,8 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     // cplex->setParam(IloCplex::PreInd, IloFalse);
     // cplex->setParam(IloCplex::Reduce, IloFalse);
     // cplex->setParam(IloCplex::NodeSel, IloCplex::BestBound);
-    // cplex->setParam(IloCplex::MIPOrdType, 2);
-    // cplex->setParam(IloCplex::HeurFreq, -1);
+    cplex->setParam(IloCplex::MIPOrdType, 2);
+    cplex->setParam(IloCplex::HeurFreq, -1);
     // cplex->setParam(IloCplex::RINSHeur, -1);
 
     /*
@@ -343,7 +335,6 @@ void SOCWSSSCplexSearch::create_cplex_data() {
     shared->cplex = cplex;
     shared->lp_variables = lp_variables;
     shared->lp_constraints = lp_constraints;
-    shared->epsilon = epsilon;
 }
 
 void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
@@ -392,7 +383,7 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
     }
 
     // Create constraint (3): Yo - M*[Yo >= k] <= k - 1
-    double M = 1e10;
+    double M = 1e3;
     for (int i = current_bound; i > previous_bound; --i) {
         lp::LPConstraint c3(-infinity, i - 1);
         c3.insert(op_id, 1.0);
@@ -406,7 +397,7 @@ SearchStatus SOCWSSSCplexSearch::step() {
 
     // Execute a custom branch-and-cut
     while (true) {
-        create_cplex_data();
+        create_cplex_model();
 
         try {
             cout << "Starting SOCWSSS CPLEX search..." << endl;

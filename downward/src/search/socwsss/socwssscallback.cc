@@ -492,7 +492,7 @@ void LazyCallbackI::main() {
             add(cut >= 1.0).end();
             shared->cache_glcs.set(shared->info->learned_glc, true);
         }
-        // shared->log(this, LAZY);
+        shared->log(this, LAZY);
     }
 }
 
@@ -507,7 +507,7 @@ void UserCutCallbackI::main() {
     if (isAfterCutLoop()) {
         if (shared->extract_sol(this) && shared->test_card()) {
             shared->sequence();
-            // shared->log(this, USERCUT);
+            shared->log(this, USERCUT);
         }
         for (auto& [glc, in_lp] : shared->cache_glcs.cache) {
             if (!in_lp) {
@@ -529,7 +529,7 @@ IloCplex::Callback UserCutCallback(IloEnv env, shared_ptr<Shared> shared) {
 void HeuristicCallbackI::main() {
     if (shared->extract_sol(this) && shared->test_card()) {
         shared->sequence();
-        // shared->log(this, HEURISTIC);
+        shared->log(this, HEURISTIC);
     }
     shared->post_best_plan(this);
 }
