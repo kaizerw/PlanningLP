@@ -121,7 +121,7 @@ class Master:
         # Fetch and translate instances for all available domains
         self.all_domains = ['_airport', '_blocks', '_depot', '_gripper2hands', '_gripper1hand', 'barman-opt11-strips', 'elevators-opt11-strips', 'nomystery-opt11-strips',
                             'openstacks-opt11-strips', 'parcprinter-opt11-strips', 'pegsol-opt11-strips', 'scanalyzer-opt11-strips', 'sokoban-opt11-strips',
-                            'transport-opt11-strips', 'visitall-opt11-strips', 'woodworking-opt11-strips', 'elevators_selected', 'nomystery-selected', 
+                            'transport-opt11-strips', 'visitall-opt11-strips', 'woodworking-opt11-strips', 'elevators-selected', 'nomystery-selected', 
                             'scanalyzer-selected', 'transport-selected', 'visitall-selected']
         self.all_instances = {domain: self.fetch_and_translate_files(domain) for domain in self.all_domains}
 
