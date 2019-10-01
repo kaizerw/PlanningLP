@@ -167,6 +167,7 @@ struct Shared {
     string heuristic;
     bool mip_start;
     bool sat_seq;
+    bool best_seq;
     bool recost;
     bool hstar_search;
     bool hstar_pdb;
@@ -213,10 +214,9 @@ struct Shared {
     bool extract_sol(IloCplex::ControlCallbackI *callback);
     bool test_card();
     void sequence();
-    pair<bool, shared_ptr<SequenceInfo>> get_sat_sequence(
-        OperatorCount op_count);
-    pair<bool, shared_ptr<SequenceInfo>> get_astar_sequence(
-        long f_bound, OperatorCount op_count);
+    shared_ptr<SequenceInfo> get_best_sequence();
+    shared_ptr<SequenceInfo> get_sat_sequence();
+    shared_ptr<SequenceInfo> get_astar_sequence();
     IloExpr get_cut(shared_ptr<GLC> learned_glc,
                     IloCplex::ControlCallbackI *callback);
     void log(IloCplex::ControlCallbackI *callback, int type);

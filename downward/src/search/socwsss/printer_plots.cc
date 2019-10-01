@@ -88,6 +88,9 @@ void PrinterPlots::show_data(int seq, double best_bound_found,
               this->plot_astar_time.begin(), ms_to_s);
 
     // exit_code
+    cout << "Perc astar is better: "
+         << ((double)total_astar_is_better / (double)total_learned_glcs)
+         << endl;
     cout << "Min plan in cache: " << min_plan_in_cache << endl;
     cout << "Max f found: "
          << (this->plot_max_f_found.size() > 0

@@ -42,6 +42,7 @@ struct SOCAStarSearch : public EagerSearch {
     string heuristic;
     bool mip_start;
     bool sat_seq;
+    bool best_seq;
     bool recost;
     bool hstar_search;
     bool hstar_pdb;

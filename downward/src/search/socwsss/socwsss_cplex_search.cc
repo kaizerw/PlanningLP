@@ -9,6 +9,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       heuristic(opts.get<string>("heuristic")),
       mip_start(opts.get<bool>("mip_start")),
       sat_seq(opts.get<bool>("sat_seq")),
+      best_seq(opts.get<bool>("best_seq")),
       recost(opts.get<bool>("recost")),
       hstar_search(opts.get<bool>("hstar_search")),
       hstar_pdb(opts.get<bool>("hstar_pdb")),
@@ -571,6 +572,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<string>("heuristic", "", "blind");
     parser.add_option<bool>("mip_start", "", "false");
     parser.add_option<bool>("sat_seq", "", "false");
+    parser.add_option<bool>("best_seq", "", "false");
     parser.add_option<bool>("recost", "", "false");
     parser.add_option<bool>("hstar_search", "", "false");
     parser.add_option<bool>("hstar_pdb", "", "false");

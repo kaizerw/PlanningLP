@@ -10,6 +10,7 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       heuristic(opts.get<string>("heuristic")),
       mip_start(opts.get<bool>("mip_start")),
       sat_seq(opts.get<bool>("sat_seq")),
+      best_seq(opts.get<bool>("best_seq")),
       recost(opts.get<bool>("recost")),
       hstar_search(opts.get<bool>("hstar_search")),
       hstar_pdb(opts.get<bool>("hstar_pdb")),
@@ -78,27 +79,62 @@ bool Shared::test_card() {
 }
 
 void Shared::sequence() {
-    // cout.setstate(ios_base::failbit);
-    if (sat_seq) {
-        tie(found_in_cache, info) = get_sat_sequence(rounded_x);
-    } else {
-        tie(found_in_cache, info) = get_astar_sequence(rounded_z, rounded_x);
+    found_in_cache = false;
+    if (cache_op_counts.has(rounded_x)) {
+        repeated_seqs++;
+        if (!cache_op_counts[rounded_x]->sequenciable) {
+            repeated_glc =
+                cache_glcs.add(cache_op_counts[rounded_x]->learned_glc);
+        }
+        found_in_cache = true;
+        info = cache_op_counts[rounded_x];
     }
-    // cout.clear();
+
+    if (!found_in_cache) {
+        // cout.setstate(ios_base::failbit);
+        if (best_seq) {
+            info = get_best_sequence();
+        } else if (sat_seq) {
+            info = get_sat_sequence();
+        } else {
+            info = get_astar_sequence();
+        }
+        // cout.clear();
+
+        if (info->sequenciable) {
+            cache_op_counts.add(plan2opcount(info), info);
+        } else {
+            glcs->emplace_back(info->learned_glc);
+            repeated_glc = cache_glcs.add(info->learned_glc);
+        }
+        cache_op_counts.add(rounded_x, info);
+    }
     printer_plots->update(rounded_z, rounded_x, c->getSize(), x->getSize());
 }
 
-pair<bool, shared_ptr<SequenceInfo>> Shared::get_sat_sequence(
-    OperatorCount op_count) {
-    if (cache_op_counts.has(op_count)) {
-        repeated_seqs++;
-        if (!cache_op_counts[op_count]->sequenciable) {
-            repeated_glc =
-                cache_glcs.add(cache_op_counts[op_count]->learned_glc);
-        }
-        return {true, cache_op_counts[op_count]};
+shared_ptr<SequenceInfo> Shared::get_best_sequence() {
+    auto info_sat = get_sat_sequence();
+
+    auto ret = make_shared<SequenceInfo>();
+    if (info_sat->sequenciable) {
+        ret = info_sat;
+    } else {
+        auto info_astar = get_astar_sequence();
+
+        int sat_bounds = info_sat->learned_glc->get_num_bounds();
+        int astar_bounds = info_astar->learned_glc->get_num_bounds();
+
+        bool astar_is_better = (astar_bounds < sat_bounds);
+        ret = (astar_is_better ? info_astar : info_sat);
+
+        printer_plots->total_learned_glcs++;
+        printer_plots->total_astar_is_better += (int)(astar_is_better);
     }
 
+    return ret;
+}
+
+shared_ptr<SequenceInfo> Shared::get_sat_sequence() {
     cout << "SEQUENCING WITH SAT..." << endl;
 
     seq++;
@@ -106,42 +142,28 @@ pair<bool, shared_ptr<SequenceInfo>> Shared::get_sat_sequence(
                              restarts,
                              cache_op_counts.get_best_plan().second->plan_cost);
     auto start = chrono::system_clock::now();
-    auto sat_solver = PlanToMinisat(task_proxy, op_count);
+    auto sat_solver = PlanToMinisat(task_proxy, rounded_x);
     sat_solver();
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
                                       chrono::system_clock::now() - start)
                                       .count();
     printer_plots->plot_astar_time.emplace_back(elapsed_microseconds);
 
-    auto info = make_shared<SequenceInfo>();
+    auto ret = make_shared<SequenceInfo>();
     if (sat_solver.sequenciable) {
-        info->plan = sat_solver.plan;
-        info->plan_cost = plan2cost(info->plan);
-        info->sequenciable = true;
-        cache_op_counts.add(plan2opcount(info), info);
+        ret->plan = sat_solver.plan;
+        ret->plan_cost = plan2cost(ret->plan);
+        ret->sequenciable = true;
     } else {
-        info->learned_glc = sat_solver.learned_glc;
-        glcs->emplace_back(info->learned_glc);
-        repeated_glc = cache_glcs.add(info->learned_glc);
-        info->sequenciable = false;
-        info->plan_cost = numeric_limits<int>::max();
+        ret->learned_glc = sat_solver.learned_glc;
+        ret->sequenciable = false;
+        ret->plan_cost = numeric_limits<int>::max();
     }
 
-    cache_op_counts.add(op_count, info);
-    return {false, info};
+    return ret;
 }
 
-pair<bool, shared_ptr<SequenceInfo>> Shared::get_astar_sequence(
-    long f_bound, OperatorCount op_count) {
-    if (cache_op_counts.has(op_count)) {
-        repeated_seqs++;
-        if (!cache_op_counts[op_count]->sequenciable) {
-            repeated_glc =
-                cache_glcs.add(cache_op_counts[op_count]->learned_glc);
-        }
-        return {true, cache_op_counts[op_count]};
-    }
-
+shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
     cout << "SEQUENCING WITH A*..." << endl;
 
     shared_ptr<Evaluator> h;
@@ -214,7 +236,7 @@ pair<bool, shared_ptr<SequenceInfo>> Shared::get_astar_sequence(
         if (constraint_generators.find("glcs") != string::npos) {
             cout << "USING GLCS CONSTRAINT GENERATOR" << endl;
             shared_ptr<ConstraintGenerator> c =
-                make_shared<GLCSConstraints>(glcs, op_count);
+                make_shared<GLCSConstraints>(glcs, rounded_x);
             cs.emplace_back(c);
         }
 
@@ -246,8 +268,8 @@ pair<bool, shared_ptr<SequenceInfo>> Shared::get_astar_sequence(
     vector<shared_ptr<Evaluator>> preferred_list;
     opts_astar.set("preferred", preferred_list);
 
-    opts_astar.set("initial_op_count", op_count);
-    opts_astar.set("f_bound", f_bound);
+    opts_astar.set("initial_op_count", rounded_x);
+    opts_astar.set("f_bound", rounded_z);
     opts_astar.set("constraint_type", constraint_type);
 
     seq++;
@@ -265,22 +287,18 @@ pair<bool, shared_ptr<SequenceInfo>> Shared::get_astar_sequence(
     printer_plots->plot_nodes_expanded.emplace_back(
         astar->get_statistics().get_expanded());
 
-    auto info = make_shared<SequenceInfo>();
+    auto ret = make_shared<SequenceInfo>();
     if (astar->found_solution()) {
-        info->plan = astar->get_plan();
-        info->plan_cost = plan2cost(info->plan);
-        info->sequenciable = true;
-        cache_op_counts.add(plan2opcount(info), info);
+        ret->plan = astar->get_plan();
+        ret->plan_cost = plan2cost(ret->plan);
+        ret->sequenciable = true;
     } else {
-        info->learned_glc = astar->learned_glc;
-        glcs->emplace_back(info->learned_glc);
-        repeated_glc = cache_glcs.add(info->learned_glc);
-        info->sequenciable = false;
-        info->plan_cost = numeric_limits<int>::max();
+        ret->learned_glc = astar->learned_glc;
+        ret->sequenciable = false;
+        ret->plan_cost = numeric_limits<int>::max();
     }
 
-    cache_op_counts.add(op_count, info);
-    return {false, info};
+    return ret;
 }
 
 IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc,

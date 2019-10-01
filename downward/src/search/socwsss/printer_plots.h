@@ -38,6 +38,9 @@ class PrinterPlots {
     vector<double> plot_lp_time;
     vector<double> plot_astar_time;
 
+    int total_learned_glcs = 0;
+    int total_astar_is_better = 0;
+
     PrinterPlots(int n_ops, int n_vars,
                  shared_ptr<vector<shared_ptr<GLC>>> glcs,
                  chrono::time_point<chrono::system_clock> start);

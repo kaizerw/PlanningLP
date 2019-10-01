@@ -9,6 +9,7 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       heuristic(opts.get<string>("heuristic")),
       mip_start(opts.get<bool>("mip_start")),
       sat_seq(opts.get<bool>("sat_seq")),
+      best_seq(opts.get<bool>("best_seq")),
       recost(opts.get<bool>("recost")),
       hstar_search(opts.get<bool>("hstar_search")),
       hstar_pdb(opts.get<bool>("hstar_pdb")),
