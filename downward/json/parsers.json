@@ -64,6 +64,11 @@
         "type": "int",
         "summary": "mean"
     },
+    "perc_astar_is_better": {
+        "regex": "Perc astar is better: (\\d+\\.?\\d*)",
+        "type": "float",
+        "summary": "mean"
+    },
     "min_plan_in_cache": {
         "regex": "Min plan in cache: (\\d+\\.?\\d*)",
         "type": "int",
