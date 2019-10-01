@@ -50,7 +50,6 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     bool recost;
     bool hstar_search;
     bool hstar_pdb;
-    int cstar;
     string callbacks;
 
     double infinity = IloInfinity;

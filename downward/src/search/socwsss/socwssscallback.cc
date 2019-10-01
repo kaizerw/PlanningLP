@@ -14,7 +14,6 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       recost(opts.get<bool>("recost")),
       hstar_search(opts.get<bool>("hstar_search")),
       hstar_pdb(opts.get<bool>("hstar_pdb")),
-      cstar(opts.get<int>("cstar")),
       callbacks(opts.get<string>("callbacks")),
       task_proxy(task_proxy),
       ops(task_proxy->get_operators()),
@@ -27,7 +26,7 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
     yf_index = n_ops + 1;
     glcs = make_shared<vector<shared_ptr<GLC>>>();
     printer_plots = make_shared<PrinterPlots>(n_ops, n_vars, glcs, start);
-    if (hstar_pdb && !sat_seq) {
+    if (hstar_pdb) {
         vector<int> pattern;
         for (int var_id = 0; var_id < n_vars; ++var_id) {
             pattern.emplace_back(var_id);
@@ -44,10 +43,6 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
         opts_h.set("cache_estimates", true);
 
         full_pdb = make_shared<pdbs::PDBHeuristic>(opts_h);
-
-        // shared_ptr<pdbs::PDBHeuristic> hstar =
-        //    dynamic_pointer_cast<pdbs::PDBHeuristic>(full_pdb);
-        // hstar->compute_heuristic(task_proxy->get_initial_state());
     }
 }
 

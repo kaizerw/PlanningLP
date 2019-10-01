@@ -13,7 +13,6 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       recost(opts.get<bool>("recost")),
       hstar_search(opts.get<bool>("hstar_search")),
       hstar_pdb(opts.get<bool>("hstar_pdb")),
-      cstar(opts.get<int>("cstar")),
       callbacks(opts.get<string>("callbacks")),
       initial_op_count(opts.get<OperatorCount>("initial_op_count")),
       initial_n_ops(
@@ -198,7 +197,7 @@ SearchStatus SOCAStarSearch::step() {
     if (node_f > f_bound) {
         // In T2 and T3 we add the YT bound if A* selects for expansion a state
         // with f > f_bound
-        if ((constraint_type == 2 || constraint_type == 3) && cstar == 0) {
+        if ((constraint_type == 2 || constraint_type == 3) && !hstar_pdb) {
             yf_bound = min(yf_bound, node_f);
         }
 
@@ -278,7 +277,7 @@ SearchStatus SOCAStarSearch::step() {
                     if (new_succ_f <= f_bound) {
                         ops_learned_constraint[op.get_id()] = true;
                     } else {
-                        if (cstar == 0) {
+                        if (!hstar_pdb) {
                             // In T3, we add the YT bound if a state with f >
                             // f_bound could be generated if there were one more
                             // of the operator

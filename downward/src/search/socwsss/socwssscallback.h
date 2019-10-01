@@ -172,7 +172,6 @@ struct Shared {
     bool recost;
     bool hstar_search;
     bool hstar_pdb;
-    int cstar;
     string callbacks;
 
     shared_ptr<TaskProxy> task_proxy;

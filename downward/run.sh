@@ -51,7 +51,11 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 #opts="socwsss_cplex(sat_seq=true, constraint_generators=_, heuristic=lmcut, hstar_search=true, mip_start=false)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
 
-opts="socwsss_cplex(best_seq=true, constraint_type=3, constraint_generators=_, heuristic=lmcut, hstar_search=true, mip_start=false)"
+#opts="socwsss_cplex(best_seq=true, constraint_type=3, constraint_generators=_, heuristic=lmcut, hstar_search=true, mip_start=false)"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
+
+
+opts="socwsss_cplex(constraint_type=3, constraint_generators=seq_landmarks, hstar_pdb=true)"
 $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
 
 
