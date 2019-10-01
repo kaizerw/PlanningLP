@@ -54,7 +54,7 @@ struct SOCAStarSearch : public EagerSearch {
     long f_bound;
     double max_f_found;
     vector<bool> ops_learned_constraint;
-    long yt_bound;
+    long yf_bound;
     StateRegistry state_registry;
     SearchSpace search_space;
     shared_ptr<CacheHStar> cache_hstar;

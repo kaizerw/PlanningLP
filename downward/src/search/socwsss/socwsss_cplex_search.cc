@@ -58,36 +58,46 @@ void SOCWSSSCplexSearch::add_base_constraints() {
     for (OperatorProxy op : task_proxy.get_operators()) {
         lp_variables->emplace_back(0, infinity, shared->get_op_cost(op));
     }
+
+    lp_variables->emplace_back(0, infinity, 0);
     lp_variables->emplace_back(0, infinity, 0);
 
-    // Create constraint:
-    // 0 <= sum(Co*Yo, o in O) - Y_T <= 0
+    yt_index = n_ops;
+    yf_index = n_ops + 1;
+
+    // Create constraint: 0 <= sum(Yo, o in O) - Y_T <= 0
     lp::LPConstraint constraint_yt(0.0, 0.0);
     for (OperatorProxy op : task_proxy.get_operators()) {
-        if (sat_seq) {
-            constraint_yt.insert(op.get_id(), 1);
-        } else {
-            constraint_yt.insert(op.get_id(), shared->get_op_cost(op));
-        }
+        constraint_yt.insert(op.get_id(), 1);
     }
-    constraint_yt.insert(n_ops, -1.0);
+    constraint_yt.insert(yt_index, -1.0);
     lp_constraints->emplace_back(constraint_yt);
 
-    c2_ops = make_shared<vector<int>>(vector(n_ops + 1, -1));
+    // Create constraint: 0 <= sum(Co*Yo, o in O) - Y_F <= 0
+    lp::LPConstraint constraint_yf(0.0, 0.0);
+    for (OperatorProxy op : task_proxy.get_operators()) {
+        constraint_yf.insert(op.get_id(), shared->get_op_cost(op));
+    }
+    constraint_yf.insert(yf_index, -1.0);
+    lp_constraints->emplace_back(constraint_yf);
+
+    c2_ops = make_shared<vector<int>>(vector(n_ops + 2, -1));
 
     bounds_literals =
-        make_shared<vector<vector<int>>>(n_ops + 1, vector<int>());
+        make_shared<vector<vector<int>>>(n_ops + 2, vector<int>());
     for (int op_id = 0; op_id < n_ops; ++op_id) {
         (*bounds_literals)[op_id].emplace_back(-1);  // dummy index for [Y >= 0]
         get_domain_constraints(op_id, k_prealloc_bounds_ops, 0);
     }
-    (*bounds_literals)[n_ops].emplace_back(-1);  // dummy index for [Y >= 0]
-    get_domain_constraints(n_ops, k_prealloc_bounds_yt, 0);
+    (*bounds_literals)[yt_index].emplace_back(-1);  // dummy index for [YT >= 0]
+    get_domain_constraints(yt_index, k_prealloc_bounds_yt, 0);
+    (*bounds_literals)[yf_index].emplace_back(-1);  // dummy index for [YF >= 0]
+    get_domain_constraints(yf_index, k_prealloc_bounds_yt, 0);
 
-    // Add constraint YT >= C*
+    // Add constraint YF >= C*
     if (cstar > 0) {
         lp::LPConstraint constraint_cstar(cstar, infinity);
-        constraint_cstar.insert(n_ops, 1.0);
+        constraint_cstar.insert(yf_index, 1.0);
         lp_constraints->emplace_back(constraint_cstar);
     }
 }
@@ -202,10 +212,15 @@ void SOCWSSSCplexSearch::create_cplex_model() {
     // Create new bounds literals if needed
     for (auto &glc : (*shared->glcs)) {
         int yt_bound = glc->yt_bound;
-        int last_yt_bound = (*bounds_literals)[n_ops].size() - 1;
-
+        int last_yt_bound = (*bounds_literals)[yt_index].size() - 1;
         if (yt_bound > 0 && yt_bound > last_yt_bound) {
-            get_domain_constraints(n_ops, yt_bound, last_yt_bound);
+            get_domain_constraints(yt_index, yt_bound, last_yt_bound);
+        }
+
+        int yf_bound = glc->yf_bound;
+        int last_yf_bound = (*bounds_literals)[yf_index].size() - 1;
+        if (yf_bound > 0 && yf_bound > last_yf_bound) {
+            get_domain_constraints(yf_index, yf_bound, last_yf_bound);
         }
         for (auto &[op_id, op_bound] : glc->ops_bounds) {
             int last_op_bound = (*bounds_literals)[op_id].size() - 1;
@@ -218,15 +233,27 @@ void SOCWSSSCplexSearch::create_cplex_model() {
 
     map<int, string> var_names;
     for (int i = 0; i < (int)bounds_literals->size(); ++i) {
-        var_names[i] = string(
-            i == n_ops ? "YT" : task_proxy.get_operators()[i].get_name());
+        if (i == yt_index) {
+            var_names[i] = string("YT");
+        } else if (i == yf_index) {
+            var_names[i] = string("YF");
+        } else {
+            var_names[i] = string(task_proxy.get_operators()[i].get_name());
+        }
 
         auto b = (*bounds_literals)[i];
         for (int j = 0; j < (int)b.size(); ++j) {
             string var_name;
             var_name += string("[");
-            var_name += string(
-                i == n_ops ? "YT" : task_proxy.get_operators()[i].get_name());
+
+            if (i == yt_index) {
+                var_name += string("YT");
+            } else if (i == yf_index) {
+                var_name += string("YF");
+            } else {
+                var_name += string(task_proxy.get_operators()[i].get_name());
+            }
+
             var_name += string(" >= ");
             var_name += to_string(j);
             var_name += string("]");
@@ -271,11 +298,17 @@ void SOCWSSSCplexSearch::create_cplex_model() {
     for (auto &it : shared->cache_glcs.cache) {
         auto &glc = it.first;
         int yt_bound = glc->yt_bound;
+        int yf_bound = glc->yf_bound;
 
         IloRange range((*env), 1.0, IloInfinity);
 
         if (yt_bound > 0) {
-            range.setLinearCoef((*x)[(*bounds_literals)[n_ops][yt_bound]], 1.0);
+            range.setLinearCoef((*x)[(*bounds_literals)[yt_index][yt_bound]],
+                                1.0);
+        }
+        if (yf_bound > 0) {
+            range.setLinearCoef((*x)[(*bounds_literals)[yf_index][yf_bound]],
+                                1.0);
         }
         for (auto &[op_id, op_bound] : glc->ops_bounds) {
             range.setLinearCoef((*x)[(*bounds_literals)[op_id][op_bound]], 1.0);
@@ -457,80 +490,6 @@ SearchStatus SOCWSSSCplexSearch::step() {
         shared->seq, cplex->getBestObjValue(), shared->repeated_seqs,
         shared->restarts,
         shared->cache_op_counts.get_best_plan().second->plan_cost);
-
-    /*
-    cout << "\tALL LEARNED GLCS:" << endl;
-    int glc_id = 0;
-    //for (auto glc : (*socwsss_callback->glcs)) {
-    for (auto glc : (*shared->glcs)) {
-        cout << "\t\t(" << glc_id << ") ";
-        cout << "[YT >= " << glc->yt_bound << "] ";
-        for (auto i : glc->ops_bounds) {
-            cout << "[" << task_proxy.get_operators()[i.first].get_name()
-                 << " >= " << i.second << "] ";
-        }
-        cout << endl;
-        glc_id++;
-    }
-
-    cout << "\tREPEATED LEARNED GLCS:" << endl;
-    int glc1_id = 0;
-    //for (auto glc1 : (*socwsss_callback->glcs)) {
-    for (auto glc1 : (*shared->glcs)) {
-        int glc2_id = 0;
-        //for (auto glc2 : (*socwsss_callback->glcs)) {
-        for (auto glc2 : (*shared->glcs)) {
-            if (glc1_id != glc2_id && (*glc1) == (*glc2)) {
-                cout << glc1_id << " EQUALS " << glc2_id << endl;
-            }
-            glc2_id++;
-        }
-        glc1_id++;
-    }
-
-    cout << "\tALL PLANS IN CACHE:" << endl;
-    //for (auto i : socwsss_callback->cache_op_counts.cache) {
-    for (auto i : shared->cache_op_counts.cache) {
-        if (i.second->sequenciable) {
-            cout << "\t\t" << i.second->plan_cost << " = ";
-            for (auto j : i.second->plan) {
-                cout << task_proxy.get_operators()[j].get_name() << " ";
-            }
-            cout << endl;
-
-            OperatorCount op_counts(n_ops, 0);
-            for (auto op_id : i.second->plan) {
-                op_counts[op_id.get_index()]++;
-            }
-            int glc_id = 0;
-            //for (auto glc : (*socwsss_callback->glcs)) {
-            for (auto glc : (*shared->glcs)) {
-                int sat = 0;
-                int yt_bound = glc->yt_bound;
-                if (yt_bound != -1 && i.second->plan_cost >= yt_bound) {
-                    sat++;
-                }
-                for (auto &[op_id, op_bound] : glc->ops_bounds) {
-                    if (op_counts[op_id] >= op_bound) {
-                        sat++;
-                    }
-                }
-                if (sat == 0) {
-                    cout << "\t\t\tVIOLATES GLC " << glc_id << endl;
-                }
-                glc_id++;
-            }
-        }
-    }
-
-    int ops_zero = 0;
-    for (auto op : task_proxy.get_operators()) {
-        if (op.get_cost() == 0) {
-            ops_zero++;
-        }
-    }
-    cout << "\tOPS WITH ZERO COST: " << ops_zero << endl;
-    */
 
     if (cplex->getStatus() == IloAlgorithm::Status::Infeasible ||
         cplex->getStatus() == IloAlgorithm::Status::InfeasibleOrUnbounded) {

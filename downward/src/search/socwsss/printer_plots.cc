@@ -89,7 +89,9 @@ void PrinterPlots::show_data(int seq, double best_bound_found,
 
     // exit_code
     cout << "Perc astar is better: "
-         << ((double)total_astar_is_better / (double)total_learned_glcs)
+         << (total_learned_glcs > 0
+                 ? ((double)total_astar_is_better / (double)total_learned_glcs)
+                 : 0)
          << endl;
     cout << "Min plan in cache: " << min_plan_in_cache << endl;
     cout << "Max f found: "

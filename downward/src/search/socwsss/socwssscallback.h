@@ -89,6 +89,7 @@ struct CacheGLCs {
         size_t operator()(const shared_ptr<GLC> &v) const {
             size_t key = v->ops_bounds.size();
             key += (v->yt_bound != -1 ? v->yt_bound : 0);
+            key += (v->yf_bound != -1 ? v->yf_bound : 0);
             for (auto &i : v->ops_bounds) {
                 key ^= ((i.first + 1) * (i.second + 1)) + 0x9e3779b9 +
                        (key << 6) + (key >> 2);
@@ -194,6 +195,8 @@ struct Shared {
     bool restart = false;
     int restarts = 0, seq = 0, repeated_seqs = 0;
     int n_ops, n_vars;
+    int yt_index;
+    int yf_index;
     double epsilon = 0;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;
     shared_ptr<PrinterPlots> printer_plots;

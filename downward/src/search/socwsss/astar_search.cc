@@ -22,7 +22,7 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       max_f_found(0),
       ops_learned_constraint(task_proxy.get_operators().size(),
                              (constraint_type == 1)),
-      yt_bound(numeric_limits<int>::max()),
+      yf_bound(numeric_limits<int>::max()),
       state_registry(task_proxy, true, initial_op_count),
       search_space(state_registry),
       cache_hstar(make_shared<CacheHStar>(opts, task_proxy)) {
@@ -199,7 +199,7 @@ SearchStatus SOCAStarSearch::step() {
         // In T2 and T3 we add the YT bound if A* selects for expansion a state
         // with f > f_bound
         if ((constraint_type == 2 || constraint_type == 3) && cstar == 0) {
-            yt_bound = min(yt_bound, node_f);
+            yf_bound = min(yf_bound, node_f);
         }
 
         return IN_PROGRESS;
@@ -282,7 +282,7 @@ SearchStatus SOCAStarSearch::step() {
                             // In T3, we add the YT bound if a state with f >
                             // f_bound could be generated if there were one more
                             // of the operator
-                            yt_bound = min(yt_bound, new_succ_f);
+                            yf_bound = min(yf_bound, new_succ_f);
                         }
                     }
                 }
@@ -374,8 +374,8 @@ void SOCAStarSearch::generate_constraint() {
             learned_glc->add_op_bound(op_id, initial_op_count[op_id] + 1);
         }
     }
-    if (yt_bound != numeric_limits<int>::max()) {
-        learned_glc->yt_bound = yt_bound;
+    if (yf_bound != numeric_limits<int>::max()) {
+        learned_glc->yf_bound = yf_bound;
     }
     if (learned_glc->empty()) {
         learned_glc = nullptr;

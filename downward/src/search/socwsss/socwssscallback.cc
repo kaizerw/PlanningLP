@@ -23,6 +23,8 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       start(chrono::system_clock::now()) {
     n_ops = task_proxy->get_operators().size();
     n_vars = task_proxy->get_variables().size();
+    yt_index = n_ops;
+    yf_index = n_ops + 1;
     glcs = make_shared<vector<shared_ptr<GLC>>>();
     printer_plots = make_shared<PrinterPlots>(n_ops, n_vars, glcs, start);
     if (hstar_pdb && !sat_seq) {
@@ -307,14 +309,24 @@ IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc,
     IloExpr cut((*env));
 
     int yt_bound = learned_glc->yt_bound;
-    int last_yt_bound = (*bounds_literals)[n_ops].size() - 1;
-
+    int last_yt_bound = (*bounds_literals)[yt_index].size() - 1;
     if (yt_bound > 0) {
         if (yt_bound <= last_yt_bound) {
-            cut += 1.0 * (*x)[(*bounds_literals)[n_ops][yt_bound]];
+            cut += 1.0 * (*x)[(*bounds_literals)[yt_index][yt_bound]];
         } else {
             missing_bounds++;
-            cut += (1.0 / yt_bound) * (*x)[n_ops];
+            cut += (1.0 / yt_bound) * (*x)[yt_index];
+        }
+    }
+
+    int yf_bound = learned_glc->yf_bound;
+    int last_yf_bound = (*bounds_literals)[yf_index].size() - 1;
+    if (yf_bound > 0) {
+        if (yf_bound <= last_yf_bound) {
+            cut += 1.0 * (*x)[(*bounds_literals)[yf_index][yf_bound]];
+        } else {
+            missing_bounds++;
+            cut += (1.0 / yf_bound) * (*x)[yf_index];
         }
     }
 
@@ -384,6 +396,9 @@ void Shared::log(IloCplex::ControlCallbackI* callback, int type) {
         if (info->learned_glc->yt_bound != -1) {
             cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]" << endl;
         }
+        if (info->learned_glc->yf_bound != -1) {
+            cerr << "\t[YF >= " << info->learned_glc->yf_bound << "]" << endl;
+        }
         for (auto i : info->learned_glc->ops_bounds) {
             cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
                  << "]" << endl;
@@ -430,11 +445,11 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
             local_variables[i].upper_bound = plan_counts[i];
         }
         if (sat_seq) {
-            local_variables[n_ops].lower_bound = info->plan.size();
-            local_variables[n_ops].upper_bound = info->plan.size();
+            local_variables[yt_index].lower_bound = info->plan.size();
+            local_variables[yt_index].upper_bound = info->plan.size();
         } else {
-            local_variables[n_ops].lower_bound = info->plan_cost;
-            local_variables[n_ops].upper_bound = info->plan_cost;
+            local_variables[yf_index].lower_bound = info->plan_cost;
+            local_variables[yf_index].upper_bound = info->plan_cost;
         }
 
         for (auto& [glc, in_lp] : cache_glcs.cache) {
@@ -442,14 +457,24 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
                 lp::LPConstraint constraint(1.0, lp_solver.get_infinity());
 
                 int yt_bound = glc->yt_bound;
-                int last_yt_bound = (*bounds_literals)[n_ops].size() - 1;
-
+                int last_yt_bound = (*bounds_literals)[yt_index].size() - 1;
                 if (yt_bound > 0) {
                     if (yt_bound <= last_yt_bound) {
-                        constraint.insert((*bounds_literals)[n_ops][yt_bound],
-                                          1.0);
+                        constraint.insert(
+                            (*bounds_literals)[yt_index][yt_bound], 1.0);
                     } else {
-                        constraint.insert(n_ops, (1.0 / yt_bound));
+                        constraint.insert(yt_index, (1.0 / yt_bound));
+                    }
+                }
+
+                int yf_bound = glc->yf_bound;
+                int last_yf_bound = (*bounds_literals)[yf_index].size() - 1;
+                if (yf_bound > 0) {
+                    if (yf_bound <= last_yf_bound) {
+                        constraint.insert(
+                            (*bounds_literals)[yf_index][yf_bound], 1.0);
+                    } else {
+                        constraint.insert(yf_index, (1.0 / yf_bound));
                     }
                 }
 
