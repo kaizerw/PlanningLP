@@ -65,7 +65,7 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
 
 
-opts="socwsss_cplex(sat_seq=true, constraint_generators=seq, callbacks=lazy, mip_loop=true)"
+opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, callbacks=lazy, mip_loop=true)"
 $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts"
 
 
