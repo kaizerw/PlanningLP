@@ -14,21 +14,21 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       recost(opts.get<bool>("recost")),
       hstar_search(opts.get<bool>("hstar_search")),
       hstar_pdb(opts.get<bool>("hstar_pdb")),
+      mip_loop(opts.get<bool>("mip_loop")),
       callbacks(opts.get<string>("callbacks")),
       task_proxy(task_proxy),
       ops(task_proxy->get_operators()),
       vars(task_proxy->get_variables()),
       task(task),
       start(chrono::system_clock::now()) {
-    n_ops = task_proxy->get_operators().size();
-    n_vars = task_proxy->get_variables().size();
-    yt_index = n_ops;
-    yf_index = n_ops + 1;
+    yt_index = ops.size();
+    yf_index = ops.size() + 1;
     glcs = make_shared<vector<shared_ptr<GLC>>>();
-    printer_plots = make_shared<PrinterPlots>(n_ops, n_vars, glcs, start);
+    printer_plots =
+        make_shared<PrinterPlots>(ops.size(), vars.size(), glcs, start);
     if (hstar_pdb) {
         vector<int> pattern;
-        for (int var_id = 0; var_id < n_vars; ++var_id) {
+        for (size_t var_id = 0; var_id < vars.size(); ++var_id) {
             pattern.emplace_back(var_id);
         }
 
@@ -46,33 +46,39 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
     }
 }
 
-bool Shared::extract_sol(IloCplex::ControlCallbackI* callback) {
+void Shared::extract_sol(IloCplex::ControlCallbackI* callback) {
     original_x.clear();
-    for (int i = 0; i < n_ops; ++i) {
+    for (size_t i = 0; i < ops.size(); ++i) {
         original_x.emplace_back(callback->getValue((*x)[i]));
     }
-
     original_z = callback->getObjValue();
 
     rounded_x.clear();
     transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
               [](double i) { return lround(ceil(i - 0.01)); });
-
     rounded_z = opcount2cost(rounded_x);
+}
 
-    return true;
+void Shared::extract_sol() {
+    original_x.clear();
+    for (size_t i = 0; i < ops.size(); ++i) {
+        original_x.emplace_back(cplex->getValue((*x)[i]));
+    }
+    original_z = cplex->getObjValue();
+
+    rounded_x.clear();
+    transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
+              [](double i) { return lround(ceil(i - 0.01)); });
+    rounded_z = opcount2cost(rounded_x);
 }
 
 bool Shared::test_card() {
     double original_card =
         accumulate(original_x.begin(), original_x.end(), 0.0);
-    int rounded_card = accumulate(rounded_x.begin(), rounded_x.end(), 0);
+    long rounded_card = accumulate(rounded_x.begin(), rounded_x.end(), 0L);
 
-    if (rounded_z > (1.2 * original_z) ||
-        rounded_card > (1.2 * original_card)) {
-        return false;
-    }
-    return true;
+    return (rounded_z <= (1.2 * original_z) &&
+            rounded_card <= (1.2 * original_card));
 }
 
 void Shared::sequence() {
@@ -148,12 +154,14 @@ shared_ptr<SequenceInfo> Shared::get_sat_sequence() {
 
     auto ret = make_shared<SequenceInfo>();
     if (sat_solver.sequenciable) {
+        ret->sequenciable = true;
+        ret->learned_glc = nullptr;
         ret->plan = sat_solver.plan;
         ret->plan_cost = plan2cost(ret->plan);
-        ret->sequenciable = true;
     } else {
-        ret->learned_glc = sat_solver.learned_glc;
         ret->sequenciable = false;
+        ret->learned_glc = sat_solver.learned_glc;
+        ret->plan = Plan();
         ret->plan_cost = numeric_limits<int>::max();
     }
 
@@ -286,12 +294,14 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
 
     auto ret = make_shared<SequenceInfo>();
     if (astar->found_solution()) {
+        ret->sequenciable = true;
+        ret->learned_glc = nullptr;
         ret->plan = astar->get_plan();
         ret->plan_cost = plan2cost(ret->plan);
-        ret->sequenciable = true;
     } else {
-        ret->learned_glc = astar->learned_glc;
         ret->sequenciable = false;
+        ret->learned_glc = astar->learned_glc;
+        ret->plan = Plan();
         ret->plan_cost = numeric_limits<int>::max();
     }
 
@@ -344,6 +354,42 @@ IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc,
     return cut;
 }
 
+IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc) {
+    IloExpr cut((*env));
+
+    int yt_bound = learned_glc->yt_bound;
+    int last_yt_bound = (*bounds_literals)[yt_index].size() - 1;
+    if (yt_bound > 0) {
+        if (yt_bound <= last_yt_bound) {
+            cut += 1.0 * (*x)[(*bounds_literals)[yt_index][yt_bound]];
+        } else {
+            cut += (1.0 / yt_bound) * (*x)[yt_index];
+        }
+    }
+
+    int yf_bound = learned_glc->yf_bound;
+    int last_yf_bound = (*bounds_literals)[yf_index].size() - 1;
+    if (yf_bound > 0) {
+        if (yf_bound <= last_yf_bound) {
+            cut += 1.0 * (*x)[(*bounds_literals)[yf_index][yf_bound]];
+        } else {
+            cut += (1.0 / yf_bound) * (*x)[yf_index];
+        }
+    }
+
+    for (auto& [op_id, op_bound] : learned_glc->ops_bounds) {
+        int last_op_bound = (*bounds_literals)[op_id].size() - 1;
+
+        if (op_bound <= last_op_bound) {
+            cut += 1.0 * (*x)[(*bounds_literals)[op_id][op_bound]];
+        } else {
+            cut += (1.0 / op_bound) * (*x)[op_id];
+        }
+    }
+
+    return cut;
+}
+
 void Shared::log(IloCplex::ControlCallbackI* callback, int type) {
     cerr << string(80, '*') << endl;
     cerr << boolalpha;
@@ -368,7 +414,7 @@ void Shared::log(IloCplex::ControlCallbackI* callback, int type) {
     cerr << "F-BOUND: " << rounded_z << endl;
     cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0)
          << " OPERATORS AVAILABLE: " << endl;
-    for (int op_id = 0; op_id < n_ops; ++op_id) {
+    for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
         if (rounded_x[op_id] > 0) {
             cerr << "\t[" << rounded_x[op_id] << "] ("
                  << get_op_cost(ops[op_id]) << ") " << ops[op_id].get_name()
@@ -399,17 +445,53 @@ void Shared::log(IloCplex::ControlCallbackI* callback, int type) {
                  << "]" << endl;
         }
         cerr << "REPEATED GLC? " << repeated_glc << endl;
-
-        cerr << endl;
-        cerr << "Implied bound cuts: "
-             << callback->getNcuts(IloCplex::CutType::CutImplBd) << endl;
-        cerr << "Zero-half cuts: "
-             << callback->getNcuts(IloCplex::CutType::CutZeroHalf) << endl;
-        cerr << "Gomory fractional cuts: "
-             << callback->getNcuts(IloCplex::CutType::CutFrac) << endl;
-        cerr << "User cuts: " << callback->getNcuts(IloCplex::CutType::CutUser)
-             << endl;
         cerr << "CUT: " << (get_cut(info->learned_glc, callback) >= 1) << endl;
+        cerr << endl;
+    }
+    cerr << string(80, '*') << endl;
+}
+
+void Shared::log() {
+    cerr << string(80, '*') << endl;
+    cerr << boolalpha;
+    cerr << "SEQ: " << seq << endl;
+    cerr << "START: " << restarts << endl;
+    cerr << "Z: " << original_z << endl;
+    cerr << "F-BOUND: " << rounded_z << endl;
+    cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0)
+         << " OPERATORS AVAILABLE: " << endl;
+    for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
+        if (rounded_x[op_id] > 0) {
+            cerr << "\t[" << rounded_x[op_id] << "] ("
+                 << get_op_cost(ops[op_id]) << ") " << ops[op_id].get_name()
+                 << endl;
+        }
+    }
+    cerr << "OP COUNT IN CACHE? " << found_in_cache << endl;
+    cerr << "SEQUENCIABLE? " << info->sequenciable << endl;
+
+    if (info->sequenciable) {
+        cerr << "PLAN COST: " << info->plan_cost << endl;
+        cerr << "PLAN:" << endl;
+        for (OperatorID op_id : info->plan) {
+            cerr << "\t(" << get_op_cost(ops[op_id.get_index()]) << ") "
+                 << ops[op_id.get_index()].get_name() << endl;
+        }
+    } else {
+        cerr << "LEARNED GLC WITH " << info->learned_glc->get_num_bounds()
+             << " BOUNDS:" << endl;
+        if (info->learned_glc->yt_bound != -1) {
+            cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]" << endl;
+        }
+        if (info->learned_glc->yf_bound != -1) {
+            cerr << "\t[YF >= " << info->learned_glc->yf_bound << "]" << endl;
+        }
+        for (auto i : info->learned_glc->ops_bounds) {
+            cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
+                 << "]" << endl;
+        }
+        cerr << "REPEATED GLC? " << repeated_glc << endl;
+        cerr << "CUT: " << (get_cut(info->learned_glc) >= 1) << endl;
         cerr << endl;
     }
     cerr << string(80, '*') << endl;
@@ -435,7 +517,7 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
             variable.is_integer = true;
         }
 
-        for (int i = 0; i < n_ops; ++i) {
+        for (size_t i = 0; i < ops.size(); ++i) {
             local_variables[i].lower_bound = plan_counts[i];
             local_variables[i].upper_bound = plan_counts[i];
         }
@@ -511,7 +593,7 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
 }
 
 OperatorCount Shared::plan2opcount(shared_ptr<SequenceInfo> info) {
-    OperatorCount plan_counts(n_ops, 0);
+    OperatorCount plan_counts(ops.size(), 0);
     for (OperatorID& op_id : info->plan) {
         plan_counts[op_id.get_index()]++;
     }
@@ -540,65 +622,75 @@ double Shared::get_op_cost(OperatorProxy op) {
     return op.get_cost();
 }
 
-void LazyCallbackI::main() {
-    if (shared->restart) {
-        return;
-    }
-    if (isUnboundedNode()) {
-        return;
-    }
-    if (shared->extract_sol(this) && shared->test_card()) {
-        shared->sequence();
-        if (!shared->info->sequenciable) {
-            auto cut = shared->get_cut(shared->info->learned_glc, this);
-            if (shared->restart) {
-                return;
-            }
-            add(cut >= 1.0).end();
-            shared->cache_glcs.set(shared->info->learned_glc, true);
+void Shared::step_mip_loop() {
+    cplex->solve();
+    if (cplex->getStatus() == IloAlgorithm::Status::Optimal) {
+        extract_sol();
+        sequence();
+        if (!info->sequenciable) {
+            cache_glcs.set(info->learned_glc, true);
+            restart = true;
         }
-        // shared->log(this, LAZY);
+        log();
     }
 }
 
-IloCplex::Callback LazyCallback(IloEnv env, shared_ptr<Shared> shared) {
-    return (IloCplex::Callback(new (env) LazyCallbackI(env, shared)));
+void LazyCallbackI::main() {
+    if (shr->restart) return;
+    if (isUnboundedNode()) return;
+
+    shr->extract_sol(this);
+    if (shr->test_card()) {
+        shr->sequence();
+        if (!shr->info->sequenciable) {
+            auto cut = shr->get_cut(shr->info->learned_glc, this);
+            if (shr->restart) return;
+            add(cut >= 1.0).end();
+            shr->cache_glcs.set(shr->info->learned_glc, true);
+        }
+        shr->log(this, LAZY);
+    }
+}
+
+IloCplex::Callback LazyCallback(shared_ptr<Shared> shr) {
+    return (IloCplex::Callback(new (*shr->env) LazyCallbackI(shr)));
 }
 
 void UserCutCallbackI::main() {
-    if (shared->restart) {
-        return;
-    }
+    if (shr->restart) return;
+
     if (isAfterCutLoop()) {
-        if (shared->extract_sol(this) && shared->test_card()) {
-            shared->sequence();
-            // shared->log(this, USERCUT);
+        shr->extract_sol(this);
+        if (shr->test_card()) {
+            shr->sequence();
+            shr->log(this, USERCUT);
         }
-        for (auto& [glc, in_lp] : shared->cache_glcs.cache) {
+        for (auto& [glc, in_lp] : shr->cache_glcs.cache) {
             if (!in_lp) {
-                auto cut = shared->get_cut(glc, this);
-                if (shared->restart) {
-                    return;
-                }
+                auto cut = shr->get_cut(glc, this);
+                if (shr->restart) return;
                 add(cut >= 1.0).end();
-                shared->cache_glcs.set(glc, true);
+                shr->cache_glcs.set(glc, true);
             }
         }
     }
 }
 
-IloCplex::Callback UserCutCallback(IloEnv env, shared_ptr<Shared> shared) {
-    return (IloCplex::Callback(new (env) UserCutCallbackI(env, shared)));
+IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
+    return (IloCplex::Callback(new (*shr->env) UserCutCallbackI(shr)));
 }
 
 void HeuristicCallbackI::main() {
-    if (shared->extract_sol(this) && shared->test_card()) {
-        shared->sequence();
-        // shared->log(this, HEURISTIC);
+    if (shr->restart) return;
+
+    shr->extract_sol(this);
+    if (shr->test_card()) {
+        shr->sequence();
+        shr->log(this, HEURISTIC);
     }
-    shared->post_best_plan(this);
+    shr->post_best_plan(this);
 }
 
-IloCplex::Callback HeuristicCallback(IloEnv env, shared_ptr<Shared> shared) {
-    return (IloCplex::Callback(new (env) HeuristicCallbackI(env, shared)));
+IloCplex::Callback HeuristicCallback(shared_ptr<Shared> shr) {
+    return (IloCplex::Callback(new (*shr->env) HeuristicCallbackI(shr)));
 }

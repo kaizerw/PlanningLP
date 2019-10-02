@@ -13,15 +13,15 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       recost(opts.get<bool>("recost")),
       hstar_search(opts.get<bool>("hstar_search")),
       hstar_pdb(opts.get<bool>("hstar_pdb")),
+      mip_loop(opts.get<bool>("mip_loop")),
       callbacks(opts.get<string>("callbacks")),
-      n_ops(task_proxy.get_operators().size()),
-      n_vars(task_proxy.get_variables().size()) {}
+      ops(task_proxy.get_operators()),
+      vars(task_proxy.get_variables()) {}
 
 void SOCWSSSCplexSearch::initialize() {
     cout << "Initializing SOCWSSS CPLEX search..." << endl;
 
-    shared =
-        make_shared<Shared>(opts, make_shared<TaskProxy>(task_proxy), task);
+    shr = make_shared<Shared>(opts, make_shared<TaskProxy>(task_proxy), task);
     calc_epsilon_recost();
     add_base_constraints();
     add_heuristic_constraints();
@@ -31,10 +31,10 @@ void SOCWSSSCplexSearch::initialize() {
 void SOCWSSSCplexSearch::calc_epsilon_recost() {
     if (recost && sat_seq) {
         vector<int> diffs;
-        for (int op_id1 = 0; op_id1 < n_ops; ++op_id1) {
-            for (int op_id2 = 0; op_id2 < n_ops; ++op_id2) {
-                int c1 = task_proxy.get_operators()[op_id1].get_cost();
-                int c2 = task_proxy.get_operators()[op_id2].get_cost();
+        for (size_t op_id1 = 0; op_id1 < ops.size(); ++op_id1) {
+            for (size_t op_id2 = 0; op_id2 < ops.size(); ++op_id2) {
+                int c1 = ops[op_id1].get_cost();
+                int c2 = ops[op_id2].get_cost();
                 if (op_id1 != op_id2 && c1 > c2 && c1 > 0 && c2 > 0) {
                     diffs.emplace_back(c1 - c2);
                 }
@@ -45,7 +45,7 @@ void SOCWSSSCplexSearch::calc_epsilon_recost() {
             delta = (double)*min_element(diffs.begin(), diffs.end());
             double l = k_prealloc_bounds_yt;
             epsilon = delta / l;
-            shared->epsilon = epsilon;
+            shr->epsilon = epsilon;
         }
     }
 }
@@ -54,54 +54,51 @@ void SOCWSSSCplexSearch::add_base_constraints() {
     lp_variables = make_shared<vector<lp::LPVariable>>();
     lp_constraints = make_shared<vector<lp::LPConstraint>>();
 
-    for (OperatorProxy op : task_proxy.get_operators()) {
-        lp_variables->emplace_back(0, infinity, shared->get_op_cost(op));
+    for (OperatorProxy op : ops) {
+        lp_variables->emplace_back(0, infinity, shr->get_op_cost(op));
     }
 
     lp_variables->emplace_back(0, infinity, 0);
     lp_variables->emplace_back(0, infinity, 0);
 
-    yt_index = n_ops;
-    yf_index = n_ops + 1;
+    yt_index = ops.size();
+    yf_index = ops.size() + 1;
 
     // Create constraint: 0 <= sum(Yo, o in O) - Y_T <= 0
-    lp::LPConstraint constraint_yt(0.0, 0.0);
-    for (OperatorProxy op : task_proxy.get_operators()) {
-        constraint_yt.insert(op.get_id(), 1);
+    lp::LPConstraint c_yt(0.0, 0.0);
+    for (OperatorProxy op : ops) {
+        c_yt.insert(op.get_id(), 1);
     }
-    constraint_yt.insert(yt_index, -1.0);
-    lp_constraints->emplace_back(constraint_yt);
+    c_yt.insert(yt_index, -1.0);
+    lp_constraints->emplace_back(c_yt);
 
     // Create constraint: 0 <= sum(Co*Yo, o in O) - Y_F <= 0
-    lp::LPConstraint constraint_yf(0.0, 0.0);
-    for (OperatorProxy op : task_proxy.get_operators()) {
-        constraint_yf.insert(op.get_id(), shared->get_op_cost(op));
+    lp::LPConstraint c_yf(0.0, 0.0);
+    for (OperatorProxy op : ops) {
+        c_yf.insert(op.get_id(), shr->get_op_cost(op));
     }
-    constraint_yf.insert(yf_index, -1.0);
-    lp_constraints->emplace_back(constraint_yf);
+    c_yf.insert(yf_index, -1.0);
+    lp_constraints->emplace_back(c_yf);
 
-    c2_ops = make_shared<vector<int>>(vector(n_ops + 2, -1));
+    c2_ops = make_shared<vector<int>>(vector(ops.size() + 2, -1));
 
     bounds_literals =
-        make_shared<vector<vector<int>>>(n_ops + 2, vector<int>());
-    for (int op_id = 0; op_id < n_ops; ++op_id) {
-        (*bounds_literals)[op_id].emplace_back(-1);  // dummy index for [Y >= 0]
+        make_shared<vector<vector<int>>>(ops.size() + 2, vector<int>({-1}));
+    for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
         get_domain_constraints(op_id, k_prealloc_bounds_ops, 0);
     }
-    (*bounds_literals)[yt_index].emplace_back(-1);  // dummy index for [YT >= 0]
     get_domain_constraints(yt_index, k_prealloc_bounds_yt, 0);
-    (*bounds_literals)[yf_index].emplace_back(-1);  // dummy index for [YF >= 0]
-    get_domain_constraints(yf_index, k_prealloc_bounds_yt, 0);
+    get_domain_constraints(yf_index, k_prealloc_bounds_yf, 0);
 
     // Add constraint YF >= C*
-    if (hstar_pdb > 0) {
+    if (hstar_pdb) {
         shared_ptr<pdbs::PDBHeuristic> hstar =
-            dynamic_pointer_cast<pdbs::PDBHeuristic>(shared->full_pdb);
+            dynamic_pointer_cast<pdbs::PDBHeuristic>(shr->full_pdb);
         int cstar = hstar->compute_heuristic(task_proxy.get_initial_state());
 
-        lp::LPConstraint constraint_cstar(cstar, infinity);
-        constraint_cstar.insert(yf_index, 1.0);
-        lp_constraints->emplace_back(constraint_cstar);
+        lp::LPConstraint c_cstar(cstar, infinity);
+        c_cstar.insert(yf_index, 1.0);
+        lp_constraints->emplace_back(c_cstar);
     }
 }
 
@@ -197,10 +194,10 @@ void SOCWSSSCplexSearch::add_mip_start() {
             auto mip_start_info = make_shared<SequenceInfo>();
             mip_start_info->sequenciable = true;
             mip_start_info->plan = greedy->get_plan();
-            mip_start_info->plan_cost = shared->plan2cost(mip_start_info->plan);
+            mip_start_info->plan_cost = shr->plan2cost(mip_start_info->plan);
 
-            OperatorCount plan_counts = shared->plan2opcount(mip_start_info);
-            shared->cache_op_counts.add(plan_counts, mip_start_info);
+            OperatorCount plan_counts = shr->plan2opcount(mip_start_info);
+            shr->cache_op_counts.add(plan_counts, mip_start_info);
         }
     }
 }
@@ -213,7 +210,8 @@ void SOCWSSSCplexSearch::create_cplex_model() {
     obj = make_shared<IloObjective>(IloMinimize((*env)));
 
     // Create new bounds literals if needed
-    for (auto &glc : (*shared->glcs)) {
+    for (auto &it : shr->cache_glcs.cache) {
+        auto &glc = it.first;
         int yt_bound = glc->yt_bound;
         int last_yt_bound = (*bounds_literals)[yt_index].size() - 1;
         if (yt_bound > 0 && yt_bound > last_yt_bound) {
@@ -225,6 +223,7 @@ void SOCWSSSCplexSearch::create_cplex_model() {
         if (yf_bound > 0 && yf_bound > last_yf_bound) {
             get_domain_constraints(yf_index, yf_bound, last_yf_bound);
         }
+
         for (auto &[op_id, op_bound] : glc->ops_bounds) {
             int last_op_bound = (*bounds_literals)[op_id].size() - 1;
 
@@ -241,7 +240,7 @@ void SOCWSSSCplexSearch::create_cplex_model() {
         } else if (i == yf_index) {
             var_names[i] = string("YF");
         } else {
-            var_names[i] = string(task_proxy.get_operators()[i].get_name());
+            var_names[i] = string(ops[i].get_name());
         }
 
         auto b = (*bounds_literals)[i];
@@ -254,7 +253,7 @@ void SOCWSSSCplexSearch::create_cplex_model() {
             } else if (i == yf_index) {
                 var_name += string("YF");
             } else {
-                var_name += string(task_proxy.get_operators()[i].get_name());
+                var_name += string(ops[i].get_name());
             }
 
             var_name += string(" >= ");
@@ -298,7 +297,7 @@ void SOCWSSSCplexSearch::create_cplex_model() {
     }
 
     // Adding learned constraints
-    for (auto &it : shared->cache_glcs.cache) {
+    for (auto &it : shr->cache_glcs.cache) {
         auto &glc = it.first;
         int yt_bound = glc->yt_bound;
         int yf_bound = glc->yf_bound;
@@ -334,8 +333,8 @@ void SOCWSSSCplexSearch::create_cplex_model() {
     // cplex->setParam(IloCplex::PreInd, IloFalse);
     // cplex->setParam(IloCplex::Reduce, IloFalse);
     // cplex->setParam(IloCplex::NodeSel, IloCplex::BestBound);
-    cplex->setParam(IloCplex::MIPOrdType, 2);
-    cplex->setParam(IloCplex::HeurFreq, -1);
+    // cplex->setParam(IloCplex::MIPOrdType, 2);
+    // cplex->setParam(IloCplex::HeurFreq, -1);
     // cplex->setParam(IloCplex::RINSHeur, -1);
 
     /*
@@ -356,14 +355,14 @@ void SOCWSSSCplexSearch::create_cplex_model() {
     cplex->setParam(IloCplex::Param::MIP::Cuts::ZeroHalfCut, -1);
     */
 
-    // Add MIP start
-    auto [found, info] = shared->cache_op_counts.get_best_plan();
+    // Add MIP start from cache_op_counts
+    auto [found, info] = shr->cache_op_counts.get_best_plan();
     if (found && info->sequenciable) {
-        OperatorCount plan_counts = shared->plan2opcount(info);
+        OperatorCount plan_counts = shr->plan2opcount(info);
 
         IloNumVarArray vars((*env));
         IloNumArray vals((*env));
-        for (int op_id = 0; op_id < n_ops; ++op_id) {
+        for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
             vars.add((*x)[op_id]);
             vals.add(plan_counts[op_id]);
         }
@@ -372,15 +371,15 @@ void SOCWSSSCplexSearch::create_cplex_model() {
         vals.end();
     }
 
-    shared->bounds_literals = bounds_literals;
-    shared->env = env;
-    shared->model = model;
-    shared->x = x;
-    shared->c = c;
-    shared->obj = obj;
-    shared->cplex = cplex;
-    shared->lp_variables = lp_variables;
-    shared->lp_constraints = lp_constraints;
+    shr->bounds_literals = bounds_literals;
+    shr->env = env;
+    shr->model = model;
+    shr->x = x;
+    shr->c = c;
+    shr->obj = obj;
+    shr->cplex = cplex;
+    shr->lp_variables = lp_variables;
+    shr->lp_constraints = lp_constraints;
 }
 
 void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
@@ -421,15 +420,14 @@ void SOCWSSSCplexSearch::get_domain_constraints(int op_id, int current_bound,
     int ix2 = (*c2_ops)[op_id];
     if (ix2 == -1) {
         // If constraint 2 doesn't exist for this operator then create it
+        (*c2_ops)[op_id] = lp_constraints->size();
         lp_constraints->emplace_back(c2);
-        (*c2_ops)[op_id] = (lp_constraints->size() - 1);
     } else {
         // If constraint 2 already exists for this operator then update it
         (*lp_constraints)[ix2] = c2;
     }
 
     // Create constraint (3): Yo - M*[Yo >= k] <= k - 1
-    double M = 1e3;
     for (int i = current_bound; i > previous_bound; --i) {
         lp::LPConstraint c3(-infinity, i - 1);
         c3.insert(op_id, 1.0);
@@ -448,26 +446,30 @@ SearchStatus SOCWSSSCplexSearch::step() {
         try {
             cout << "Starting SOCWSSS CPLEX search..." << endl;
 
-            if (callbacks.find("lazy") != string::npos) {
-                cout << "USING LAZY CONSTRAINT CALLBACK" << endl;
-                lazy_callback = make_shared<IloCplex::Callback>(
-                    LazyCallback((*env), shared));
-                cplex->use((*lazy_callback));
-            }
-            if (callbacks.find("usercut") != string::npos) {
-                cout << "USING USERCUT CALLBACK" << endl;
-                usercut_callback = make_shared<IloCplex::Callback>(
-                    UserCutCallback((*env), shared));
-                cplex->use((*usercut_callback));
-            }
-            if (callbacks.find("heuristic") != string::npos) {
-                cout << "USING HEURISTIC CALLBACK" << endl;
-                heuristic_callback = make_shared<IloCplex::Callback>(
-                    HeuristicCallback((*env), shared));
-                cplex->use((*heuristic_callback));
-            }
+            if (mip_loop) {
+                shr->step_mip_loop();
+            } else {
+                if (callbacks.find("lazy") != string::npos) {
+                    cout << "USING LAZY CONSTRAINT CALLBACK" << endl;
+                    lazy_callback =
+                        make_shared<IloCplex::Callback>(LazyCallback(shr));
+                    cplex->use((*lazy_callback));
+                }
+                if (callbacks.find("usercut") != string::npos) {
+                    cout << "USING USERCUT CALLBACK" << endl;
+                    usercut_callback =
+                        make_shared<IloCplex::Callback>(UserCutCallback(shr));
+                    cplex->use((*usercut_callback));
+                }
+                if (callbacks.find("heuristic") != string::npos) {
+                    cout << "USING HEURISTIC CALLBACK" << endl;
+                    heuristic_callback =
+                        make_shared<IloCplex::Callback>(HeuristicCallback(shr));
+                    cplex->use((*heuristic_callback));
+                }
 
-            cplex->solve();
+                cplex->solve();
+            }
         } catch (IloException &ex) {
             string msg(ex.getMessage());
             cout << "CPLEX exception: " << msg << endl;
@@ -479,20 +481,19 @@ SearchStatus SOCWSSSCplexSearch::step() {
             exit(25);
         }
 
-        if (shared->restart) {
+        if (shr->restart) {
             cout << "RESTARTING..." << endl;
-            shared->restarts++;
-            shared->restart = false;
+            shr->restarts++;
+            shr->restart = false;
         } else {
             break;
         }
     }
 
     // Print out custom attributes
-    shared->printer_plots->show_data(
-        shared->seq, cplex->getBestObjValue(), shared->repeated_seqs,
-        shared->restarts,
-        shared->cache_op_counts.get_best_plan().second->plan_cost);
+    shr->printer_plots->show_data(
+        shr->seq, cplex->getBestObjValue(), shr->repeated_seqs, shr->restarts,
+        shr->cache_op_counts.get_best_plan().second->plan_cost);
 
     if (cplex->getStatus() == IloAlgorithm::Status::Infeasible ||
         cplex->getStatus() == IloAlgorithm::Status::InfeasibleOrUnbounded) {
@@ -503,13 +504,8 @@ SearchStatus SOCWSSSCplexSearch::step() {
     // Get final plan
     if (cplex->getStatus() == IloAlgorithm::Status::Optimal) {
         status = SOLVED;
-        OperatorCount op_counts;
-        for (int i = 0; i < n_ops; ++i) {
-            op_counts.emplace_back(
-                lround(ceil(cplex->getValue((*x)[i]) - 0.01)));
-        }
 
-        Plan plan = shared->cache_op_counts[op_counts]->plan;
+        Plan plan = shr->cache_op_counts.get_best_plan().second->plan;
         if (plan.size() == 0) {
             cout << "SOLUTION NOT FOUND" << endl;
             exit(12);
@@ -538,6 +534,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("recost", "", "false");
     parser.add_option<bool>("hstar_search", "", "false");
     parser.add_option<bool>("hstar_pdb", "", "false");
+    parser.add_option<bool>("mip_loop", "", "false");
     parser.add_option<string>("callbacks", "", "lazy_usercut_heuristic");
 
     lp::add_lp_solver_option_to_parser(parser);

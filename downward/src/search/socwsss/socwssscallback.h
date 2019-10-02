@@ -172,6 +172,7 @@ struct Shared {
     bool recost;
     bool hstar_search;
     bool hstar_pdb;
+    bool mip_loop;
     string callbacks;
 
     shared_ptr<TaskProxy> task_proxy;
@@ -193,7 +194,6 @@ struct Shared {
 
     bool restart = false;
     int restarts = 0, seq = 0, repeated_seqs = 0;
-    int n_ops, n_vars;
     int yt_index;
     int yf_index;
     double epsilon = 0;
@@ -213,7 +213,8 @@ struct Shared {
 
     Shared(const Options &opts, shared_ptr<TaskProxy> task_proxy,
            shared_ptr<AbstractTask> task);
-    bool extract_sol(IloCplex::ControlCallbackI *callback);
+    void extract_sol(IloCplex::ControlCallbackI *callback);
+    void extract_sol();
     bool test_card();
     void sequence();
     shared_ptr<SequenceInfo> get_best_sequence();
@@ -221,43 +222,46 @@ struct Shared {
     shared_ptr<SequenceInfo> get_astar_sequence();
     IloExpr get_cut(shared_ptr<GLC> learned_glc,
                     IloCplex::ControlCallbackI *callback);
+    IloExpr get_cut(shared_ptr<GLC> learned_glc);
     void log(IloCplex::ControlCallbackI *callback, int type);
+    void log();
     void post_best_plan(IloCplex::HeuristicCallbackI *callback);
 
     OperatorCount plan2opcount(shared_ptr<SequenceInfo> info);
     long opcount2cost(OperatorCount &op_count);
     long plan2cost(Plan &plan);
     double get_op_cost(OperatorProxy op);
+    void step_mip_loop();
 };
 
 struct LazyCallbackI : public IloCplex::LazyConstraintCallbackI {
-    shared_ptr<Shared> shared;
+    shared_ptr<Shared> shr;
 
     ILOCOMMONCALLBACKSTUFF(LazyCallback)
-    LazyCallbackI(IloEnv env, shared_ptr<Shared> xx1)
-        : IloCplex::LazyConstraintCallbackI(env), shared(xx1) {}
+    LazyCallbackI(shared_ptr<Shared> shr)
+        : IloCplex::LazyConstraintCallbackI(*shr->env), shr(shr) {}
     void main();
 };
-IloCplex::Callback LazyCallback(IloEnv env, shared_ptr<Shared> shared);
+IloCplex::Callback LazyCallback(shared_ptr<Shared> shr);
 
 struct UserCutCallbackI : public IloCplex::UserCutCallbackI {
-    shared_ptr<Shared> shared;
+    shared_ptr<Shared> shr;
 
     ILOCOMMONCALLBACKSTUFF(UserCutCallback)
-    UserCutCallbackI(IloEnv env, shared_ptr<Shared> xx1)
-        : IloCplex::UserCutCallbackI(env), shared(xx1) {}
+    UserCutCallbackI(shared_ptr<Shared> shr)
+        : IloCplex::UserCutCallbackI(*shr->env), shr(shr) {}
     void main();
 };
-IloCplex::Callback UserCutCallback(IloEnv env, shared_ptr<Shared> shared);
+IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr);
 
 struct HeuristicCallbackI : public IloCplex::HeuristicCallbackI {
-    shared_ptr<Shared> shared;
+    shared_ptr<Shared> shr;
 
     ILOCOMMONCALLBACKSTUFF(HeuristicCallback)
-    HeuristicCallbackI(IloEnv env, shared_ptr<Shared> xx1)
-        : IloCplex::HeuristicCallbackI(env), shared(xx1) {}
+    HeuristicCallbackI(shared_ptr<Shared> shr)
+        : IloCplex::HeuristicCallbackI(*shr->env), shr(shr) {}
     void main();
 };
-IloCplex::Callback HeuristicCallback(IloEnv env, shared_ptr<Shared> shared);
+IloCplex::Callback HeuristicCallback(shared_ptr<Shared> shr);
 
 #endif

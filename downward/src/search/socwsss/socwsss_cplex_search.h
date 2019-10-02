@@ -50,10 +50,12 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     bool recost;
     bool hstar_search;
     bool hstar_pdb;
+    bool mip_loop;
     string callbacks;
 
+    OperatorsProxy ops;
+    VariablesProxy vars;
     double infinity = IloInfinity;
-    int n_ops, n_vars;
     double epsilon;
 
     shared_ptr<vector<lp::LPVariable>> lp_variables;
@@ -62,6 +64,8 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     int yf_index;
     int k_prealloc_bounds_ops = 2;
     int k_prealloc_bounds_yt = 2;
+    int k_prealloc_bounds_yf = 2;
+    const double M = 1e3;
     shared_ptr<vector<vector<int>>> bounds_literals;
     shared_ptr<vector<int>> c2_ops;
 
@@ -72,7 +76,7 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     shared_ptr<IloObjective> obj;
     shared_ptr<IloCplex> cplex;
 
-    shared_ptr<Shared> shared;
+    shared_ptr<Shared> shr;
 
     shared_ptr<IloCplex::Callback> lazy_callback;
     shared_ptr<IloCplex::Callback> usercut_callback;

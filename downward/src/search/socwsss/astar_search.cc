@@ -13,10 +13,9 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       recost(opts.get<bool>("recost")),
       hstar_search(opts.get<bool>("hstar_search")),
       hstar_pdb(opts.get<bool>("hstar_pdb")),
+      mip_loop(opts.get<bool>("mip_loop")),
       callbacks(opts.get<string>("callbacks")),
       initial_op_count(opts.get<OperatorCount>("initial_op_count")),
-      initial_n_ops(
-          accumulate(initial_op_count.begin(), initial_op_count.end(), 0)),
       f_bound(opts.get<long>("f_bound")),
       max_f_found(0),
       ops_learned_constraint(task_proxy.get_operators().size(),

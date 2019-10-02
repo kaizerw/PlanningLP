@@ -46,10 +46,10 @@ struct SOCAStarSearch : public EagerSearch {
     bool recost;
     bool hstar_search;
     bool hstar_pdb;
+    bool mip_loop;
     string callbacks;
 
     OperatorCount initial_op_count;
-    int initial_n_ops;
     long f_bound;
     double max_f_found;
     vector<bool> ops_learned_constraint;
