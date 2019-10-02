@@ -631,7 +631,7 @@ void Shared::step_mip_loop() {
             cache_glcs.set(info->learned_glc, true);
             restart = true;
         }
-        log();
+        // log();
     }
 }
 
