@@ -65,7 +65,7 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     int k_prealloc_bounds_ops = 2;
     int k_prealloc_bounds_yt = 2;
     int k_prealloc_bounds_yf = 2;
-    const double M = 1e3;
+    const double M = 1e10;
     shared_ptr<vector<vector<int>>> bounds_literals;
     shared_ptr<vector<int>> c2_ops;
 
