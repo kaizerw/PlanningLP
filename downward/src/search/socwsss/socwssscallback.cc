@@ -648,7 +648,7 @@ void LazyCallbackI::main() {
             add(cut >= 1.0).end();
             shr->cache_glcs.set(shr->info->learned_glc, true);
         }
-        shr->log(this, LAZY);
+        // shr->log(this, LAZY);
     }
 }
 
@@ -663,7 +663,7 @@ void UserCutCallbackI::main() {
         shr->extract_sol(this);
         if (shr->test_card()) {
             shr->sequence();
-            shr->log(this, USERCUT);
+            // shr->log(this, USERCUT);
         }
         for (auto& [glc, in_lp] : shr->cache_glcs.cache) {
             if (!in_lp) {
@@ -686,7 +686,7 @@ void HeuristicCallbackI::main() {
     shr->extract_sol(this);
     if (shr->test_card()) {
         shr->sequence();
-        shr->log(this, HEURISTIC);
+        // shr->log(this, HEURISTIC);
     }
     shr->post_best_plan(this);
 }
