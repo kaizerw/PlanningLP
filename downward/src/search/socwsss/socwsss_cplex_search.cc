@@ -233,14 +233,14 @@ void SOCWSSSCplexSearch::create_cplex_model() {
         }
     }
 
-    map<int, string> var_names;
+    map<int, string> v_names;
     for (int i = 0; i < (int)bounds_literals->size(); ++i) {
         if (i == yt_index) {
-            var_names[i] = string("YT");
+            v_names[i] = string("YT");
         } else if (i == yf_index) {
-            var_names[i] = string("YF");
+            v_names[i] = string("YF");
         } else {
-            var_names[i] = string(ops[i].get_name());
+            v_names[i] = string(ops[i].get_name());
         }
 
         auto b = (*bounds_literals)[i];
@@ -260,7 +260,7 @@ void SOCWSSSCplexSearch::create_cplex_model() {
             var_name += to_string(j);
             var_name += string("]");
 
-            var_names[(*bounds_literals)[i][j]] = var_name;
+            v_names[(*bounds_literals)[i][j]] = var_name;
         }
     }
 
@@ -269,12 +269,16 @@ void SOCWSSSCplexSearch::create_cplex_model() {
         const lp::LPVariable &variable = (*lp_variables)[vi];
         double lb = variable.lower_bound;
         double ub = variable.upper_bound;
-        string name;
-        if (var_names.count(vi) > 0) {
-            name = var_names[vi];
-        } else {
-            name = string("var_") + to_string(vi);
+
+        if (vi < ops.size()) {
+            double new_ub = (*bounds_literals)[vi].size() - 1;
+            ub = new_ub;
+            (*lp_variables)[vi].upper_bound = new_ub;
         }
+
+        string name =
+            (v_names.count(vi) > 0 ? v_names[vi] : "var_" + to_string(vi));
+
         x->add(IloNumVar((*env), lb, ub, ILOINT, name.c_str()));
         obj->setLinearCoef((*x)[vi], variable.objective_coefficient);
     }
