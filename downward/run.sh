@@ -4,7 +4,7 @@
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas
 ################################################################################
 ./build.py
-run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1m"
+run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5m"
 ################################################################################
 #opts="astar(lmcut())"
 #opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks, heuristic=lmcut)"
@@ -45,8 +45,9 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 #opts="socwsss_cplex(constraint_type=3, constraint_generators=_, heuristic=lmcut, hstar=true, mip_start=false)"
 
 
-#opts="socwsss_cplex(constraint_type=3, constraint_generators=_, heuristic=lmcut, hstar_search=true, mip_start=false, callbacks=lazy_heuristic)"
-#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
+opts="socwsss_cplex(constraint_type=3, constraint_generators=_, heuristic=lmcut, hstar_search=true, mip_start=false, callbacks=lazy_heuristic_usercut)"
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
+
 
 #opts="socwsss_cplex(sat_seq=true, constraint_generators=_, heuristic=lmcut, hstar_search=true, mip_start=false, callbacks=lazy_heuristic)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
@@ -65,8 +66,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
 
 
-opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, callbacks=lazy, mip_loop=true)"
-$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts"
+#opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, callbacks=lazy, mip_loop=true)"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts"
 
 
 # fast increment

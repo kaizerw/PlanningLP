@@ -210,25 +210,26 @@ void SOCWSSSCplexSearch::create_cplex_model() {
     obj = make_shared<IloObjective>(IloMinimize((*env)));
 
     // Create new bounds literals if needed
-    for (auto &it : shr->cache_glcs.cache) {
-        auto &glc = it.first;
-        int yt_bound = glc->yt_bound;
-        int last_yt_bound = (*bounds_literals)[yt_index].size() - 1;
-        if (yt_bound > 0 && yt_bound > last_yt_bound) {
-            get_domain_constraints(yt_index, yt_bound, last_yt_bound);
-        }
+    for (auto &[glc, state] : shr->cache_glcs.cache) {
+        if (state != NEW) {
+            int yt_bound = glc->yt_bound;
+            int last_yt_bound = (*bounds_literals)[yt_index].size() - 1;
+            if (yt_bound > 0 && yt_bound > last_yt_bound) {
+                get_domain_constraints(yt_index, yt_bound, last_yt_bound);
+            }
 
-        int yf_bound = glc->yf_bound;
-        int last_yf_bound = (*bounds_literals)[yf_index].size() - 1;
-        if (yf_bound > 0 && yf_bound > last_yf_bound) {
-            get_domain_constraints(yf_index, yf_bound, last_yf_bound);
-        }
+            int yf_bound = glc->yf_bound;
+            int last_yf_bound = (*bounds_literals)[yf_index].size() - 1;
+            if (yf_bound > 0 && yf_bound > last_yf_bound) {
+                get_domain_constraints(yf_index, yf_bound, last_yf_bound);
+            }
 
-        for (auto &[op_id, op_bound] : glc->ops_bounds) {
-            int last_op_bound = (*bounds_literals)[op_id].size() - 1;
+            for (auto &[op_id, op_bound] : glc->ops_bounds) {
+                int last_op_bound = (*bounds_literals)[op_id].size() - 1;
 
-            if (op_bound > last_op_bound) {
-                get_domain_constraints(op_id, op_bound, last_op_bound);
+                if (op_bound > last_op_bound) {
+                    get_domain_constraints(op_id, op_bound, last_op_bound);
+                }
             }
         }
     }
@@ -301,26 +302,28 @@ void SOCWSSSCplexSearch::create_cplex_model() {
     }
 
     // Adding learned constraints
-    for (auto &it : shr->cache_glcs.cache) {
-        auto &glc = it.first;
-        int yt_bound = glc->yt_bound;
-        int yf_bound = glc->yf_bound;
+    for (auto &[glc, state] : shr->cache_glcs.cache) {
+        if (state != NEW) {
+            int yt_bound = glc->yt_bound;
+            int yf_bound = glc->yf_bound;
 
-        IloRange range((*env), 1.0, IloInfinity);
+            IloRange range((*env), 1.0, IloInfinity);
 
-        if (yt_bound > 0) {
-            range.setLinearCoef((*x)[(*bounds_literals)[yt_index][yt_bound]],
-                                1.0);
-        }
-        if (yf_bound > 0) {
-            range.setLinearCoef((*x)[(*bounds_literals)[yf_index][yf_bound]],
-                                1.0);
-        }
-        for (auto &[op_id, op_bound] : glc->ops_bounds) {
-            range.setLinearCoef((*x)[(*bounds_literals)[op_id][op_bound]], 1.0);
-        }
+            if (yt_bound > 0) {
+                range.setLinearCoef(
+                    (*x)[(*bounds_literals)[yt_index][yt_bound]], 1.0);
+            }
+            if (yf_bound > 0) {
+                range.setLinearCoef(
+                    (*x)[(*bounds_literals)[yf_index][yf_bound]], 1.0);
+            }
+            for (auto &[op_id, op_bound] : glc->ops_bounds) {
+                range.setLinearCoef((*x)[(*bounds_literals)[op_id][op_bound]],
+                                    1.0);
+            }
 
-        c->add(range);
+            c->add(range);
+        }
     }
 
     model->add((*obj));

@@ -84,6 +84,8 @@ struct SequenceInfo {
     int plan_cost = numeric_limits<int>::max();
 };
 
+enum GLCState { NEW, ADDED_AS_LAZY, ADDED_AS_LAZY_AND_USERCUT };
+
 struct CacheGLCs {
     struct Hash {
         size_t operator()(const shared_ptr<GLC> &v) const {
@@ -98,17 +100,17 @@ struct CacheGLCs {
         }
     };
 
-    unordered_map<shared_ptr<GLC>, bool, Hash> cache;
+    unordered_map<shared_ptr<GLC>, GLCState, Hash> cache;
 
     bool add(shared_ptr<GLC> glc) {
         if (cache.count(glc) == 0) {
-            cache[glc] = false;
+            cache[glc] = NEW;
             return false;
         }
         return true;
     }
 
-    void set(shared_ptr<GLC> glc, bool in_lp) { cache[glc] = in_lp; }
+    void set(shared_ptr<GLC> glc, GLCState state) { cache[glc] = state; }
 };
 
 struct CacheOperatorCounts {
@@ -160,6 +162,8 @@ struct CacheOperatorCounts {
         return {false, make_shared<SequenceInfo>()};
     }
 };
+
+enum CallbackType { LAZY, USERCUT, HEURISTIC };
 
 struct Shared {
     Options opts;
@@ -223,7 +227,7 @@ struct Shared {
     IloExpr get_cut(shared_ptr<GLC> learned_glc,
                     IloCplex::ControlCallbackI *callback);
     IloExpr get_cut(shared_ptr<GLC> learned_glc);
-    void log(IloCplex::ControlCallbackI *callback, int type);
+    void log(IloCplex::ControlCallbackI *callback, CallbackType type);
     void log();
     void post_best_plan(IloCplex::HeuristicCallbackI *callback);
 
