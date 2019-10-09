@@ -4,7 +4,7 @@
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas
 ################################################################################
 ./build.py
-run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5m"
+run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1m"
 ################################################################################
 #opts="astar(lmcut())"
 #opts="socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks, heuristic=lmcut)"
@@ -45,8 +45,18 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 5
 #opts="socwsss_cplex(constraint_type=3, constraint_generators=_, heuristic=lmcut, hstar=true, mip_start=false)"
 
 
-opts="socwsss_cplex(constraint_type=3, constraint_generators=_, heuristic=hstar_search_lmcut, mip_start=false, callbacks=lazy_heuristic_usercut)"
-$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
+d1="logs"
+rm -rf "$d1" && mkdir "$d1"
+opts_t3="socwsss_cplex(constraint_type=3, constraint_generators=seq_landmarks, heuristic=hstar_pdb, cstar=8)"
+opts_sat="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, cstar=8)"
+opts_best="socwsss_cplex(best_seq=true, constraint_type=3, constraint_generators=seq_landmarks, heuristic=hstar_pdb, cstar=8)"
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts_t3" > "$d1"/t3_out1 2> "$d1"/t3_out2
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts_sat" > "$d1"/sat_out1 2> "$d1"/sat_out2
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts_best" > "$d1"/best_out1 2> "$d1"/best_out2
+
+
+#opts="socwsss_cplex(constraint_type=3, constraint_generators=_, heuristic=hstar_search_lmcut, mip_start=false, callbacks=lazy_heuristic_usercut)"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
 
 
 #opts="socwsss_cplex(sat_seq=true, constraint_generators=_, heuristic=lmcut, hstar_search=true, mip_start=false, callbacks=lazy_heuristic)"

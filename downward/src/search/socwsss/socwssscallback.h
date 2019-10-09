@@ -216,6 +216,7 @@ struct Shared {
     bool found_in_cache;
     bool repeated_glc;
     shared_ptr<SequenceInfo> info;
+    IloExpr cut_sat, cut_astar;
 
     Shared(const Options &opts, shared_ptr<TaskProxy> task_proxy,
            shared_ptr<AbstractTask> task);

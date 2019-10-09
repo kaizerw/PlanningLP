@@ -717,6 +717,8 @@ void PlanToMinisat::operator()() {
                 learned_glc->add_op_bound(op_id, op_bound);
             }
         }
+        sort(learned_glc->ops_bounds.begin(), learned_glc->ops_bounds.end(),
+             [](auto i, auto j) { return i.first < j.first; });
         if (learned_glc->empty()) {
             learned_glc = nullptr;
         }

@@ -127,6 +127,9 @@ shared_ptr<SequenceInfo> Shared::get_best_sequence() {
         int sat_bounds = info_sat->learned_glc->get_num_bounds();
         int astar_bounds = info_astar->learned_glc->get_num_bounds();
 
+        cut_sat = get_cut(info_sat->learned_glc);
+        cut_astar = get_cut(info_astar->learned_glc);
+
         bool astar_is_better = (astar_bounds < sat_bounds);
         ret = (astar_is_better ? info_astar : info_sat);
 
@@ -424,29 +427,39 @@ void Shared::log(IloCplex::ControlCallbackI* callback, CallbackType type) {
     cerr << "OP COUNT IN CACHE? " << found_in_cache << endl;
     cerr << "SEQUENCIABLE? " << info->sequenciable << endl;
 
-    if (info->sequenciable) {
-        cerr << "PLAN COST: " << info->plan_cost << endl;
-        cerr << "PLAN:" << endl;
-        for (OperatorID op_id : info->plan) {
-            cerr << "\t(" << get_op_cost(ops[op_id.get_index()]) << ") "
-                 << ops[op_id.get_index()].get_name() << endl;
+    if (!found_in_cache) {
+        if (info->sequenciable) {
+            cerr << "PLAN COST: " << info->plan_cost << endl;
+            cerr << "PLAN:" << endl;
+            for (OperatorID op_id : info->plan) {
+                cerr << "\t(" << get_op_cost(ops[op_id.get_index()]) << ") "
+                     << ops[op_id.get_index()].get_name() << endl;
+            }
+        } else {
+            cerr << "LEARNED GLC WITH " << info->learned_glc->get_num_bounds()
+                 << " BOUNDS:" << endl;
+            if (info->learned_glc->yt_bound != -1) {
+                cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]"
+                     << endl;
+            }
+            if (info->learned_glc->yf_bound != -1) {
+                cerr << "\t[YF >= " << info->learned_glc->yf_bound << "]"
+                     << endl;
+            }
+            for (auto i : info->learned_glc->ops_bounds) {
+                cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
+                     << "]" << endl;
+            }
+            cerr << endl;
+            if (best_seq) {
+                cerr << "SAT CUT:\t" << (cut_sat >= 1) << endl;
+                cerr << "ASTAR CUT:\t" << (cut_astar >= 1) << endl;
+                cerr << endl;
+            }
+            cerr << "REPEATED GLC? " << repeated_glc << endl;
+            cerr << "ADDED CUT: " << (get_cut(info->learned_glc, callback) >= 1)
+                 << endl;
         }
-    } else {
-        cerr << "LEARNED GLC WITH " << info->learned_glc->get_num_bounds()
-             << " BOUNDS:" << endl;
-        if (info->learned_glc->yt_bound != -1) {
-            cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]" << endl;
-        }
-        if (info->learned_glc->yf_bound != -1) {
-            cerr << "\t[YF >= " << info->learned_glc->yf_bound << "]" << endl;
-        }
-        for (auto i : info->learned_glc->ops_bounds) {
-            cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
-                 << "]" << endl;
-        }
-        cerr << "REPEATED GLC? " << repeated_glc << endl;
-        cerr << "CUT: " << (get_cut(info->learned_glc, callback) >= 1) << endl;
-        cerr << endl;
     }
     cerr << string(80, '*') << endl;
 }
@@ -470,29 +483,38 @@ void Shared::log() {
     cerr << "OP COUNT IN CACHE? " << found_in_cache << endl;
     cerr << "SEQUENCIABLE? " << info->sequenciable << endl;
 
-    if (info->sequenciable) {
-        cerr << "PLAN COST: " << info->plan_cost << endl;
-        cerr << "PLAN:" << endl;
-        for (OperatorID op_id : info->plan) {
-            cerr << "\t(" << get_op_cost(ops[op_id.get_index()]) << ") "
-                 << ops[op_id.get_index()].get_name() << endl;
+    if (!found_in_cache) {
+        if (info->sequenciable) {
+            cerr << "PLAN COST: " << info->plan_cost << endl;
+            cerr << "PLAN:" << endl;
+            for (OperatorID op_id : info->plan) {
+                cerr << "\t(" << get_op_cost(ops[op_id.get_index()]) << ") "
+                     << ops[op_id.get_index()].get_name() << endl;
+            }
+        } else {
+            cerr << "LEARNED GLC WITH " << info->learned_glc->get_num_bounds()
+                 << " BOUNDS:" << endl;
+            if (info->learned_glc->yt_bound != -1) {
+                cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]"
+                     << endl;
+            }
+            if (info->learned_glc->yf_bound != -1) {
+                cerr << "\t[YF >= " << info->learned_glc->yf_bound << "]"
+                     << endl;
+            }
+            for (auto i : info->learned_glc->ops_bounds) {
+                cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
+                     << "]" << endl;
+            }
+            cerr << endl;
+            if (best_seq) {
+                cerr << "SAT CUT:\t" << (cut_sat >= 1) << endl;
+                cerr << "ASTAR CUT:\t" << (cut_astar >= 1) << endl;
+                cerr << endl;
+            }
+            cerr << "REPEATED GLC? " << repeated_glc << endl;
+            cerr << "ADDED CUT: " << (get_cut(info->learned_glc) >= 1) << endl;
         }
-    } else {
-        cerr << "LEARNED GLC WITH " << info->learned_glc->get_num_bounds()
-             << " BOUNDS:" << endl;
-        if (info->learned_glc->yt_bound != -1) {
-            cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]" << endl;
-        }
-        if (info->learned_glc->yf_bound != -1) {
-            cerr << "\t[YF >= " << info->learned_glc->yf_bound << "]" << endl;
-        }
-        for (auto i : info->learned_glc->ops_bounds) {
-            cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
-                 << "]" << endl;
-        }
-        cerr << "REPEATED GLC? " << repeated_glc << endl;
-        cerr << "CUT: " << (get_cut(info->learned_glc) >= 1) << endl;
-        cerr << endl;
     }
     cerr << string(80, '*') << endl;
 }
