@@ -48,8 +48,6 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     bool sat_seq;
     bool best_seq;
     bool recost;
-    bool hstar_search;
-    bool hstar_pdb;
     bool mip_loop;
     bool add_cstar_constraint;
     int cstar;

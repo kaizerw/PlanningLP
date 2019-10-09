@@ -44,8 +44,6 @@ struct SOCAStarSearch : public EagerSearch {
     bool sat_seq;
     bool best_seq;
     bool recost;
-    bool hstar_search;
-    bool hstar_pdb;
     bool mip_loop;
     bool add_cstar_constraint;
     int cstar;
@@ -61,6 +59,7 @@ struct SOCAStarSearch : public EagerSearch {
     SearchSpace search_space;
     shared_ptr<CacheHStar> cache_hstar;
     shared_ptr<GLC> learned_glc;
+    bool hstar_by_search;
 
     bool check_goal_and_set_plan(const GlobalState &state);
     virtual void initialize() override;

@@ -11,8 +11,6 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       sat_seq(opts.get<bool>("sat_seq")),
       best_seq(opts.get<bool>("best_seq")),
       recost(opts.get<bool>("recost")),
-      hstar_search(opts.get<bool>("hstar_search")),
-      hstar_pdb(opts.get<bool>("hstar_pdb")),
       mip_loop(opts.get<bool>("mip_loop")),
       add_cstar_constraint(opts.get<bool>("add_cstar_constraint")),
       cstar(opts.get<int>("cstar")),
@@ -542,8 +540,6 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("sat_seq", "", "false");
     parser.add_option<bool>("best_seq", "", "false");
     parser.add_option<bool>("recost", "", "false");
-    parser.add_option<bool>("hstar_search", "", "false");
-    parser.add_option<bool>("hstar_pdb", "", "false");
     parser.add_option<bool>("mip_loop", "", "false");
     parser.add_option<bool>("add_cstar_constraint", "", "false");
     parser.add_option<int>("cstar", "", "0");

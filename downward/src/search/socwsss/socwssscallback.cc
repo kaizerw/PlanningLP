@@ -10,8 +10,6 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       sat_seq(opts.get<bool>("sat_seq")),
       best_seq(opts.get<bool>("best_seq")),
       recost(opts.get<bool>("recost")),
-      hstar_search(opts.get<bool>("hstar_search")),
-      hstar_pdb(opts.get<bool>("hstar_pdb")),
       mip_loop(opts.get<bool>("mip_loop")),
       add_cstar_constraint(opts.get<bool>("add_cstar_constraint")),
       cstar(opts.get<int>("cstar")),
@@ -27,7 +25,7 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
     glcs = make_shared<vector<shared_ptr<GLC>>>();
     printer_plots =
         make_shared<PrinterPlots>(ops.size(), vars.size(), glcs, start);
-    if (hstar_pdb) {
+    if (heuristic.find("hstar_pdb") != string::npos) {
         vector<int> pattern;
         for (size_t var_id = 0; var_id < vars.size(); ++var_id) {
             pattern.emplace_back(var_id);
@@ -174,7 +172,7 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
 
     shared_ptr<Evaluator> h;
 
-    if (hstar_pdb) {
+    if (heuristic.find("hstar_pdb") != string::npos) {
         cout << "USING H* HEURISTIC FROM FULL PDB" << endl;
         h = full_pdb;
     } else if (heuristic.find("blind") != string::npos) {

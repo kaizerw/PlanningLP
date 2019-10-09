@@ -11,8 +11,6 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       sat_seq(opts.get<bool>("sat_seq")),
       best_seq(opts.get<bool>("best_seq")),
       recost(opts.get<bool>("recost")),
-      hstar_search(opts.get<bool>("hstar_search")),
-      hstar_pdb(opts.get<bool>("hstar_pdb")),
       mip_loop(opts.get<bool>("mip_loop")),
       add_cstar_constraint(opts.get<bool>("add_cstar_constraint")),
       cstar(opts.get<int>("cstar")),
@@ -26,7 +24,8 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       yf_bound(numeric_limits<int>::max()),
       state_registry(task_proxy, true, initial_op_count),
       search_space(state_registry),
-      cache_hstar(make_shared<CacheHStar>(opts, task_proxy)) {
+      cache_hstar(make_shared<CacheHStar>(opts, task_proxy)),
+      hstar_by_search(heuristic.find("hstar_search") != string::npos) {
     cout << "Initializing SOC A* search..." << endl;
 }
 
@@ -183,7 +182,7 @@ SearchStatus SOCAStarSearch::step() {
     ////////////////////////////////////////////////////////////////////////////
     // Use f_bound to bound search
     long node_f =
-        (hstar_search ? node->get_g() + (*cache_hstar)[node->get_state()]
+        (hstar_by_search ? node->get_g() + (*cache_hstar)[node->get_state()]
                       : EvaluationContext(node->get_state(), node->get_g(),
                                           false, &statistics)
                             .get_evaluator_value(f_evaluator.get()));
@@ -266,7 +265,7 @@ SearchStatus SOCAStarSearch::step() {
                 // s only if s' is a new state and f(s') <= f_bound
             } else if (constraint_type == 3) {
                 long new_succ_f =
-                    (hstar_search
+                    (hstar_by_search
                          ? node->get_g() + get_adjusted_cost(op) +
                                (*cache_hstar)[succ_state]
                          : EvaluationContext(
