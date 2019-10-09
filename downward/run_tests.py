@@ -32,11 +32,12 @@ class Slave:
         
         name = os.path.join(self.config['name'], self.domain, self.instance)
         output_folder = os.path.join('.', 'OUTPUT', name)
+        lb = self.infos.loc[(self.domain, self.instance), 'lower_bound']
         try:
             command = [os.path.join('.', 'fast-downward.py')]
             command += ["--overall-time-limit", f"{self.args.max_time}m", "--overall-memory-limit", f"{self.args.max_memory}M"]
             command += [os.path.join(os.environ['DOWNWARD_BENCHMARKS'], self.domain, self.instance + '.sas')]
-            command += ['--search', self.config['search']]
+            command += ['--search', self.config['search'].replace(')', f', cstar={lb})')]
             
             pathlib.Path(output_folder).mkdir(parents=True)
             with open(os.path.join(output_folder, 'output1.txt'), 'w') as output1_file:

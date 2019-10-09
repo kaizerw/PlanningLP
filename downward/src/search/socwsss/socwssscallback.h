@@ -177,6 +177,9 @@ struct Shared {
     bool hstar_search;
     bool hstar_pdb;
     bool mip_loop;
+    bool add_cstar_constraint;
+    int cstar;
+    bool add_yf_bound;
     string callbacks;
 
     shared_ptr<TaskProxy> task_proxy;
