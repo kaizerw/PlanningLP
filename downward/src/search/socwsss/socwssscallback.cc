@@ -14,6 +14,7 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       add_cstar_constraint(opts.get<bool>("add_cstar_constraint")),
       cstar(opts.get<int>("cstar")),
       add_yf_bound(opts.get<bool>("add_yf_bound")),
+      add_yt_bound(opts.get<bool>("add_yt_bound")),
       callbacks(opts.get<string>("callbacks")),
       task_proxy(task_proxy),
       ops(task_proxy->get_operators()),
@@ -144,7 +145,7 @@ shared_ptr<SequenceInfo> Shared::get_sat_sequence() {
                              restarts,
                              cache_op_counts.get_best_plan().second->plan_cost);
     auto start = chrono::system_clock::now();
-    auto sat_solver = PlanToMinisat(task_proxy, rounded_x);
+    auto sat_solver = PlanToMinisat(task_proxy, rounded_x, add_yt_bound);
     sat_solver();
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
                                       chrono::system_clock::now() - start)

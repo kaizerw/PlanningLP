@@ -178,6 +178,7 @@ struct Shared {
     bool add_cstar_constraint;
     int cstar;
     bool add_yf_bound;
+    bool add_yt_bound;
     string callbacks;
 
     shared_ptr<TaskProxy> task_proxy;

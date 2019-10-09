@@ -52,6 +52,7 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     bool add_cstar_constraint;
     int cstar;
     bool add_yf_bound;
+    bool add_yt_bound;
     string callbacks;
 
     OperatorsProxy ops;

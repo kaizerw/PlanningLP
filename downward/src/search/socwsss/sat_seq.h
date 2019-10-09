@@ -29,6 +29,7 @@ using namespace std;
 struct PlanToMinisat : Minisat22::Solver {
     shared_ptr<TaskProxy> task_proxy;
     vector<long> op_counts;
+    bool add_yt_bound;
     int n_layers;
     int id_generator = 1;
     map<tuple<int, int>, int> aux_vars;
@@ -64,7 +65,8 @@ struct PlanToMinisat : Minisat22::Solver {
     Plan plan;
     shared_ptr<GLC> learned_glc;
 
-    PlanToMinisat(shared_ptr<TaskProxy> task_proxy, vector<long>& op_counts);
+    PlanToMinisat(shared_ptr<TaskProxy> task_proxy, vector<long>& op_counts,
+                  bool add_yt_bound);
     void initialize_ids();
     void initialize_assumptions();
     int s(int i, int j);

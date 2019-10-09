@@ -9,9 +9,10 @@ exit(0);
 */
 
 PlanToMinisat::PlanToMinisat(shared_ptr<TaskProxy> task_proxy,
-                             vector<long>& op_counts)
+                             vector<long>& op_counts, bool add_yt_bound)
     : task_proxy(task_proxy),
       op_counts(op_counts),
+      add_yt_bound(add_yt_bound),
       n_layers(accumulate(op_counts.begin(), op_counts.end(), 0)) {
     ops = make_shared<OperatorsProxy>(task_proxy->get_operators());
     vars = make_shared<VariablesProxy>(task_proxy->get_variables());
@@ -709,7 +710,9 @@ void PlanToMinisat::operator()() {
             auto [op_id, op_bound] = ids_to_assumptions_pairs[v];
 
             if (op_id == -1) {
-                learned_glc->yt_bound = op_bound;
+                if (add_yt_bound) {
+                    learned_glc->yt_bound = op_bound;
+                }
             } else {
                 learned_glc->add_op_bound(op_id, op_bound);
             }

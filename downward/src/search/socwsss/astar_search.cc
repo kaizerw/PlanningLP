@@ -15,6 +15,7 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       add_cstar_constraint(opts.get<bool>("add_cstar_constraint")),
       cstar(opts.get<int>("cstar")),
       add_yf_bound(opts.get<bool>("add_yf_bound")),
+      add_yt_bound(opts.get<bool>("add_yt_bound")),
       callbacks(opts.get<string>("callbacks")),
       initial_op_count(opts.get<OperatorCount>("initial_op_count")),
       f_bound(opts.get<long>("f_bound")),
