@@ -44,6 +44,25 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
         opts_h.set("cache_estimates", true);
 
         full_pdb = make_shared<pdbs::PDBHeuristic>(opts_h);
+
+        if (minimal_cut) {
+            shared_ptr<Evaluator> h = full_pdb;
+
+            Options opts_astar(opts);
+            opts_astar.set("eval", h);
+            auto temp =
+                search_common::create_astar_open_list_factory_and_f_eval(
+                    opts_astar);
+            opts_astar.set("open", temp.first);
+            opts_astar.set("f_eval", temp.second);
+            opts_astar.set("reopen_closed", true);
+            vector<shared_ptr<Evaluator>> preferred_list;
+            opts_astar.set("preferred", preferred_list);
+
+            auto astar = make_shared<AStarOptimalPlansSearch>(opts_astar);
+            astar->search();
+            optimal_plans = astar->optimal_plans;
+        }
     }
 }
 
@@ -138,47 +157,39 @@ shared_ptr<SequenceInfo> Shared::get_best_sequence() {
         printer_plots->total_astar_is_better += (int)(astar_is_better);
 
         if (minimal_cut) {
-            vector<string> all_ops_names;
-            vector<string> available_ops_names;
-            for (size_t op_id = 0; op_id < rounded_x.size(); ++op_id) {
-                string op_name = ops[op_id].get_name();
-                replace(op_name.begin(), op_name.end(), ' ', '_');
-                replace(op_name.begin(), op_name.end(), '-', '_');
+            IloEnv env2;
+            IloModel model2(env2);
+            IloNumVarArray x2(env2);
+            IloRangeArray c2(env2);
+            IloObjective obj2(env2);
 
-                all_ops_names.emplace_back(op_name);
-                if (rounded_x[op_id] > 0)
-                    available_ops_names.emplace_back(op_name);
+            for (OperatorProxy op : ops) {
+                x2.add(IloNumVar(env2, 0.0, 1.0, ILOINT));
+                obj2.setLinearCoef(x2[op.get_id()], 1.0);
             }
 
-            IloEnv env;
-            IloModel model(env);
-            IloCplex cplex(model);
-            cplex.importModel(model, "base.lp");
-            for (IloModel::Iterator it(model); it.ok(); ++it) {
-                IloExtractable e = *it;
-                if (e.isVariable()) {
-                    IloNumVar v = e.asVariable();
-                    if (count(available_ops_names.begin(),
-                              available_ops_names.end(), v.getName()) > 0) {
-                        cplex.addCut(v <= 0);
-                    }
+            for (Plan plan : optimal_plans) {
+                IloRange range(env2, 1.0, IloInfinity);
+                for (OperatorID op_id : plan) {
+                    range.setLinearCoef(x2[op_id.get_index()], 1.0);
                 }
+                c2.add(range);
             }
-            cplex.solve();
+
+            for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
+                if (rounded_x[op_id] > 0) x2[op_id].setUB(0.0);
+            }
+
+            model2.add(obj2);
+            model2.add(c2);
+            IloCplex cplex2(model2);
+
+            cplex2.solve();
 
             ret->learned_glc = make_shared<GLC>();
-            for (IloModel::Iterator it(model); it.ok(); ++it) {
-                IloExtractable e = *it;
-                if (e.isVariable()) {
-                    IloNumVar v = e.asVariable();
-                    int s = cplex.getValue(v);
-                    if (s > 0) {
-                        auto it2 = find(all_ops_names.begin(),
-                                        all_ops_names.end(), v.getName());
-                        int op_id = distance(all_ops_names.begin(), it2);
-                        ret->learned_glc->add_op_bound(op_id, s);
-                    }
-                }
+            for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
+                long v = lround(ceil(cplex2.getValue(x2[op_id]) - 0.01));
+                if (v > 0) ret->learned_glc->add_op_bound(op_id, v);
             }
         }
     }

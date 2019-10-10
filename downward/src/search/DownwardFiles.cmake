@@ -777,6 +777,7 @@ fast_downward_plugin(
         socwsss/glcs_constraints
 	    socwsss/relaxed_exploration_landmarks
         socwsss/socwsss_search
+        socwsss/astar_optimal_plans_search
         socwsss/minisat22/core/Solver
         socwsss/minisat22/utils/Options
         socwsss/minisat22/utils/System

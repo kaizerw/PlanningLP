@@ -56,6 +56,9 @@ $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search
 $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts_best" > "$d1"/best_out1 2> "$d1"/best_out2
 $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts_min" > "$d1"/min_out1 2> "$d1"/min_out2
 
+#opts="astar_optimal_plans(pdb(manual_pattern([0, 1, 2, 3, 4, 5, 6, 7, 8])))"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
+
 
 #opts="socwsss_cplex(constraint_type=3, constraint_generators=_, heuristic=hstar_search_lmcut, mip_start=false, callbacks=lazy_heuristic_usercut)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"

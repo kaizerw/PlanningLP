@@ -30,8 +30,10 @@
 #include "../pdbs/pattern_collection_generator_systematic.h"
 #include "../pdbs/pattern_generator_manual.h"
 #include "../pdbs/pdb_heuristic.h"
+#include "astar_optimal_plans_search.h"
 #include "glcs_constraints.h"
 
+using astar_optimal_plans_search::AStarOptimalPlansSearch;
 using blind_search_heuristic::BlindSearchHeuristic;
 using lm_cut_heuristic::LandmarkCutHeuristic;
 using lm_cut_heuristic::LandmarkCutLandmarks;
@@ -218,6 +220,7 @@ struct Shared {
     bool repeated_glc;
     shared_ptr<SequenceInfo> info;
     IloExpr cut_sat, cut_astar;
+    vector<Plan> optimal_plans;
 
     Shared(const Options &opts, shared_ptr<TaskProxy> task_proxy,
            shared_ptr<AbstractTask> task);
