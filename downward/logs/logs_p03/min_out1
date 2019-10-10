@@ -1,28 +1,28 @@
 INFO     Running search (release).
 INFO     search stdin: /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/visitall-opt11-strips/problem03-full.sas
-INFO     search time limit: 59.97s
+INFO     search time limit: 59.96s
 INFO     search memory limit: 3584 MB
 INFO     search command line string: /home/wlkaizer/Mestrado/PlanningLP/downward/builds/release/bin/downward --search 'socwsss_cplex(best_seq=true, minimal_cut=true, constraint_type=3, constraint_generators=seq_landmarks, heuristic=hstar_pdb, cstar=8)' --internal-plan-file sas_plan < /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/visitall-opt11-strips/problem03-full.sas
-reading input... [t=0.000749605s]
-done reading input! [t=0.000981325s]
-Building successor generator...done! [t=0.00242671s]
+reading input... [t=0.00072698s]
+done reading input! [t=0.000942227s]
+Building successor generator...done! [t=0.00229982s]
 peak memory difference for successor generator creation: 0 KB
-time for successor generation creation: 1.4126e-05s
+time for successor generation creation: 1.4148e-05s
 Variables: 9
 FactPairs: 25
 Bytes per state: 4
 Initializing SOCWSSS CPLEX search...
 Manual pattern: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-Building successor generator...done! [t=0.00301101s]
+Building successor generator...done! [t=0.00288601s]
 peak memory difference for successor generator creation: 0 KB
-time for successor generation creation: 1.034e-06s
+time for successor generation creation: 1.026e-06s
 Variables: 9
 FactPairs: 25
 Bytes per state: 4
 Initializing A* OPTIMAL PLANS search...
 New best heuristic value for <missing>: 8
-[g=0, 1 evaluated, 0 expanded, t=0.00307927s, 68232 KB]
-f = 8 [1 evaluated, 0 expanded, t=0.00310705s, 68232 KB]
+[g=0, 1 evaluated, 0 expanded, t=0.00295854s, 68232 KB]
+f = 8 [1 evaluated, 0 expanded, t=0.00298686s, 68232 KB]
 Initial heuristic value for <missing>: 8
 pruning method: none
 New best heuristic value for <missing>: 7
@@ -33,8 +33,8 @@ New best heuristic value for <missing>: 3
 New best heuristic value for <missing>: 2
 New best heuristic value for <missing>: 1
 New best heuristic value for <missing>: 0
-f = 9 [137 evaluated, 61 expanded, t=0.00347011s, 68232 KB]
-Actual search time: 0.000372984s [t=0.00351537s]
+f = 9 [137 evaluated, 61 expanded, t=0.00334485s, 68232 KB]
+Actual search time: 0.000360728s [t=0.00338412s]
 Using SEQ constraints
 Using lmcut constraints
 Starting SOCWSSS CPLEX search...
@@ -68,7 +68,7 @@ Initial LP solution: 0.00000
 Total astar time: 0.00000s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.00503s
+Total solve time: 0.00470s
 SEQUENCING WITH A*...
 USING H* HEURISTIC FROM FULL PDB
 Repeated seqs: 0
@@ -87,18 +87,18 @@ Number of variables: 9
 Number of seqs: 2
 Times made progress: 0
 Last nodes expanded: 0
-Last astar time: 0.00416
+Last astar time: 0.00388
 Mean nodes expanded: 0.00000
 Max op count: 0
 Max num ops: 0
 Max num distinct ops: 0
 Max LP solution: 0.00000
 Initial LP solution: 0.00000
-Total astar time: 0.00416s
+Total astar time: 0.00388s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.00949s
-Building successor generator...done! [t=0.01229s]
+Total solve time: 0.00883s
+Building successor generator...done! [t=0.01149s]
 peak memory difference for successor generator creation: 0 KB
 time for successor generation creation: 0.00000s
 Variables: 9
@@ -106,14 +106,14 @@ FactPairs: 25
 Bytes per state: 4
 Initializing SOC A* search...
 New best heuristic value for <missing>: 8
-[g=0, 1 evaluated, 0 expanded, t=0.01238s, 75992 KB]
-f = 8 [1 evaluated, 0 expanded, t=0.01241s, 75992 KB]
+[g=0, 1 evaluated, 0 expanded, t=0.01158s, 75992 KB]
+f = 8 [1 evaluated, 0 expanded, t=0.01161s, 75992 KB]
 Initial heuristic value for <missing>: 8
 pruning method: none
 New best heuristic value for <missing>: 7
 New best heuristic value for <missing>: 6
 Completely explored state space -- no solution!
-Actual search time: 0.00004s [t=0.01249s]
+Actual search time: 0.00004s [t=0.01168s]
 Found incumbent of value 16.000000 after 0.00 sec. (0.00 ticks)
 Tried aggregator 1 time.
 MIP Presolve eliminated 4 rows and 17 columns.
@@ -144,16 +144,16 @@ Root relaxation solution time = 0.00 sec. (0.01 ticks)
 *     0+    0                            3.0000        1.0000            66.67%
       0     0        2.3333     4        3.0000        2.3333        4   22.22%
       0     0        cutoff              3.0000        2.3333        4   22.22%
-Elapsed time = 0.00 sec. (0.08 ticks, tree = 0.01 MB, solutions = 3)
+Elapsed time = 0.01 sec. (0.08 ticks, tree = 0.01 MB, solutions = 3)
 
 Root node processing (before b&c):
-  Real time             =    0.00 sec. (0.08 ticks)
+  Real time             =    0.01 sec. (0.08 ticks)
 Parallel b&c, 4 threads:
   Real time             =    0.00 sec. (0.00 ticks)
   Sync time (average)   =    0.00 sec.
   Wait time (average)   =    0.00 sec.
                           ------------
-Total (root+branch&cut) =    0.00 sec. (0.08 ticks)
+Total (root+branch&cut) =    0.01 sec. (0.08 ticks)
 SEQUENCING WITH SAT...
 Repeated seqs: 0
 Restarts: 0
@@ -171,17 +171,17 @@ Number of variables: 9
 Number of seqs: 3
 Times made progress: 0
 Last nodes expanded: 3
-Last astar time: 0.00014
+Last astar time: 0.00012
 Mean nodes expanded: 3.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00014s
+Total astar time: 0.00012s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.01499s
+Total solve time: 0.01923s
 SEQUENCING WITH A*...
 USING H* HEURISTIC FROM FULL PDB
 Repeated seqs: 0
@@ -200,18 +200,18 @@ Number of variables: 9
 Number of seqs: 4
 Times made progress: 0
 Last nodes expanded: 3
-Last astar time: 0.00368
+Last astar time: 0.00389
 Mean nodes expanded: 3.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00368s
+Total astar time: 0.00389s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.01904s
-Building successor generator...done! [t=0.02254s]
+Total solve time: 0.02348s
+Building successor generator...done! [t=0.02720s]
 peak memory difference for successor generator creation: 0 KB
 time for successor generation creation: 0.00000s
 Variables: 9
@@ -219,8 +219,8 @@ FactPairs: 25
 Bytes per state: 4
 Initializing SOC A* search...
 New best heuristic value for <missing>: 8
-[g=0, 1 evaluated, 0 expanded, t=0.02262s, 301280 KB]
-f = 8 [1 evaluated, 0 expanded, t=0.02265s, 301280 KB]
+[g=0, 1 evaluated, 0 expanded, t=0.02728s, 301500 KB]
+f = 8 [1 evaluated, 0 expanded, t=0.02732s, 301500 KB]
 Initial heuristic value for <missing>: 8
 pruning method: none
 New best heuristic value for <missing>: 7
@@ -228,7 +228,7 @@ New best heuristic value for <missing>: 6
 New best heuristic value for <missing>: 5
 New best heuristic value for <missing>: 4
 Completely explored state space -- no solution!
-Actual search time: 0.00005s [t=0.02273s]
+Actual search time: 0.00005s [t=0.02741s]
 Found incumbent of value 16.000000 after 0.00 sec. (0.00 ticks)
 Tried aggregator 1 time.
 MIP Presolve eliminated 7 rows and 21 columns.
@@ -267,17 +267,17 @@ Number of variables: 9
 Number of seqs: 5
 Times made progress: 0
 Last nodes expanded: 5
-Last astar time: 0.00013
+Last astar time: 0.00014
 Mean nodes expanded: 4.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00013s
+Total astar time: 0.00014s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.02335s
+Total solve time: 0.02817s
 SEQUENCING WITH A*...
 USING H* HEURISTIC FROM FULL PDB
 Repeated seqs: 0
@@ -296,18 +296,18 @@ Number of variables: 9
 Number of seqs: 6
 Times made progress: 0
 Last nodes expanded: 5
-Last astar time: 0.00358
+Last astar time: 0.00387
 Mean nodes expanded: 4.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00358s
+Total astar time: 0.00387s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.02725s
-Building successor generator...done! [t=0.03077s]
+Total solve time: 0.03240s
+Building successor generator...done! [t=0.03614s]
 peak memory difference for successor generator creation: 0 KB
 time for successor generation creation: 0.00000s
 Variables: 9
@@ -315,8 +315,8 @@ FactPairs: 25
 Bytes per state: 4
 Initializing SOC A* search...
 New best heuristic value for <missing>: 8
-[g=0, 1 evaluated, 0 expanded, t=0.03085s, 301280 KB]
-f = 8 [1 evaluated, 0 expanded, t=0.03088s, 301280 KB]
+[g=0, 1 evaluated, 0 expanded, t=0.03623s, 301500 KB]
+f = 8 [1 evaluated, 0 expanded, t=0.03626s, 301500 KB]
 Initial heuristic value for <missing>: 8
 pruning method: none
 New best heuristic value for <missing>: 7
@@ -326,7 +326,7 @@ New best heuristic value for <missing>: 4
 New best heuristic value for <missing>: 3
 New best heuristic value for <missing>: 2
 Completely explored state space -- no solution!
-Actual search time: 0.00007s [t=0.03098s]
+Actual search time: 0.00007s [t=0.03637s]
 Found incumbent of value 16.000000 after 0.00 sec. (0.00 ticks)
 Tried aggregator 1 time.
 MIP Presolve eliminated 8 rows and 24 columns.
@@ -358,17 +358,17 @@ Number of variables: 9
 Number of seqs: 7
 Times made progress: 0
 Last nodes expanded: 7
-Last astar time: 0.00015
+Last astar time: 0.00016
 Mean nodes expanded: 5.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00015s
+Total astar time: 0.00016s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.02905s
+Total solve time: 0.03432s
 Repeated seqs: 0
 Restarts: 0
 Perc astar is better: 0.00000
@@ -385,18 +385,18 @@ Number of variables: 9
 Number of seqs: 7
 Times made progress: 0
 Last nodes expanded: 7
-Last astar time: 0.00382
+Last astar time: 0.00388
 Mean nodes expanded: 5.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00382s
+Total astar time: 0.00388s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.03370s
-Actual search time: 0.03357s [t=0.03721s]
+Total solve time: 0.03914s
+Actual search time: 0.03935s [t=0.04286s]
 move loc-x1-y1 loc-x2-y1 (1)
 move loc-x2-y1 loc-x2-y2 (1)
 move loc-x2-y2 loc-x1-y2 (1)
@@ -407,9 +407,9 @@ move loc-x0-y0 loc-x1-y0 (1)
 move loc-x1-y0 loc-x2-y0 (1)
 Plan length: 8 step(s).
 Plan cost: 8
-Search time: 0.03466s
-Total time: 0.03721s
+Search time: 0.04045s
+Total time: 0.04286s
 Solution found.
-Peak memory: 301384 KB
+Peak memory: 301500 KB
 search exit code: 0
 

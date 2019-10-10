@@ -45,8 +45,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 1
 #opts="socwsss_cplex(constraint_type=3, constraint_generators=_, heuristic=lmcut, hstar=true, mip_start=false)"
 
 
-d1="logs"
-rm -rf "$d1" && mkdir "$d1"
+d1="logs/logs_p03"
+rm -rf "$d1" && mkdir -p "$d1"
 opts_t3="socwsss_cplex(constraint_type=3, constraint_generators=seq_landmarks, heuristic=hstar_pdb, cstar=8)"
 opts_sat="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, cstar=8)"
 opts_best="socwsss_cplex(best_seq=true, constraint_type=3, constraint_generators=seq_landmarks, heuristic=hstar_pdb, cstar=8)"
@@ -55,6 +55,17 @@ $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search
 $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts_sat" > "$d1"/sat_out1 2> "$d1"/sat_out2
 $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts_best" > "$d1"/best_out1 2> "$d1"/best_out2
 $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts_min" > "$d1"/min_out1 2> "$d1"/min_out2
+
+d1="logs/logs_p04"
+rm -rf "$d1" && mkdir -p "$d1"
+opts_t3="socwsss_cplex(constraint_type=3, constraint_generators=seq_landmarks, heuristic=hstar_pdb, cstar=15)"
+opts_sat="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, cstar=15)"
+opts_best="socwsss_cplex(best_seq=true, constraint_type=3, constraint_generators=seq_landmarks, heuristic=hstar_pdb, cstar=15)"
+opts_min="socwsss_cplex(best_seq=true, minimal_cut=true, constraint_type=3, constraint_generators=seq_landmarks, heuristic=hstar_pdb, cstar=15)"
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts_t3" > "$d1"/t3_out1 2> "$d1"/t3_out2
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts_sat" > "$d1"/sat_out1 2> "$d1"/sat_out2
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts_best" > "$d1"/best_out1 2> "$d1"/best_out2
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts_min" > "$d1"/min_out1 2> "$d1"/min_out2
 
 #opts="astar_optimal_plans(pdb(manual_pattern([0, 1, 2, 3, 4, 5, 6, 7, 8])))"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"

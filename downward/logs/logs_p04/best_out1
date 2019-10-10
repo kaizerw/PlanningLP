@@ -1,0 +1,508 @@
+INFO     Running search (release).
+INFO     search stdin: /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/visitall-opt11-strips/problem04-full.sas
+INFO     search time limit: 59.96s
+INFO     search memory limit: 3584 MB
+INFO     search command line string: /home/wlkaizer/Mestrado/PlanningLP/downward/builds/release/bin/downward --search 'socwsss_cplex(best_seq=true, constraint_type=3, constraint_generators=seq_landmarks, heuristic=hstar_pdb, cstar=15)' --internal-plan-file sas_plan < /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/visitall-opt11-strips/problem04-full.sas
+reading input... [t=0.000687802s]
+done reading input! [t=0.0010135s]
+Building successor generator...done! [t=0.00235027s]
+peak memory difference for successor generator creation: 0 KB
+time for successor generation creation: 1.9403e-05s
+Variables: 16
+FactPairs: 46
+Bytes per state: 4
+Initializing SOCWSSS CPLEX search...
+Manual pattern: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+Using SEQ constraints
+Using lmcut constraints
+Starting SOCWSSS CPLEX search...
+USING LAZY CONSTRAINT CALLBACK
+USING USERCUT CALLBACK
+USING HEURISTIC CALLBACK
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.00000
+Median ops by constraint: 0.00000
+Last ops by constraint: 0.00000
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 1
+Times made progress: 0
+Last nodes expanded: 0
+Last astar time: 0.00000
+Mean nodes expanded: 0.00000
+Max op count: 0
+Max num ops: 0
+Max num distinct ops: 0
+Max LP solution: 0.00000
+Initial LP solution: 0.00000
+Total astar time: 0.00000s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.08878s
+SEQUENCING WITH A*...
+USING H* HEURISTIC FROM FULL PDB
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.00000
+Median ops by constraint: 0.00000
+Last ops by constraint: 0.00000
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 2
+Times made progress: 0
+Last nodes expanded: 0
+Last astar time: 0.01439
+Mean nodes expanded: 0.00000
+Max op count: 0
+Max num ops: 0
+Max num distinct ops: 0
+Max LP solution: 0.00000
+Initial LP solution: 0.00000
+Total astar time: 0.01439s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.10410s
+Building successor generator...done! [t=0.10674s]
+peak memory difference for successor generator creation: 0 KB
+time for successor generation creation: 0.00000s
+Variables: 16
+FactPairs: 46
+Bytes per state: 4
+Initializing SOC A* search...
+New best heuristic value for <missing>: 15
+[g=0, 1 evaluated, 0 expanded, t=0.10683s, 79788 KB]
+f = 15 [1 evaluated, 0 expanded, t=0.10686s, 79788 KB]
+Initial heuristic value for <missing>: 15
+pruning method: none
+New best heuristic value for <missing>: 14
+Completely explored state space -- no solution!
+Actual search time: 0.00003s [t=0.10693s]
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 1.00000
+Min plan in cache: 2147483647
+Max f found: 15.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.12500
+Median ops by constraint: 0.12500
+Last ops by constraint: 0.12500
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 3
+Times made progress: 0
+Last nodes expanded: 2
+Last astar time: 0.00012
+Mean nodes expanded: 2.00000
+Max op count: 1
+Max num ops: 15
+Max num distinct ops: 15
+Max LP solution: 15.00000
+Initial LP solution: 15.00000
+Total astar time: 0.00012s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.10573s
+SEQUENCING WITH A*...
+USING H* HEURISTIC FROM FULL PDB
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 1.00000
+Min plan in cache: 2147483647
+Max f found: 15.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.12500
+Median ops by constraint: 0.12500
+Last ops by constraint: 0.12500
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 4
+Times made progress: 0
+Last nodes expanded: 2
+Last astar time: 0.01678
+Mean nodes expanded: 2.00000
+Max op count: 1
+Max num ops: 15
+Max num distinct ops: 15
+Max LP solution: 15.00000
+Initial LP solution: 15.00000
+Total astar time: 0.01678s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.12359s
+Building successor generator...done! [t=0.12625s]
+peak memory difference for successor generator creation: 0 KB
+time for successor generation creation: 0.00000s
+Variables: 16
+FactPairs: 46
+Bytes per state: 4
+Initializing SOC A* search...
+New best heuristic value for <missing>: 15
+[g=0, 1 evaluated, 0 expanded, t=0.12633s, 80468 KB]
+f = 15 [1 evaluated, 0 expanded, t=0.12636s, 80468 KB]
+Initial heuristic value for <missing>: 15
+pruning method: none
+New best heuristic value for <missing>: 14
+New best heuristic value for <missing>: 13
+New best heuristic value for <missing>: 12
+New best heuristic value for <missing>: 11
+New best heuristic value for <missing>: 10
+New best heuristic value for <missing>: 9
+New best heuristic value for <missing>: 8
+New best heuristic value for <missing>: 7
+New best heuristic value for <missing>: 6
+New best heuristic value for <missing>: 5
+New best heuristic value for <missing>: 4
+New best heuristic value for <missing>: 3
+New best heuristic value for <missing>: 2
+f = 16 [17 evaluated, 14 expanded, t=0.12653s, 80468 KB]
+f = 17 [17 evaluated, 15 expanded, t=0.12657s, 80468 KB]
+Completely explored state space -- no solution!
+Actual search time: 0.00023s [t=0.12662s]
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.50000
+Min plan in cache: 2147483647
+Max f found: 17.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.17708
+Median ops by constraint: 0.17708
+Last ops by constraint: 0.22917
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 5
+Times made progress: 1
+Last nodes expanded: 17
+Last astar time: 0.00031
+Mean nodes expanded: 9.50000
+Max op count: 1
+Max num ops: 18
+Max num distinct ops: 18
+Max LP solution: 18.00000
+Initial LP solution: 15.00000
+Total astar time: 0.00031s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.12663s
+SEQUENCING WITH A*...
+USING H* HEURISTIC FROM FULL PDB
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.50000
+Min plan in cache: 2147483647
+Max f found: 17.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.17708
+Median ops by constraint: 0.17708
+Last ops by constraint: 0.22917
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 6
+Times made progress: 1
+Last nodes expanded: 17
+Last astar time: 0.01340
+Mean nodes expanded: 9.50000
+Max op count: 1
+Max num ops: 18
+Max num distinct ops: 18
+Max LP solution: 18.00000
+Initial LP solution: 15.00000
+Total astar time: 0.01340s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.14093s
+Building successor generator...done! [t=0.14357s]
+peak memory difference for successor generator creation: 0 KB
+time for successor generation creation: 0.00000s
+Variables: 16
+FactPairs: 46
+Bytes per state: 4
+Initializing SOC A* search...
+New best heuristic value for <missing>: 15
+[g=0, 1 evaluated, 0 expanded, t=0.14366s, 80468 KB]
+f = 15 [1 evaluated, 0 expanded, t=0.14369s, 80468 KB]
+Initial heuristic value for <missing>: 15
+pruning method: none
+New best heuristic value for <missing>: 14
+New best heuristic value for <missing>: 13
+New best heuristic value for <missing>: 12
+New best heuristic value for <missing>: 11
+New best heuristic value for <missing>: 10
+New best heuristic value for <missing>: 9
+New best heuristic value for <missing>: 8
+New best heuristic value for <missing>: 7
+New best heuristic value for <missing>: 6
+Completely explored state space -- no solution!
+Actual search time: 0.00010s [t=0.14383s]
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.33333
+Min plan in cache: 2147483647
+Max f found: 17.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.13889
+Median ops by constraint: 0.12500
+Last ops by constraint: 0.06250
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 7
+Times made progress: 1
+Last nodes expanded: 10
+Last astar time: 0.00019
+Mean nodes expanded: 9.66667
+Max op count: 1
+Max num ops: 18
+Max num distinct ops: 18
+Max LP solution: 18.00000
+Initial LP solution: 15.00000
+Total astar time: 0.00019s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.14390s
+SEQUENCING WITH A*...
+USING H* HEURISTIC FROM FULL PDB
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.33333
+Min plan in cache: 2147483647
+Max f found: 17.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.13889
+Median ops by constraint: 0.12500
+Last ops by constraint: 0.06250
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 8
+Times made progress: 1
+Last nodes expanded: 10
+Last astar time: 0.01565
+Mean nodes expanded: 9.66667
+Max op count: 1
+Max num ops: 18
+Max num distinct ops: 18
+Max LP solution: 18.00000
+Initial LP solution: 15.00000
+Total astar time: 0.01565s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.16063s
+Building successor generator...done! [t=0.16327s]
+peak memory difference for successor generator creation: 0 KB
+time for successor generation creation: 0.00000s
+Variables: 16
+FactPairs: 46
+Bytes per state: 4
+Initializing SOC A* search...
+New best heuristic value for <missing>: 15
+[g=0, 1 evaluated, 0 expanded, t=0.16336s, 80468 KB]
+f = 15 [1 evaluated, 0 expanded, t=0.16339s, 80468 KB]
+Initial heuristic value for <missing>: 15
+pruning method: none
+New best heuristic value for <missing>: 14
+New best heuristic value for <missing>: 13
+New best heuristic value for <missing>: 12
+New best heuristic value for <missing>: 11
+New best heuristic value for <missing>: 10
+New best heuristic value for <missing>: 9
+New best heuristic value for <missing>: 8
+New best heuristic value for <missing>: 7
+New best heuristic value for <missing>: 6
+New best heuristic value for <missing>: 5
+New best heuristic value for <missing>: 4
+New best heuristic value for <missing>: 3
+New best heuristic value for <missing>: 2
+f = 16 [16 evaluated, 14 expanded, t=0.16356s, 80468 KB]
+f = 17 [16 evaluated, 15 expanded, t=0.16360s, 80468 KB]
+Completely explored state space -- no solution!
+Actual search time: 0.00021s [t=0.16364s]
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.25000
+Min plan in cache: 2147483647
+Max f found: 17.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.16146
+Median ops by constraint: 0.17708
+Last ops by constraint: 0.22917
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 9
+Times made progress: 2
+Last nodes expanded: 16
+Last astar time: 0.00030
+Mean nodes expanded: 11.25000
+Max op count: 1
+Max num ops: 18
+Max num distinct ops: 18
+Max LP solution: 18.00000
+Initial LP solution: 15.00000
+Total astar time: 0.00030s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.16421s
+SEQUENCING WITH A*...
+USING H* HEURISTIC FROM FULL PDB
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.25000
+Min plan in cache: 2147483647
+Max f found: 17.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.16146
+Median ops by constraint: 0.17708
+Last ops by constraint: 0.22917
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 10
+Times made progress: 2
+Last nodes expanded: 16
+Last astar time: 0.01350
+Mean nodes expanded: 11.25000
+Max op count: 1
+Max num ops: 18
+Max num distinct ops: 18
+Max LP solution: 18.00000
+Initial LP solution: 15.00000
+Total astar time: 0.01350s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.17866s
+Building successor generator...done! [t=0.18131s]
+peak memory difference for successor generator creation: 0 KB
+time for successor generation creation: 0.00000s
+Variables: 16
+FactPairs: 46
+Bytes per state: 4
+Initializing SOC A* search...
+New best heuristic value for <missing>: 15
+[g=0, 1 evaluated, 0 expanded, t=0.18141s, 80468 KB]
+f = 15 [1 evaluated, 0 expanded, t=0.18144s, 80468 KB]
+Initial heuristic value for <missing>: 15
+pruning method: none
+New best heuristic value for <missing>: 14
+New best heuristic value for <missing>: 13
+New best heuristic value for <missing>: 12
+New best heuristic value for <missing>: 11
+New best heuristic value for <missing>: 10
+New best heuristic value for <missing>: 9
+New best heuristic value for <missing>: 8
+New best heuristic value for <missing>: 7
+New best heuristic value for <missing>: 6
+New best heuristic value for <missing>: 5
+New best heuristic value for <missing>: 4
+New best heuristic value for <missing>: 3
+New best heuristic value for <missing>: 2
+Completely explored state space -- no solution!
+Actual search time: 0.00014s [t=0.18162s]
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.40000
+Min plan in cache: 2147483647
+Max f found: 17.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.16667
+Median ops by constraint: 0.18750
+Last ops by constraint: 0.18750
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 11
+Times made progress: 2
+Last nodes expanded: 14
+Last astar time: 0.00023
+Mean nodes expanded: 11.80000
+Max op count: 1
+Max num ops: 18
+Max num distinct ops: 18
+Max LP solution: 18.00000
+Initial LP solution: 15.00000
+Total astar time: 0.00023s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.18846s
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.40000
+Min plan in cache: 15
+Max f found: 17.00000
+Best bound found: 15.00000
+Mean ops by constraint: 0.16667
+Median ops by constraint: 0.18750
+Last ops by constraint: 0.18750
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 48
+Number of variables: 16
+Number of seqs: 11
+Times made progress: 3
+Last nodes expanded: 14
+Last astar time: 0.01499
+Mean nodes expanded: 11.80000
+Max op count: 1
+Max num ops: 18
+Max num distinct ops: 18
+Max LP solution: 18.00000
+Initial LP solution: 15.00000
+Total astar time: 0.01499s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.20620s
+Actual search time: 0.12253s [t=0.20880s]
+move loc-x2-y2 loc-x1-y2 (1)
+move loc-x1-y2 loc-x0-y2 (1)
+move loc-x0-y2 loc-x0-y3 (1)
+move loc-x0-y3 loc-x1-y3 (1)
+move loc-x1-y3 loc-x2-y3 (1)
+move loc-x2-y3 loc-x3-y3 (1)
+move loc-x3-y3 loc-x3-y2 (1)
+move loc-x3-y2 loc-x3-y1 (1)
+move loc-x3-y1 loc-x3-y0 (1)
+move loc-x3-y0 loc-x2-y0 (1)
+move loc-x2-y0 loc-x1-y0 (1)
+move loc-x1-y0 loc-x0-y0 (1)
+move loc-x0-y0 loc-x0-y1 (1)
+move loc-x0-y1 loc-x1-y1 (1)
+move loc-x1-y1 loc-x2-y1 (1)
+Plan length: 15 step(s).
+Plan cost: 15
+Search time: 0.20634s
+Total time: 0.20880s
+Solution found.
+Peak memory: 80608 KB
+search exit code: 0
+

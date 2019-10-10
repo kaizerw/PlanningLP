@@ -1,13 +1,13 @@
 INFO     Running search (release).
 INFO     search stdin: /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/visitall-opt11-strips/problem03-full.sas
-INFO     search time limit: 59.97s
+INFO     search time limit: 59.96s
 INFO     search memory limit: 3584 MB
 INFO     search command line string: /home/wlkaizer/Mestrado/PlanningLP/downward/builds/release/bin/downward --search 'socwsss_cplex(best_seq=true, constraint_type=3, constraint_generators=seq_landmarks, heuristic=hstar_pdb, cstar=8)' --internal-plan-file sas_plan < /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/visitall-opt11-strips/problem03-full.sas
-reading input... [t=0.000742219s]
-done reading input! [t=0.000967604s]
-Building successor generator...done! [t=0.00227715s]
+reading input... [t=0.000693975s]
+done reading input! [t=0.000906898s]
+Building successor generator...done! [t=0.00232355s]
 peak memory difference for successor generator creation: 0 KB
-time for successor generation creation: 1.3879e-05s
+time for successor generation creation: 1.4381e-05s
 Variables: 9
 FactPairs: 25
 Bytes per state: 4
@@ -46,7 +46,7 @@ Initial LP solution: 0.00000
 Total astar time: 0.00000s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.00416s
+Total solve time: 0.00493s
 SEQUENCING WITH A*...
 USING H* HEURISTIC FROM FULL PDB
 Repeated seqs: 0
@@ -65,18 +65,18 @@ Number of variables: 9
 Number of seqs: 2
 Times made progress: 0
 Last nodes expanded: 0
-Last astar time: 0.00391
+Last astar time: 0.00406
 Mean nodes expanded: 0.00000
 Max op count: 0
 Max num ops: 0
 Max num distinct ops: 0
 Max LP solution: 0.00000
 Initial LP solution: 0.00000
-Total astar time: 0.00391s
+Total astar time: 0.00406s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.00833s
-Building successor generator...done! [t=0.01091s]
+Total solve time: 0.00924s
+Building successor generator...done! [t=0.01186s]
 peak memory difference for successor generator creation: 0 KB
 time for successor generation creation: 0.00000s
 Variables: 9
@@ -84,14 +84,14 @@ FactPairs: 25
 Bytes per state: 4
 Initializing SOC A* search...
 New best heuristic value for <missing>: 8
-[g=0, 1 evaluated, 0 expanded, t=0.01100s, 75992 KB]
-f = 8 [1 evaluated, 0 expanded, t=0.01103s, 75992 KB]
+[g=0, 1 evaluated, 0 expanded, t=0.01195s, 75992 KB]
+f = 8 [1 evaluated, 0 expanded, t=0.01198s, 75992 KB]
 Initial heuristic value for <missing>: 8
 pruning method: none
 New best heuristic value for <missing>: 7
 New best heuristic value for <missing>: 6
 Completely explored state space -- no solution!
-Actual search time: 0.00004s [t=0.01110s]
+Actual search time: 0.00004s [t=0.01206s]
 SEQUENCING WITH SAT...
 Repeated seqs: 0
 Restarts: 0
@@ -109,17 +109,17 @@ Number of variables: 9
 Number of seqs: 3
 Times made progress: 0
 Last nodes expanded: 3
-Last astar time: 0.00012
+Last astar time: 0.00013
 Mean nodes expanded: 3.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00012s
+Total astar time: 0.00013s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.01177s
+Total solve time: 0.01266s
 SEQUENCING WITH A*...
 USING H* HEURISTIC FROM FULL PDB
 Repeated seqs: 0
@@ -138,18 +138,18 @@ Number of variables: 9
 Number of seqs: 4
 Times made progress: 0
 Last nodes expanded: 3
-Last astar time: 0.00372
+Last astar time: 0.00393
 Mean nodes expanded: 3.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00372s
+Total astar time: 0.00393s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.01582s
-Building successor generator...done! [t=0.01837s]
+Total solve time: 0.01691s
+Building successor generator...done! [t=0.01939s]
 peak memory difference for successor generator creation: 0 KB
 time for successor generation creation: 0.00000s
 Variables: 9
@@ -157,8 +157,8 @@ FactPairs: 25
 Bytes per state: 4
 Initializing SOC A* search...
 New best heuristic value for <missing>: 8
-[g=0, 1 evaluated, 0 expanded, t=0.01846s, 76060 KB]
-f = 8 [1 evaluated, 0 expanded, t=0.01849s, 76060 KB]
+[g=0, 1 evaluated, 0 expanded, t=0.01948s, 76060 KB]
+f = 8 [1 evaluated, 0 expanded, t=0.01951s, 76060 KB]
 Initial heuristic value for <missing>: 8
 pruning method: none
 New best heuristic value for <missing>: 7
@@ -168,7 +168,7 @@ New best heuristic value for <missing>: 4
 New best heuristic value for <missing>: 3
 New best heuristic value for <missing>: 2
 Completely explored state space -- no solution!
-Actual search time: 0.00007s [t=0.01859s]
+Actual search time: 0.00007s [t=0.01962s]
 SEQUENCING WITH SAT...
 Repeated seqs: 0
 Restarts: 0
@@ -186,17 +186,17 @@ Number of variables: 9
 Number of seqs: 5
 Times made progress: 0
 Last nodes expanded: 7
-Last astar time: 0.00015
+Last astar time: 0.00016
 Mean nodes expanded: 5.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00015s
+Total astar time: 0.00016s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.01935s
+Total solve time: 0.02050s
 SEQUENCING WITH A*...
 USING H* HEURISTIC FROM FULL PDB
 Repeated seqs: 0
@@ -215,18 +215,18 @@ Number of variables: 9
 Number of seqs: 6
 Times made progress: 0
 Last nodes expanded: 7
-Last astar time: 0.00358
+Last astar time: 0.00376
 Mean nodes expanded: 5.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00358s
+Total astar time: 0.00376s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.02326s
-Building successor generator...done! [t=0.02576s]
+Total solve time: 0.02459s
+Building successor generator...done! [t=0.02703s]
 peak memory difference for successor generator creation: 0 KB
 time for successor generation creation: 0.00000s
 Variables: 9
@@ -234,8 +234,8 @@ FactPairs: 25
 Bytes per state: 4
 Initializing SOC A* search...
 New best heuristic value for <missing>: 8
-[g=0, 1 evaluated, 0 expanded, t=0.02584s, 76220 KB]
-f = 8 [1 evaluated, 0 expanded, t=0.02587s, 76220 KB]
+[g=0, 1 evaluated, 0 expanded, t=0.02712s, 76220 KB]
+f = 8 [1 evaluated, 0 expanded, t=0.02715s, 76220 KB]
 Initial heuristic value for <missing>: 8
 pruning method: none
 New best heuristic value for <missing>: 7
@@ -243,7 +243,7 @@ New best heuristic value for <missing>: 6
 New best heuristic value for <missing>: 5
 New best heuristic value for <missing>: 4
 Completely explored state space -- no solution!
-Actual search time: 0.00005s [t=0.02595s]
+Actual search time: 0.00005s [t=0.02724s]
 SEQUENCING WITH SAT...
 Repeated seqs: 0
 Restarts: 0
@@ -271,7 +271,7 @@ Initial LP solution: 8.00000
 Total astar time: 0.00014s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.02727s
+Total solve time: 0.02842s
 SEQUENCING WITH A*...
 USING H* HEURISTIC FROM FULL PDB
 Repeated seqs: 0
@@ -290,18 +290,18 @@ Number of variables: 9
 Number of seqs: 8
 Times made progress: 0
 Last nodes expanded: 5
-Last astar time: 0.00365
+Last astar time: 0.00378
 Mean nodes expanded: 5.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00365s
+Total astar time: 0.00378s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.03126s
-Building successor generator...done! [t=0.03376s]
+Total solve time: 0.03254s
+Building successor generator...done! [t=0.03499s]
 peak memory difference for successor generator creation: 0 KB
 time for successor generation creation: 0.00000s
 Variables: 9
@@ -309,8 +309,8 @@ FactPairs: 25
 Bytes per state: 4
 Initializing SOC A* search...
 New best heuristic value for <missing>: 8
-[g=0, 1 evaluated, 0 expanded, t=0.03385s, 76220 KB]
-f = 8 [1 evaluated, 0 expanded, t=0.03388s, 76220 KB]
+[g=0, 1 evaluated, 0 expanded, t=0.03508s, 76220 KB]
+f = 8 [1 evaluated, 0 expanded, t=0.03511s, 76220 KB]
 Initial heuristic value for <missing>: 8
 pruning method: none
 New best heuristic value for <missing>: 7
@@ -320,7 +320,7 @@ New best heuristic value for <missing>: 4
 New best heuristic value for <missing>: 3
 New best heuristic value for <missing>: 2
 Completely explored state space -- no solution!
-Actual search time: 0.00007s [t=0.03398s]
+Actual search time: 0.00007s [t=0.03522s]
 SEQUENCING WITH SAT...
 Repeated seqs: 1
 Restarts: 0
@@ -338,17 +338,17 @@ Number of variables: 9
 Number of seqs: 9
 Times made progress: 0
 Last nodes expanded: 7
-Last astar time: 0.00015
+Last astar time: 0.00016
 Mean nodes expanded: 5.50000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00015s
+Total astar time: 0.00016s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.03284s
+Total solve time: 0.03417s
 Repeated seqs: 1
 Restarts: 0
 Perc astar is better: 0.50000
@@ -365,18 +365,18 @@ Number of variables: 9
 Number of seqs: 9
 Times made progress: 1
 Last nodes expanded: 7
-Last astar time: 0.00411
+Last astar time: 0.00429
 Mean nodes expanded: 5.50000
 Max op count: 1
 Max num ops: 9
 Max num distinct ops: 9
 Max LP solution: 9.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00411s
+Total astar time: 0.00429s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.03874s
-Actual search time: 0.03829s [t=0.04120s]
+Total solve time: 0.04055s
+Actual search time: 0.03999s [t=0.04298s]
 move loc-x1-y1 loc-x0-y1 (1)
 move loc-x0-y1 loc-x0-y2 (1)
 move loc-x0-y2 loc-x1-y2 (1)
@@ -387,8 +387,8 @@ move loc-x2-y0 loc-x1-y0 (1)
 move loc-x1-y0 loc-x0-y0 (1)
 Plan length: 8 step(s).
 Plan cost: 8
-Search time: 0.03882s
-Total time: 0.04120s
+Search time: 0.04054s
+Total time: 0.04298s
 Solution found.
 Peak memory: 76364 KB
 search exit code: 0

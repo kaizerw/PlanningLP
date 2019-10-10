@@ -3,11 +3,11 @@ INFO     search stdin: /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmark
 INFO     search time limit: 59.97s
 INFO     search memory limit: 3584 MB
 INFO     search command line string: /home/wlkaizer/Mestrado/PlanningLP/downward/builds/release/bin/downward --search 'socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, cstar=8)' --internal-plan-file sas_plan < /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/visitall-opt11-strips/problem03-full.sas
-reading input... [t=0.000724206s]
-done reading input! [t=0.000941224s]
-Building successor generator...done! [t=0.00229327s]
+reading input... [t=0.000716245s]
+done reading input! [t=0.000971872s]
+Building successor generator...done! [t=0.00232439s]
 peak memory difference for successor generator creation: 0 KB
-time for successor generation creation: 1.3649e-05s
+time for successor generation creation: 1.3915e-05s
 Variables: 9
 FactPairs: 25
 Bytes per state: 4
@@ -45,7 +45,7 @@ Initial LP solution: 0.00000
 Total astar time: 0.00000s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.00384s
+Total solve time: 0.00380s
 SEQUENCING WITH SAT...
 Repeated seqs: 0
 Restarts: 0
@@ -63,17 +63,17 @@ Number of variables: 9
 Number of seqs: 2
 Times made progress: 0
 Last nodes expanded: 0
-Last astar time: 0.00397
+Last astar time: 0.00392
 Mean nodes expanded: 0.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00397s
+Total astar time: 0.00392s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.01095s
+Total solve time: 0.01089s
 SEQUENCING WITH SAT...
 Repeated seqs: 0
 Restarts: 0
@@ -91,17 +91,17 @@ Number of variables: 9
 Number of seqs: 3
 Times made progress: 0
 Last nodes expanded: 0
-Last astar time: 0.00391
+Last astar time: 0.00383
 Mean nodes expanded: 0.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00391s
+Total astar time: 0.00383s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.01820s
+Total solve time: 0.01802s
 SEQUENCING WITH SAT...
 Repeated seqs: 0
 Restarts: 0
@@ -119,17 +119,17 @@ Number of variables: 9
 Number of seqs: 4
 Times made progress: 0
 Last nodes expanded: 0
-Last astar time: 0.00376
+Last astar time: 0.00367
 Mean nodes expanded: 0.00000
 Max op count: 1
 Max num ops: 8
 Max num distinct ops: 8
 Max LP solution: 8.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00376s
+Total astar time: 0.00367s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.02672s
+Total solve time: 0.02676s
 SEQUENCING WITH SAT...
 Repeated seqs: 0
 Restarts: 0
@@ -147,17 +147,17 @@ Number of variables: 9
 Number of seqs: 5
 Times made progress: 1
 Last nodes expanded: 0
-Last astar time: 0.00678
+Last astar time: 0.00693
 Mean nodes expanded: 0.00000
 Max op count: 1
 Max num ops: 12
 Max num distinct ops: 12
 Max LP solution: 12.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00678s
+Total astar time: 0.00693s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.03533s
+Total solve time: 0.03541s
 SEQUENCING WITH SAT...
 Repeated seqs: 0
 Restarts: 0
@@ -175,17 +175,17 @@ Number of variables: 9
 Number of seqs: 6
 Times made progress: 1
 Last nodes expanded: 0
-Last astar time: 0.00462
+Last astar time: 0.00460
 Mean nodes expanded: 0.00000
 Max op count: 1
 Max num ops: 12
 Max num distinct ops: 12
 Max LP solution: 12.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00462s
+Total astar time: 0.00460s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.04342s
+Total solve time: 0.04354s
 Repeated seqs: 0
 Restarts: 0
 Perc astar is better: 0.00000
@@ -202,18 +202,18 @@ Number of variables: 9
 Number of seqs: 6
 Times made progress: 1
 Last nodes expanded: 0
-Last astar time: 0.00376
+Last astar time: 0.00383
 Mean nodes expanded: 0.00000
 Max op count: 1
 Max num ops: 12
 Max num distinct ops: 12
 Max LP solution: 12.00000
 Initial LP solution: 8.00000
-Total astar time: 0.00376s
+Total astar time: 0.00383s
 Total pre LP time: 0.00000s
 Total LP time: 0.00000s
-Total solve time: 0.04822s
-Actual search time: 0.04818s [t=0.05076s]
+Total solve time: 0.04838s
+Actual search time: 0.04835s [t=0.05095s]
 move loc-x1-y1 loc-x0-y1 (1)
 move loc-x0-y1 loc-x0-y0 (1)
 move loc-x0-y0 loc-x1-y0 (1)
@@ -224,8 +224,8 @@ move loc-x2-y2 loc-x1-y2 (1)
 move loc-x1-y2 loc-x0-y2 (1)
 Plan length: 8 step(s).
 Plan cost: 8
-Search time: 0.04834s
-Total time: 0.05076s
+Search time: 0.04851s
+Total time: 0.05095s
 Solution found.
 Peak memory: 76436 KB
 search exit code: 0
