@@ -15,6 +15,7 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       cstar(opts.get<int>("cstar")),
       add_yf_bound(opts.get<bool>("add_yf_bound")),
       add_yt_bound(opts.get<bool>("add_yt_bound")),
+      minimal_cut(opts.get<bool>("minimal_cut")),
       callbacks(opts.get<string>("callbacks")),
       task_proxy(task_proxy),
       ops(task_proxy->get_operators()),
@@ -135,6 +136,51 @@ shared_ptr<SequenceInfo> Shared::get_best_sequence() {
 
         printer_plots->total_learned_glcs++;
         printer_plots->total_astar_is_better += (int)(astar_is_better);
+
+        if (minimal_cut) {
+            vector<string> all_ops_names;
+            vector<string> available_ops_names;
+            for (size_t op_id = 0; op_id < rounded_x.size(); ++op_id) {
+                string op_name = ops[op_id].get_name();
+                replace(op_name.begin(), op_name.end(), ' ', '_');
+                replace(op_name.begin(), op_name.end(), '-', '_');
+
+                all_ops_names.emplace_back(op_name);
+                if (rounded_x[op_id] > 0)
+                    available_ops_names.emplace_back(op_name);
+            }
+
+            IloEnv env;
+            IloModel model(env);
+            IloCplex cplex(model);
+            cplex.importModel(model, "base.lp");
+            for (IloModel::Iterator it(model); it.ok(); ++it) {
+                IloExtractable e = *it;
+                if (e.isVariable()) {
+                    IloNumVar v = e.asVariable();
+                    if (count(available_ops_names.begin(),
+                              available_ops_names.end(), v.getName()) > 0) {
+                        cplex.addCut(v <= 0);
+                    }
+                }
+            }
+            cplex.solve();
+
+            ret->learned_glc = make_shared<GLC>();
+            for (IloModel::Iterator it(model); it.ok(); ++it) {
+                IloExtractable e = *it;
+                if (e.isVariable()) {
+                    IloNumVar v = e.asVariable();
+                    int s = cplex.getValue(v);
+                    if (s > 0) {
+                        auto it2 = find(all_ops_names.begin(),
+                                        all_ops_names.end(), v.getName());
+                        int op_id = distance(all_ops_names.begin(), it2);
+                        ret->learned_glc->add_op_bound(op_id, s);
+                    }
+                }
+            }
+        }
     }
 
     return ret;
@@ -673,7 +719,7 @@ void LazyCallbackI::main() {
         add(cut >= 1.0).end();
         shr->cache_glcs.set(shr->info->learned_glc, ADDED_AS_LAZY);
     }
-    // shr->log(this, LAZY);
+    shr->log(this, LAZY);
 }
 
 IloCplex::Callback LazyCallback(shared_ptr<Shared> shr) {
@@ -687,7 +733,7 @@ void UserCutCallbackI::main() {
     shr->extract_sol(this);
     if (shr->test_card()) {
         shr->sequence();
-        // shr->log(this, USERCUT);
+        shr->log(this, USERCUT);
     }
 
     for (auto& [glc, state] : shr->cache_glcs.cache) {
@@ -709,7 +755,7 @@ void HeuristicCallbackI::main() {
     shr->extract_sol(this);
     if (shr->test_card()) {
         shr->sequence();
-        // shr->log(this, HEURISTIC);
+        shr->log(this, HEURISTIC);
     }
 
     shr->post_best_plan(this);

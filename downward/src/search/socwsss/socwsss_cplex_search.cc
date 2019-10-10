@@ -16,6 +16,7 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       cstar(opts.get<int>("cstar")),
       add_yf_bound(opts.get<bool>("add_yf_bound")),
       add_yt_bound(opts.get<bool>("add_yt_bound")),
+      minimal_cut(opts.get<bool>("minimal_cut")),
       callbacks(opts.get<string>("callbacks")),
       ops(task_proxy.get_operators()),
       vars(task_proxy.get_variables()) {}
@@ -546,6 +547,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<int>("cstar", "", "0");
     parser.add_option<bool>("add_yf_bound", "", "true");
     parser.add_option<bool>("add_yt_bound", "", "true");
+    parser.add_option<bool>("minimal_cut", "", "false");
     parser.add_option<string>("callbacks", "", "lazy_usercut_heuristic");
 
     lp::add_lp_solver_option_to_parser(parser);

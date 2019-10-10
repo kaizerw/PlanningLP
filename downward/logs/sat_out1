@@ -1,0 +1,232 @@
+INFO     Running search (release).
+INFO     search stdin: /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/visitall-opt11-strips/problem03-full.sas
+INFO     search time limit: 59.97s
+INFO     search memory limit: 3584 MB
+INFO     search command line string: /home/wlkaizer/Mestrado/PlanningLP/downward/builds/release/bin/downward --search 'socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, cstar=8)' --internal-plan-file sas_plan < /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/visitall-opt11-strips/problem03-full.sas
+reading input... [t=0.000779798s]
+done reading input! [t=0.00104717s]
+Building successor generator...done! [t=0.00283643s]
+peak memory difference for successor generator creation: 0 KB
+time for successor generation creation: 1.944e-05s
+Variables: 9
+FactPairs: 25
+Bytes per state: 4
+Initializing SOCWSSS CPLEX search...
+Using SEQ constraints
+Using lmcut constraints
+Starting SOCWSSS CPLEX search...
+USING LAZY CONSTRAINT CALLBACK
+USING USERCUT CALLBACK
+USING HEURISTIC CALLBACK
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.00000
+Median ops by constraint: 0.00000
+Last ops by constraint: 0.00000
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 24
+Number of variables: 9
+Number of seqs: 1
+Times made progress: 0
+Last nodes expanded: 0
+Last astar time: 0.00000
+Mean nodes expanded: 0.00000
+Max op count: 0
+Max num ops: 0
+Max num distinct ops: 0
+Max LP solution: 0.00000
+Initial LP solution: 0.00000
+Total astar time: 0.00000s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.00510s
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.12500
+Median ops by constraint: 0.12500
+Last ops by constraint: 0.12500
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 24
+Number of variables: 9
+Number of seqs: 2
+Times made progress: 0
+Last nodes expanded: 0
+Last astar time: 0.00492
+Mean nodes expanded: 0.00000
+Max op count: 1
+Max num ops: 8
+Max num distinct ops: 8
+Max LP solution: 8.00000
+Initial LP solution: 8.00000
+Total astar time: 0.00492s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.01286s
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.16667
+Median ops by constraint: 0.16667
+Last ops by constraint: 0.20833
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 24
+Number of variables: 9
+Number of seqs: 3
+Times made progress: 0
+Last nodes expanded: 0
+Last astar time: 0.00372
+Mean nodes expanded: 0.00000
+Max op count: 1
+Max num ops: 8
+Max num distinct ops: 8
+Max LP solution: 8.00000
+Initial LP solution: 8.00000
+Total astar time: 0.00372s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.01962s
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.19444
+Median ops by constraint: 0.20833
+Last ops by constraint: 0.25000
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 24
+Number of variables: 9
+Number of seqs: 4
+Times made progress: 0
+Last nodes expanded: 0
+Last astar time: 0.00352
+Mean nodes expanded: 0.00000
+Max op count: 1
+Max num ops: 8
+Max num distinct ops: 8
+Max LP solution: 8.00000
+Initial LP solution: 8.00000
+Total astar time: 0.00352s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.02786s
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.00000
+Min plan in cache: 10
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.19444
+Median ops by constraint: 0.20833
+Last ops by constraint: 0.25000
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 24
+Number of variables: 9
+Number of seqs: 5
+Times made progress: 1
+Last nodes expanded: 0
+Last astar time: 0.00675
+Mean nodes expanded: 0.00000
+Max op count: 1
+Max num ops: 12
+Max num distinct ops: 12
+Max LP solution: 12.00000
+Initial LP solution: 8.00000
+Total astar time: 0.00675s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.03626s
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.00000
+Min plan in cache: 10
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.18750
+Median ops by constraint: 0.18750
+Last ops by constraint: 0.16667
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 24
+Number of variables: 9
+Number of seqs: 6
+Times made progress: 1
+Last nodes expanded: 0
+Last astar time: 0.00463
+Mean nodes expanded: 0.00000
+Max op count: 1
+Max num ops: 12
+Max num distinct ops: 12
+Max LP solution: 12.00000
+Initial LP solution: 8.00000
+Total astar time: 0.00463s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.04432s
+Repeated seqs: 0
+Restarts: 0
+Perc astar is better: 0.00000
+Min plan in cache: 8
+Max f found: 0.00000
+Best bound found: 8.00000
+Mean ops by constraint: 0.18750
+Median ops by constraint: 0.18750
+Last ops by constraint: 0.16667
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 24
+Number of variables: 9
+Number of seqs: 6
+Times made progress: 1
+Last nodes expanded: 0
+Last astar time: 0.00366
+Mean nodes expanded: 0.00000
+Max op count: 1
+Max num ops: 12
+Max num distinct ops: 12
+Max LP solution: 12.00000
+Initial LP solution: 8.00000
+Total astar time: 0.00366s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 0.04890s
+Actual search time: 0.04884s [t=0.05203s]
+move loc-x1-y1 loc-x0-y1 (1)
+move loc-x0-y1 loc-x0-y0 (1)
+move loc-x0-y0 loc-x1-y0 (1)
+move loc-x1-y0 loc-x2-y0 (1)
+move loc-x2-y0 loc-x2-y1 (1)
+move loc-x2-y1 loc-x2-y2 (1)
+move loc-x2-y2 loc-x1-y2 (1)
+move loc-x1-y2 loc-x0-y2 (1)
+Plan length: 8 step(s).
+Plan cost: 8
+Search time: 0.04905s
+Total time: 0.05204s
+Solution found.
+Peak memory: 76408 KB
+search exit code: 0
+

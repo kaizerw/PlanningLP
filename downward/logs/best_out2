@@ -1,0 +1,193 @@
+********************************************************************************
+IN LAZY CONSTRAINT CALLBACK
+SEQ: 2
+START: 0
+NODE ID: 0
+INCUMBENT: 1e+75
+BEST OBJ VALUE: 8
+MIP GAP: 1e+75
+Z: 8
+F-BOUND: 8
+8 OPERATORS AVAILABLE: 
+	[1] (1) move loc-x0-y0 loc-x0-y1
+	[1] (1) move loc-x0-y1 loc-x0-y0
+	[1] (1) move loc-x0-y2 loc-x1-y2
+	[1] (1) move loc-x1-y0 loc-x2-y0
+	[1] (1) move loc-x1-y1 loc-x2-y1
+	[1] (1) move loc-x1-y2 loc-x0-y2
+	[1] (1) move loc-x2-y0 loc-x1-y0
+	[1] (1) move loc-x2-y1 loc-x2-y2
+OP COUNT IN CACHE? false
+SEQUENCIABLE? false
+LEARNED GLC WITH 4 BOUNDS:
+	[YT >= 9]
+	[move loc-x0-y2 loc-x0-y1 >= 1]
+	[move loc-x1-y0 loc-x0-y0 >= 1]
+	[move loc-x1-y1 loc-x0-y1 >= 1]
+
+SAT CUT:	1 <= 0.111111 * YT  + [move loc-x0-y2 loc-x0-y1 >= 1]  + [move loc-x1-y0 loc-x0-y0 >= 1]  + [move loc-x1-y1 loc-x0-y1 >= 1]  
+ASTAR CUT:	1 <= 0.111111 * YF  + [move loc-x1-y1 loc-x0-y1 >= 1]  + [move loc-x1-y1 loc-x1-y0 >= 1]  + [move loc-x1-y1 loc-x1-y2 >= 1]  + [move loc-x2-y1 loc-x2-y0 >= 1]  + [move loc-x2-y2 loc-x1-y2 >= 1]  
+
+REPEATED GLC? false
+ADDED CUT: 1 <= 0.111111 * YT  + [move loc-x0-y2 loc-x0-y1 >= 1]  + [move loc-x1-y0 loc-x0-y0 >= 1]  + [move loc-x1-y1 loc-x0-y1 >= 1]  
+********************************************************************************
+********************************************************************************
+IN LAZY CONSTRAINT CALLBACK
+SEQ: 4
+START: 0
+NODE ID: 0
+INCUMBENT: 1e+75
+BEST OBJ VALUE: 8
+MIP GAP: 1e+75
+Z: 8
+F-BOUND: 8
+8 OPERATORS AVAILABLE: 
+	[1] (1) move loc-x0-y0 loc-x1-y0
+	[1] (1) move loc-x0-y1 loc-x0-y0
+	[1] (1) move loc-x0-y2 loc-x1-y2
+	[1] (1) move loc-x1-y0 loc-x2-y0
+	[1] (1) move loc-x1-y1 loc-x0-y1
+	[1] (1) move loc-x1-y2 loc-x0-y2
+	[1] (1) move loc-x2-y0 loc-x2-y1
+	[1] (1) move loc-x2-y1 loc-x2-y2
+OP COUNT IN CACHE? false
+SEQUENCIABLE? false
+LEARNED GLC WITH 6 BOUNDS:
+	[YT >= 9]
+	[move loc-x0-y1 loc-x0-y2 >= 1]
+	[move loc-x1-y1 loc-x1-y0 >= 1]
+	[move loc-x1-y1 loc-x1-y2 >= 1]
+	[move loc-x1-y1 loc-x2-y1 >= 1]
+	[move loc-x2-y2 loc-x1-y2 >= 1]
+
+SAT CUT:	1 <= 0.111111 * YT  + [move loc-x0-y1 loc-x0-y2 >= 1]  + [move loc-x1-y1 loc-x1-y0 >= 1]  + [move loc-x1-y1 loc-x1-y2 >= 1]  + [move loc-x1-y1 loc-x2-y1 >= 1]  + [move loc-x2-y2 loc-x1-y2 >= 1]  
+ASTAR CUT:	1 <= 0.111111 * YF  + [move loc-x0-y1 loc-x0-y2 >= 1]  + [move loc-x1-y1 loc-x1-y0 >= 1]  + [move loc-x1-y1 loc-x1-y2 >= 1]  + [move loc-x1-y1 loc-x2-y1 >= 1]  + [move loc-x2-y2 loc-x1-y2 >= 1]  
+
+REPEATED GLC? false
+ADDED CUT: 1 <= 0.111111 * YT  + [move loc-x0-y1 loc-x0-y2 >= 1]  + [move loc-x1-y1 loc-x1-y0 >= 1]  + [move loc-x1-y1 loc-x1-y2 >= 1]  + [move loc-x1-y1 loc-x2-y1 >= 1]  + [move loc-x2-y2 loc-x1-y2 >= 1]  
+********************************************************************************
+********************************************************************************
+IN LAZY CONSTRAINT CALLBACK
+SEQ: 6
+START: 0
+NODE ID: 0
+INCUMBENT: 1e+75
+BEST OBJ VALUE: 8
+MIP GAP: 1e+75
+Z: 8
+F-BOUND: 8
+8 OPERATORS AVAILABLE: 
+	[1] (1) move loc-x0-y0 loc-x1-y0
+	[1] (1) move loc-x0-y1 loc-x0-y2
+	[1] (1) move loc-x0-y2 loc-x1-y2
+	[1] (1) move loc-x1-y0 loc-x0-y0
+	[1] (1) move loc-x1-y1 loc-x0-y1
+	[1] (1) move loc-x1-y2 loc-x2-y2
+	[1] (1) move loc-x2-y0 loc-x2-y1
+	[1] (1) move loc-x2-y1 loc-x2-y0
+OP COUNT IN CACHE? false
+SEQUENCIABLE? false
+LEARNED GLC WITH 6 BOUNDS:
+	[YF >= 9]
+	[move loc-x0-y1 loc-x0-y0 >= 1]
+	[move loc-x1-y1 loc-x1-y0 >= 1]
+	[move loc-x1-y1 loc-x1-y2 >= 1]
+	[move loc-x1-y1 loc-x2-y1 >= 1]
+	[move loc-x2-y2 loc-x2-y1 >= 1]
+
+SAT CUT:	1 <= 0.111111 * YT  + [move loc-x0-y1 loc-x0-y0 >= 1]  + [move loc-x1-y0 loc-x2-y0 >= 1]  + [move loc-x1-y1 loc-x1-y0 >= 1]  + [move loc-x1-y1 loc-x1-y2 >= 1]  + [move loc-x1-y1 loc-x2-y1 >= 1]  + [move loc-x2-y0 loc-x1-y0 >= 1]  
+ASTAR CUT:	1 <= 0.111111 * YF  + [move loc-x0-y1 loc-x0-y0 >= 1]  + [move loc-x1-y1 loc-x1-y0 >= 1]  + [move loc-x1-y1 loc-x1-y2 >= 1]  + [move loc-x1-y1 loc-x2-y1 >= 1]  + [move loc-x2-y2 loc-x2-y1 >= 1]  
+
+REPEATED GLC? false
+ADDED CUT: 1 <= 0.111111 * YF  + [move loc-x0-y1 loc-x0-y0 >= 1]  + [move loc-x1-y1 loc-x1-y0 >= 1]  + [move loc-x1-y1 loc-x1-y2 >= 1]  + [move loc-x1-y1 loc-x2-y1 >= 1]  + [move loc-x2-y2 loc-x2-y1 >= 1]  
+********************************************************************************
+********************************************************************************
+IN USER CUT CALLBACK
+SEQ: 8
+START: 0
+NODE ID: 0
+INCUMBENT: 1e+75
+BEST OBJ VALUE: 8
+MIP GAP: 1e+75
+Z: 8
+F-BOUND: 8
+8 OPERATORS AVAILABLE: 
+	[1] (1) move loc-x0-y0 loc-x1-y0
+	[1] (1) move loc-x0-y1 loc-x0-y2
+	[1] (1) move loc-x0-y2 loc-x1-y2
+	[1] (1) move loc-x1-y0 loc-x0-y0
+	[1] (1) move loc-x1-y1 loc-x0-y1
+	[1] (1) move loc-x1-y2 loc-x2-y2
+	[1] (1) move loc-x2-y1 loc-x2-y0
+	[1] (1) move loc-x2-y2 loc-x2-y1
+OP COUNT IN CACHE? false
+SEQUENCIABLE? false
+LEARNED GLC WITH 6 BOUNDS:
+	[YF >= 9]
+	[move loc-x0-y1 loc-x0-y0 >= 1]
+	[move loc-x1-y1 loc-x1-y0 >= 1]
+	[move loc-x1-y1 loc-x1-y2 >= 1]
+	[move loc-x1-y1 loc-x2-y1 >= 1]
+	[move loc-x2-y0 loc-x1-y0 >= 1]
+
+SAT CUT:	1 <= 0.111111 * YT  + [move loc-x0-y1 loc-x0-y0 >= 1]  + [move loc-x1-y0 loc-x2-y0 >= 1]  + [move loc-x1-y1 loc-x1-y0 >= 1]  + [move loc-x1-y1 loc-x1-y2 >= 1]  + [move loc-x1-y1 loc-x2-y1 >= 1]  + [move loc-x2-y0 loc-x1-y0 >= 1]  
+ASTAR CUT:	1 <= 0.111111 * YF  + [move loc-x0-y1 loc-x0-y0 >= 1]  + [move loc-x1-y1 loc-x1-y0 >= 1]  + [move loc-x1-y1 loc-x1-y2 >= 1]  + [move loc-x1-y1 loc-x2-y1 >= 1]  + [move loc-x2-y0 loc-x1-y0 >= 1]  
+
+REPEATED GLC? false
+ADDED CUT: 1 <= 0.111111 * YF  + [move loc-x0-y1 loc-x0-y0 >= 1]  + [move loc-x1-y1 loc-x1-y0 >= 1]  + [move loc-x1-y1 loc-x1-y2 >= 1]  + [move loc-x1-y1 loc-x2-y1 >= 1]  + [move loc-x2-y0 loc-x1-y0 >= 1]  
+********************************************************************************
+********************************************************************************
+IN LAZY CONSTRAINT CALLBACK
+SEQ: 8
+START: 0
+NODE ID: 0
+INCUMBENT: 1e+75
+BEST OBJ VALUE: 8
+MIP GAP: 1e+75
+Z: 8
+F-BOUND: 8
+8 OPERATORS AVAILABLE: 
+	[1] (1) move loc-x0-y0 loc-x1-y0
+	[1] (1) move loc-x0-y1 loc-x0-y2
+	[1] (1) move loc-x0-y2 loc-x1-y2
+	[1] (1) move loc-x1-y0 loc-x0-y0
+	[1] (1) move loc-x1-y1 loc-x0-y1
+	[1] (1) move loc-x1-y2 loc-x2-y2
+	[1] (1) move loc-x2-y1 loc-x2-y0
+	[1] (1) move loc-x2-y2 loc-x2-y1
+OP COUNT IN CACHE? true
+SEQUENCIABLE? false
+********************************************************************************
+********************************************************************************
+IN HEURISTIC CALLBACK
+SEQ: 9
+START: 0
+NODE ID: 0
+INCUMBENT: 1e+75
+BEST OBJ VALUE: 8
+MIP GAP: 1e+75
+Z: 8
+F-BOUND: 9
+9 OPERATORS AVAILABLE: 
+	[1] (1) move loc-x0-y0 loc-x1-y0
+	[1] (1) move loc-x0-y1 loc-x0-y2
+	[1] (1) move loc-x0-y2 loc-x1-y2
+	[1] (1) move loc-x1-y0 loc-x0-y0
+	[1] (1) move loc-x1-y1 loc-x0-y1
+	[1] (1) move loc-x1-y2 loc-x2-y2
+	[1] (1) move loc-x2-y0 loc-x1-y0
+	[1] (1) move loc-x2-y1 loc-x2-y0
+	[1] (1) move loc-x2-y2 loc-x2-y1
+OP COUNT IN CACHE? false
+SEQUENCIABLE? true
+PLAN COST: 8
+PLAN:
+	(1) move loc-x1-y1 loc-x0-y1
+	(1) move loc-x0-y1 loc-x0-y2
+	(1) move loc-x0-y2 loc-x1-y2
+	(1) move loc-x1-y2 loc-x2-y2
+	(1) move loc-x2-y2 loc-x2-y1
+	(1) move loc-x2-y1 loc-x2-y0
+	(1) move loc-x2-y0 loc-x1-y0
+	(1) move loc-x1-y0 loc-x0-y0
+********************************************************************************

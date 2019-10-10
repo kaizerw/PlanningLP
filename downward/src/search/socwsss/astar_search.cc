@@ -16,6 +16,7 @@ SOCAStarSearch::SOCAStarSearch(const Options &opts)
       cstar(opts.get<int>("cstar")),
       add_yf_bound(opts.get<bool>("add_yf_bound")),
       add_yt_bound(opts.get<bool>("add_yt_bound")),
+      minimal_cut(opts.get<bool>("minimal_cut")),
       callbacks(opts.get<string>("callbacks")),
       initial_op_count(opts.get<OperatorCount>("initial_op_count")),
       f_bound(opts.get<long>("f_bound")),
@@ -184,9 +185,9 @@ SearchStatus SOCAStarSearch::step() {
     // Use f_bound to bound search
     long node_f =
         (hstar_by_search ? node->get_g() + (*cache_hstar)[node->get_state()]
-                      : EvaluationContext(node->get_state(), node->get_g(),
-                                          false, &statistics)
-                            .get_evaluator_value(f_evaluator.get()));
+                         : EvaluationContext(node->get_state(), node->get_g(),
+                                             false, &statistics)
+                               .get_evaluator_value(f_evaluator.get()));
 
     /*
     cout << string(80, '-') << endl;
