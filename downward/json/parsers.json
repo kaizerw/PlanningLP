@@ -60,7 +60,7 @@
         "summary": "mean"
     },
     "optimal_plan_cost": {
-        "regex": ".*",
+        "regex": "search exit code: (-?\\d+\\.?\\d*)",
         "type": "int",
         "summary": "mean"
     },

@@ -39,7 +39,7 @@ class Slave:
             command += [os.path.join(os.environ['DOWNWARD_BENCHMARKS'], self.domain, self.instance + '.sas')]
             command += ['--search', self.config['search'].replace(')', f', cstar={lb})')]
             
-            pathlib.Path(output_folder).mkdir(parents=True)
+            pathlib.Path(output_folder).mkdir(parents=True, exist_ok=True)
             with open(os.path.join(output_folder, 'output1.txt'), 'w') as output1_file:
                 with open(os.path.join(output_folder, 'output2.txt'), 'w') as output2_file:
                     subprocess.run(command, stdout=output1_file, stderr=output2_file)
