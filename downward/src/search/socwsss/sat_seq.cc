@@ -10,7 +10,8 @@ exit(0);
 
 PlanToMinisat::PlanToMinisat(shared_ptr<TaskProxy> task_proxy,
                              vector<long>& op_counts, bool add_yt_bound)
-    : task_proxy(task_proxy),
+    : Minisat22::Solver(),
+      task_proxy(task_proxy),
       op_counts(op_counts),
       add_yt_bound(add_yt_bound),
       n_layers(accumulate(op_counts.begin(), op_counts.end(), 0)) {

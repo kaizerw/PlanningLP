@@ -338,14 +338,13 @@ void SOCWSSSCplexSearch::create_cplex_model() {
     cplex->setWarning(env->getNullStream());
     // cplex->setParam(IloCplex::MIPInterval, 1);
 
-    cplex->setParam(IloCplex::Param::Threads, 1);
-    // cplex->setParam(IloCplex::MIPSearch, IloCplex::Traditional);
-    // cplex->setParam(IloCplex::PreInd, IloFalse);
-    // cplex->setParam(IloCplex::Reduce, IloFalse);
-    // cplex->setParam(IloCplex::NodeSel, IloCplex::BestBound);
-    // cplex->setParam(IloCplex::MIPOrdType, 2);
-    // cplex->setParam(IloCplex::HeurFreq, -1);
-    // cplex->setParam(IloCplex::RINSHeur, -1);
+    cplex->setParam(IloCplex::Threads, 1);
+    cplex->setParam(IloCplex::HeurFreq, -1);
+    cplex->setParam(IloCplex::RINSHeur, -1);
+    cplex->setParam(IloCplex::MIPEmphasis, IloCplex::MIPEmphasisBestBound);
+    cplex->setParam(IloCplex::RootAlg, IloCplex::Primal);
+    cplex->setParam(IloCplex::NodeAlg, IloCplex::Primal);
+    cplex->setParam(IloCplex::Probe, 3);
 
     /*
     cplex->setParam(IloCplex::Param::MIP::Cuts::BQP, -1);

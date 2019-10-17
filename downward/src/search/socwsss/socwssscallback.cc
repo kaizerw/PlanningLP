@@ -472,7 +472,7 @@ void Shared::log(IloCplex::ControlCallbackI* callback, CallbackType type) {
     cerr << "MIP GAP: " << callback->getMIPRelativeGap() << endl;
     cerr << "Z: " << original_z << endl;
     cerr << "F-BOUND: " << rounded_z << endl;
-    cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0)
+    cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0L)
          << " OPERATORS AVAILABLE: " << endl;
     for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
         if (rounded_x[op_id] > 0) {
@@ -528,7 +528,7 @@ void Shared::log() {
     cerr << "START: " << restarts << endl;
     cerr << "Z: " << original_z << endl;
     cerr << "F-BOUND: " << rounded_z << endl;
-    cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0)
+    cerr << accumulate(rounded_x.begin(), rounded_x.end(), 0L)
          << " OPERATORS AVAILABLE: " << endl;
     for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
         if (rounded_x[op_id] > 0) {
@@ -761,13 +761,13 @@ IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
 }
 
 void HeuristicCallbackI::main() {
-    if (shr->restart) return;
+    // if (shr->restart) return;
 
-    shr->extract_sol(this);
-    if (shr->test_card()) {
-        shr->sequence();
-        shr->log(this, HEURISTIC);
-    }
+    // shr->extract_sol(this);
+    // if (shr->test_card()) {
+    //    shr->sequence();
+    //    shr->log(this, HEURISTIC);
+    //}
 
     shr->post_best_plan(this);
 }
