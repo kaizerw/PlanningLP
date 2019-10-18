@@ -713,7 +713,7 @@ void Shared::step_mip_loop() {
         cache_glcs.set(info->learned_glc, ADDED_AS_LAZY_AND_USERCUT);
         restart = true;
     }
-    // log();
+    log();
 }
 
 void LazyCallbackI::main() {
@@ -742,18 +742,16 @@ void UserCutCallbackI::main() {
     if (!isAfterCutLoop()) return;
 
     shr->extract_sol(this);
-    if (shr->test_card()) {
-        shr->sequence();
-        shr->log(this, USERCUT);
-    }
+    if (!shr->test_card()) return;
 
-    for (auto& [glc, state] : shr->cache_glcs.cache) {
-        if (state == ADDED_AS_LAZY) {
-            auto cut = shr->get_cut(glc);
-            add(cut >= 1.0).end();
-            shr->cache_glcs.set(glc, ADDED_AS_LAZY_AND_USERCUT);
-        }
+    shr->sequence();
+    if (!shr->info->sequenciable) {
+        auto cut = shr->get_cut(shr->info->learned_glc, this);
+        if (shr->restart) return;
+        add(cut >= 1.0).end();
+        shr->cache_glcs.set(shr->info->learned_glc, ADDED_AS_USERCUT);
     }
+    shr->log(this, USERCUT);
 }
 
 IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
@@ -761,13 +759,13 @@ IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
 }
 
 void HeuristicCallbackI::main() {
-    // if (shr->restart) return;
+    if (shr->restart) return;
 
-    // shr->extract_sol(this);
-    // if (shr->test_card()) {
-    //    shr->sequence();
-    //    shr->log(this, HEURISTIC);
-    //}
+    shr->extract_sol(this);
+    if (shr->test_card()) {
+        shr->sequence();
+        shr->log(this, HEURISTIC);
+    }
 
     shr->post_best_plan(this);
 }

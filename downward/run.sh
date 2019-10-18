@@ -69,8 +69,12 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 3
 
 ###############################################################################################################################################################################################################
 # CPLEX error during SAT sequencing
-opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, add_cstar_constraint=true, add_yt_bound=false, callbacks=lazy_heuristic, cstar=550)"
-$run_pref $DOWNWARD_BENCHMARKS/transport-selected/p04.sas --search "$opts" > output1 2> output2
+#opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, add_cstar_constraint=true, add_yt_bound=false, callbacks=lazy_heuristic, cstar=550)"
+#$run_pref $DOWNWARD_BENCHMARKS/transport-selected/p04.sas --search "$opts" > output1 2> output2
+
+run_pref="./fast-downward.py --overall-memory-limit 3584M"
+opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, add_cstar_constraint=true, add_yt_bound=false, callbacks=lazy_usercut_heuristic, cstar=120)"
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem11-full.sas --search "$opts" > output1 2> output2
 
 # CPLEX error during SAT sequencing
 # Same error using heuristic=lmcut and heuristic=hstar_pdb

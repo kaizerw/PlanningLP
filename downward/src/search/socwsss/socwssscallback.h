@@ -86,7 +86,12 @@ struct SequenceInfo {
     int plan_cost = numeric_limits<int>::max();
 };
 
-enum GLCState { NEW, ADDED_AS_LAZY, ADDED_AS_LAZY_AND_USERCUT };
+enum GLCState {
+    NEW,
+    ADDED_AS_LAZY,
+    ADDED_AS_USERCUT,
+    ADDED_AS_LAZY_AND_USERCUT
+};
 
 struct CacheGLCs {
     struct Hash {
@@ -112,7 +117,14 @@ struct CacheGLCs {
         return true;
     }
 
-    void set(shared_ptr<GLC> glc, GLCState state) { cache[glc] = state; }
+    void set(shared_ptr<GLC> glc, GLCState state) {
+        if (cache[glc] == NEW) {
+            cache[glc] = state;
+        } else if ((cache[glc] == ADDED_AS_USERCUT && state == ADDED_AS_LAZY) ||
+                   (cache[glc] == ADDED_AS_LAZY && state == ADDED_AS_USERCUT)) {
+            cache[glc] = ADDED_AS_LAZY_AND_USERCUT;
+        }
+    }
 };
 
 struct CacheOperatorCounts {
