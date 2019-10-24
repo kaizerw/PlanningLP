@@ -10,13 +10,13 @@ SOCWSSSCplexSearch::SOCWSSSCplexSearch(const Options &opts)
       mip_start(opts.get<bool>("mip_start")),
       sat_seq(opts.get<bool>("sat_seq")),
       best_seq(opts.get<bool>("best_seq")),
+      minimal_seq(opts.get<bool>("minimal_seq")),
       recost(opts.get<bool>("recost")),
       mip_loop(opts.get<bool>("mip_loop")),
       add_cstar_constraint(opts.get<bool>("add_cstar_constraint")),
       cstar(opts.get<int>("cstar")),
       add_yf_bound(opts.get<bool>("add_yf_bound")),
       add_yt_bound(opts.get<bool>("add_yt_bound")),
-      minimal_cut(opts.get<bool>("minimal_cut")),
       callbacks(opts.get<string>("callbacks")),
       ops(task_proxy.get_operators()),
       vars(task_proxy.get_variables()) {}
@@ -540,13 +540,13 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("mip_start", "", "false");
     parser.add_option<bool>("sat_seq", "", "false");
     parser.add_option<bool>("best_seq", "", "false");
+    parser.add_option<bool>("minimal_seq", "", "false");
     parser.add_option<bool>("recost", "", "false");
     parser.add_option<bool>("mip_loop", "", "false");
     parser.add_option<bool>("add_cstar_constraint", "", "false");
     parser.add_option<int>("cstar", "", "0");
     parser.add_option<bool>("add_yf_bound", "", "true");
     parser.add_option<bool>("add_yt_bound", "", "true");
-    parser.add_option<bool>("minimal_cut", "", "false");
     parser.add_option<string>("callbacks", "", "lazy_usercut_heuristic");
 
     lp::add_lp_solver_option_to_parser(parser);

@@ -47,13 +47,13 @@ struct SOCWSSSCplexSearch : public SearchEngine {
     bool mip_start;
     bool sat_seq;
     bool best_seq;
+    bool minimal_seq;
     bool recost;
     bool mip_loop;
     bool add_cstar_constraint;
     int cstar;
     bool add_yf_bound;
     bool add_yt_bound;
-    bool minimal_cut;
     string callbacks;
 
     OperatorsProxy ops;

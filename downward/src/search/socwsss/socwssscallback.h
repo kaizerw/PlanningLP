@@ -187,13 +187,13 @@ struct Shared {
     bool mip_start;
     bool sat_seq;
     bool best_seq;
+    bool minimal_seq;
     bool recost;
     bool mip_loop;
     bool add_cstar_constraint;
     int cstar;
     bool add_yf_bound;
     bool add_yt_bound;
-    bool minimal_cut;
     string callbacks;
 
     shared_ptr<TaskProxy> task_proxy;
@@ -240,6 +240,7 @@ struct Shared {
     void extract_sol();
     bool test_card();
     void sequence();
+    shared_ptr<SequenceInfo> get_minimal_sequence();
     shared_ptr<SequenceInfo> get_best_sequence();
     shared_ptr<SequenceInfo> get_sat_sequence();
     shared_ptr<SequenceInfo> get_astar_sequence();

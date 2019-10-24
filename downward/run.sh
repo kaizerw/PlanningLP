@@ -67,14 +67,22 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 3
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts_best" > "$d1"/best_out1 2> "$d1"/best_out2
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts_min" > "$d1"/min_out1 2> "$d1"/min_out2
 
+d1="logs/p03_full"
+d2="logs/p04_full"
+rm -rf "$d1" && mkdir -p "$d1"
+rm -rf "$d2" && mkdir -p "$d2"
+opts="socwsss_cplex(minimal_seq=true, constraint_generators=seq_landmarks, cstar=8)"
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts" > "$d1"/out1 2> "$d1"/out2
+opts="socwsss_cplex(minimal_seq=true, constraint_generators=seq_landmarks, cstar=15)"
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts" > "$d2"/out1 2> "$d2"/out2
 ###############################################################################################################################################################################################################
 # CPLEX error during SAT sequencing
 #opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, add_cstar_constraint=true, add_yt_bound=false, callbacks=lazy_heuristic, cstar=550)"
 #$run_pref $DOWNWARD_BENCHMARKS/transport-selected/p04.sas --search "$opts" > output1 2> output2
 
-run_pref="./fast-downward.py --overall-memory-limit 3584M"
-opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, add_cstar_constraint=true, add_yt_bound=false, callbacks=lazy_usercut_heuristic, cstar=120)"
-$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem11-full.sas --search "$opts" > output1 2> output2
+#run_pref="./fast-downward.py --overall-memory-limit 3584M"
+#opts="socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, add_cstar_constraint=true, add_yt_bound=false, callbacks=lazy_usercut_heuristic, cstar=120)"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem11-full.sas --search "$opts" > output1 2> output2
 
 # CPLEX error during SAT sequencing
 # Same error using heuristic=lmcut and heuristic=hstar_pdb
