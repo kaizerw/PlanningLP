@@ -19,17 +19,22 @@
 #include <tuple>
 #include <vector>
 
-#include "../plan_manager.h"
-#include "../task_proxy.h"
-#include "glc.h"
+#include "../../option_parser.h"
+#include "../../plan_manager.h"
+#include "../../task_proxy.h"
+#include "../glc.h"
 #include "minisat22/core/Solver.h"
+
+namespace options {
+class Options;
+}
 
 using namespace std;
 
-struct PlanToMinisat : Minisat22::Solver {
+struct SATSeq : Minisat22::Solver {
+    Options opts;
     shared_ptr<TaskProxy> task_proxy;
     vector<long> op_counts;
-    bool add_yt_bound;
     int n_layers;
     int id_generator = 1;
     map<tuple<int, int>, int> aux_vars;
@@ -65,8 +70,8 @@ struct PlanToMinisat : Minisat22::Solver {
     Plan plan;
     shared_ptr<GLC> learned_glc;
 
-    PlanToMinisat(shared_ptr<TaskProxy> task_proxy, vector<long>& op_counts,
-                  bool add_yt_bound);
+    SATSeq(const Options& opts, shared_ptr<TaskProxy> task_proxy,
+           vector<long>& op_counts);
     void initialize_ids();
     void initialize_assumptions();
     int s(int i, int j);

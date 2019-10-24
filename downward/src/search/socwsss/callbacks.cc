@@ -1,33 +1,23 @@
-#include "socwssscallback.h"
+#include "callbacks.h"
 
 Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
                shared_ptr<AbstractTask> task)
     : opts(opts),
-      constraint_type(opts.get<int>("constraint_type")),
-      constraint_generators(opts.get<string>("constraint_generators")),
-      heuristic(opts.get<string>("heuristic")),
-      mip_start(opts.get<bool>("mip_start")),
-      sat_seq(opts.get<bool>("sat_seq")),
-      best_seq(opts.get<bool>("best_seq")),
-      minimal_seq(opts.get<bool>("minimal_seq")),
-      recost(opts.get<bool>("recost")),
-      mip_loop(opts.get<bool>("mip_loop")),
-      add_cstar_constraint(opts.get<bool>("add_cstar_constraint")),
-      cstar(opts.get<int>("cstar")),
-      add_yf_bound(opts.get<bool>("add_yf_bound")),
-      add_yt_bound(opts.get<bool>("add_yt_bound")),
-      callbacks(opts.get<string>("callbacks")),
       task_proxy(task_proxy),
       ops(task_proxy->get_operators()),
       vars(task_proxy->get_variables()),
       task(task),
-      start(chrono::system_clock::now()) {
-    yt_index = ops.size();
-    yf_index = ops.size() + 1;
-    glcs = make_shared<vector<shared_ptr<GLC>>>();
-    printer_plots =
-        make_shared<PrinterPlots>(ops.size(), vars.size(), glcs, start);
-    if (heuristic.find("hstar_pdb") != string::npos) {
+      start(chrono::system_clock::now()),
+      restart(false),
+      restarts(0),
+      seq(0),
+      repeated_seqs(0),
+      epsilon(0.0),
+      yt_index(ops.size()),
+      yf_index(ops.size() + 1),
+      glcs(make_shared<vector<shared_ptr<GLC>>>()),
+      printer(make_shared<Printer>(ops.size(), vars.size(), glcs, start)) {
+    if (opts.get<string>("heuristic").find("hstar_pdb") != string::npos) {
         vector<int> pattern;
         for (size_t var_id = 0; var_id < vars.size(); ++var_id) {
             pattern.emplace_back(var_id);
@@ -46,7 +36,7 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
         full_pdb = make_shared<pdbs::PDBHeuristic>(opts_h);
     }
 
-    if (minimal_seq) {
+    if (opts.get<bool>("minimal_seq")) {
         Options opts_h;
         opts_h.set("transform", task);
         opts_h.set("cache_estimates", true);
@@ -118,11 +108,11 @@ void Shared::sequence() {
 
     if (!found_in_cache) {
         // cout.setstate(ios_base::failbit);
-        if (best_seq) {
+        if (opts.get<bool>("best_seq")) {
             info = get_best_sequence();
-        } else if (sat_seq) {
+        } else if (opts.get<bool>("sat_seq")) {
             info = get_sat_sequence();
-        } else if (minimal_seq) {
+        } else if (opts.get<bool>("minimal_seq")) {
             info = get_minimal_sequence();
         } else {
             info = get_astar_sequence();
@@ -130,14 +120,14 @@ void Shared::sequence() {
         // cout.clear();
 
         if (info->sequenciable) {
-            cache_op_counts.add(plan2opcount(info), info);
+            cache_op_counts.add(plan2opcount(info->plan), info);
         } else {
             glcs->emplace_back(info->learned_glc);
             repeated_glc = cache_glcs.add(info->learned_glc);
         }
         cache_op_counts.add(rounded_x, info);
     }
-    printer_plots->update(rounded_z, rounded_x, c->getSize(), x->getSize());
+    printer->update(rounded_z, rounded_x, c->getSize(), x->getSize());
 }
 
 shared_ptr<SequenceInfo> Shared::get_minimal_sequence() {
@@ -204,8 +194,8 @@ shared_ptr<SequenceInfo> Shared::get_best_sequence() {
         bool astar_is_better = (astar_bounds < sat_bounds);
         ret = (astar_is_better ? info_astar : info_sat);
 
-        printer_plots->total_learned_glcs++;
-        printer_plots->total_astar_is_better += (int)(astar_is_better);
+        printer->total_learned_glcs++;
+        printer->total_astar_is_better += (int)(astar_is_better);
     }
 
     return ret;
@@ -215,16 +205,15 @@ shared_ptr<SequenceInfo> Shared::get_sat_sequence() {
     cout << "SEQUENCING WITH SAT..." << endl;
 
     seq++;
-    printer_plots->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
-                             restarts,
-                             cache_op_counts.get_best_plan().second->plan_cost);
+    printer->show_data(seq, cplex->getBestObjValue(), repeated_seqs, restarts,
+                       cache_op_counts.get_best_plan().second->plan_cost);
     auto start = chrono::system_clock::now();
-    auto sat_solver = PlanToMinisat(task_proxy, rounded_x, add_yt_bound);
+    auto sat_solver = SATSeq(opts, task_proxy, rounded_x);
     sat_solver();
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
                                       chrono::system_clock::now() - start)
                                       .count();
-    printer_plots->plot_astar_time.emplace_back(elapsed_microseconds);
+    printer->plot_astar_time.emplace_back(elapsed_microseconds);
 
     auto ret = make_shared<SequenceInfo>();
     if (sat_solver.sequenciable) {
@@ -247,26 +236,28 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
 
     shared_ptr<Evaluator> h;
 
-    if (heuristic.find("hstar_pdb") != string::npos) {
+    if (opts.get<string>("heuristic").find("hstar_pdb") != string::npos) {
         cout << "USING H* HEURISTIC FROM FULL PDB" << endl;
         h = full_pdb;
-    } else if (heuristic.find("blind") != string::npos) {
+    } else if (opts.get<string>("heuristic").find("blind") != string::npos) {
         cout << "USING BLIND HEURISTIC" << endl;
         Options opts_h;
         opts_h.set("transform", task);
         opts_h.set("cache_estimates", true);
         h = make_shared<BlindSearchHeuristic>(opts_h);
-    } else if (heuristic.find("lmcut") != string::npos) {
+    } else if (opts.get<string>("heuristic").find("lmcut") != string::npos) {
         cout << "USING LMCUT HEURISTIC" << endl;
         Options opts_h;
         opts_h.set("transform", task);
         opts_h.set("cache_estimates", true);
         h = make_shared<LandmarkCutHeuristic>(opts_h);
-    } else if (heuristic.find("operatorcounting") != string::npos) {
+    } else if (opts.get<string>("heuristic").find("operatorcounting") !=
+               string::npos) {
         cout << "USING OPERATOR COUNT HEURISTIC" << endl;
         vector<shared_ptr<ConstraintGenerator>> cs;
 
-        if (constraint_generators.find("seq") != string::npos) {
+        if (opts.get<string>("constraint_generators").find("seq") !=
+            string::npos) {
             cout << "USING SEQ CONSTRAINT GENERATOR" << endl;
             Options o;
             o.set("use_safety_improvement", true);
@@ -275,12 +266,14 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
                 make_shared<StateEquationConstraints>(o);
             cs.emplace_back(c);
         }
-        if (constraint_generators.find("landmarks") != string::npos) {
+        if (opts.get<string>("constraint_generators").find("landmarks") !=
+            string::npos) {
             cout << "USING LANDMARK CONSTRAINT GENERATOR" << endl;
             shared_ptr<ConstraintGenerator> c = make_shared<LMCutConstraints>();
             cs.emplace_back(c);
         }
-        if (constraint_generators.find("h+") != string::npos) {
+        if (opts.get<string>("constraint_generators").find("h+") !=
+            string::npos) {
             cout << "USING H+ CONSTRAINT GENERATOR" << endl;
             Options o;
             o.set("use_time_vars", true);
@@ -289,7 +282,8 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
                 make_shared<DeleteRelaxationConstraints>(o);
             cs.emplace_back(c);
         }
-        if (constraint_generators.find("flow") != string::npos) {
+        if (opts.get<string>("constraint_generators").find("flow") !=
+            string::npos) {
             cout << "USING FLOW CONSTRAINT GENERATOR" << endl;
             Options o_p;
             o_p.set("pattern_max_size", 1);
@@ -312,7 +306,8 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
             shared_ptr<ConstraintGenerator> c = make_shared<FlowConstraints>(o);
             cs.emplace_back(c);
         }
-        if (constraint_generators.find("glcs") != string::npos) {
+        if (opts.get<string>("constraint_generators").find("glcs") !=
+            string::npos) {
             cout << "USING GLCS CONSTRAINT GENERATOR" << endl;
             shared_ptr<ConstraintGenerator> c =
                 make_shared<GLCSConstraints>(glcs, rounded_x);
@@ -333,7 +328,8 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
         opts_h.set("socwsss", true);
         h = make_shared<OperatorCountingHeuristic>(opts_h);
     } else {
-        cout << "HEURISTIC " << heuristic << " NOT FOUND" << endl;
+        cout << "HEURISTIC " << opts.get<string>("heuristic") << " NOT FOUND"
+             << endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
@@ -349,21 +345,19 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
 
     opts_astar.set("initial_op_count", rounded_x);
     opts_astar.set("f_bound", rounded_z);
-    opts_astar.set("constraint_type", constraint_type);
 
     seq++;
-    printer_plots->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
-                             restarts,
-                             cache_op_counts.get_best_plan().second->plan_cost);
-    auto astar = make_shared<soc_astar_search::SOCAStarSearch>(opts_astar);
+    printer->show_data(seq, cplex->getBestObjValue(), repeated_seqs, restarts,
+                       cache_op_counts.get_best_plan().second->plan_cost);
+    auto astar = make_shared<AStarSeq>(opts_astar);
     auto start = chrono::system_clock::now();
     astar->search();
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
                                       chrono::system_clock::now() - start)
                                       .count();
-    printer_plots->plot_max_f_found.emplace_back(astar->max_f_found);
-    printer_plots->plot_astar_time.emplace_back(elapsed_microseconds);
-    printer_plots->plot_nodes_expanded.emplace_back(
+    printer->plot_max_f_found.emplace_back(astar->max_f_found);
+    printer->plot_astar_time.emplace_back(elapsed_microseconds);
+    printer->plot_nodes_expanded.emplace_back(
         astar->get_statistics().get_expanded());
 
     auto ret = make_shared<SequenceInfo>();
@@ -468,13 +462,13 @@ void Shared::log(IloCplex::ControlCallbackI* callback, CallbackType type) {
     cerr << string(80, '*') << endl;
     cerr << boolalpha;
     switch (type) {
-        case LAZY:
+        case CallbackType::LAZY:
             cerr << "IN LAZY CONSTRAINT CALLBACK" << endl;
             break;
-        case USERCUT:
+        case CallbackType::USERCUT:
             cerr << "IN USER CUT CALLBACK" << endl;
             break;
-        case HEURISTIC:
+        case CallbackType::HEURISTIC:
             cerr << "IN HEURISTIC CALLBACK" << endl;
             break;
     }
@@ -522,7 +516,7 @@ void Shared::log(IloCplex::ControlCallbackI* callback, CallbackType type) {
                      << "]" << endl;
             }
             cerr << endl;
-            if (best_seq) {
+            if (opts.get<bool>("best_seq")) {
                 cerr << "SAT CUT:\t" << (cut_sat >= 1) << endl;
                 cerr << "ASTAR CUT:\t" << (cut_astar >= 1) << endl;
                 cerr << endl;
@@ -578,7 +572,7 @@ void Shared::log() {
                      << "]" << endl;
             }
             cerr << endl;
-            if (best_seq) {
+            if (opts.get<bool>("best_seq")) {
                 cerr << "SAT CUT:\t" << (cut_sat >= 1) << endl;
                 cerr << "ASTAR CUT:\t" << (cut_astar >= 1) << endl;
                 cerr << endl;
@@ -594,7 +588,7 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
     auto [found, info] = cache_op_counts.get_best_plan();
     if (found && info->sequenciable &&
         info->plan_cost < callback->getIncumbentObjValue()) {
-        OperatorCount plan_counts = plan2opcount(info);
+        OperatorCount plan_counts = plan2opcount(info->plan);
 
         lp::LPSolver lp_solver(lp::LPSolverType(opts.get_enum("lpsolver")));
 
@@ -614,7 +608,7 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
             local_variables[i].lower_bound = plan_counts[i];
             local_variables[i].upper_bound = plan_counts[i];
         }
-        if (sat_seq) {
+        if (opts.get<bool>("sat_seq")) {
             local_variables[yt_index].lower_bound = info->plan.size();
             local_variables[yt_index].upper_bound = info->plan.size();
         } else {
@@ -623,7 +617,7 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
         }
 
         for (auto& [glc, state] : cache_glcs.cache) {
-            if (state != NEW) {
+            if (state != GLCState::NEW) {
                 lp::LPConstraint constraint(1.0, lp_solver.get_infinity());
 
                 int yt_bound = glc->yt_bound;
@@ -685,9 +679,9 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
     }
 }
 
-OperatorCount Shared::plan2opcount(shared_ptr<SequenceInfo> info) {
+OperatorCount Shared::plan2opcount(Plan plan) {
     OperatorCount plan_counts(ops.size(), 0);
-    for (OperatorID& op_id : info->plan) {
+    for (OperatorID& op_id : plan) {
         plan_counts[op_id.get_index()]++;
     }
     return plan_counts;
@@ -709,7 +703,7 @@ long Shared::plan2cost(Plan& plan) {
 }
 
 double Shared::get_op_cost(OperatorProxy op) {
-    if (recost && sat_seq) {
+    if (opts.get<bool>("recost") && opts.get<bool>("sat_seq")) {
         return max((double)op.get_cost(), epsilon);
     }
     return op.get_cost();
@@ -724,7 +718,7 @@ void Shared::step_mip_loop() {
 
     sequence();
     if (!info->sequenciable) {
-        cache_glcs.set(info->learned_glc, ADDED_AS_LAZY_AND_USERCUT);
+        cache_glcs.set(info->learned_glc, GLCState::ADDED_AS_LAZY_AND_USERCUT);
         restart = true;
     }
     log();
@@ -742,9 +736,9 @@ void LazyCallbackI::main() {
         auto cut = shr->get_cut(shr->info->learned_glc, this);
         if (shr->restart) return;
         add(cut >= 1.0).end();
-        shr->cache_glcs.set(shr->info->learned_glc, ADDED_AS_LAZY);
+        shr->cache_glcs.set(shr->info->learned_glc, GLCState::ADDED_AS_LAZY);
     }
-    shr->log(this, LAZY);
+    shr->log(this, CallbackType::LAZY);
 }
 
 IloCplex::Callback LazyCallback(shared_ptr<Shared> shr) {
@@ -763,9 +757,9 @@ void UserCutCallbackI::main() {
         auto cut = shr->get_cut(shr->info->learned_glc, this);
         if (shr->restart) return;
         add(cut >= 1.0).end();
-        shr->cache_glcs.set(shr->info->learned_glc, ADDED_AS_USERCUT);
+        shr->cache_glcs.set(shr->info->learned_glc, GLCState::ADDED_AS_USERCUT);
     }
-    shr->log(this, USERCUT);
+    shr->log(this, CallbackType::USERCUT);
 }
 
 IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
@@ -778,7 +772,7 @@ void HeuristicCallbackI::main() {
     shr->extract_sol(this);
     if (shr->test_card()) {
         shr->sequence();
-        shr->log(this, HEURISTIC);
+        shr->log(this, CallbackType::HEURISTIC);
     }
 
     shr->post_best_plan(this);

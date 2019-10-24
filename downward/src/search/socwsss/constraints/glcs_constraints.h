@@ -9,7 +9,7 @@
 #include "../utils/markup.h"
 #include "../utils/memory.h"
 
-#include "glc.h"
+#include "../glc.h"
 
 #include <algorithm>
 #include <cassert>

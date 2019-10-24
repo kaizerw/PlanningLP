@@ -1,4 +1,4 @@
-#include "printer_plots.h"
+#include "printer.h"
 
 template <typename T>
 double calc_mean(vector<T> data) {
@@ -25,12 +25,12 @@ double calc_median(vector<T> data) {
     return median;
 }
 
-PrinterPlots::PrinterPlots(int n_ops, int n_vars,
-                           shared_ptr<vector<shared_ptr<GLC>>> glcs,
-                           chrono::time_point<chrono::system_clock> start)
+Printer::Printer(int n_ops, int n_vars,
+                 shared_ptr<vector<shared_ptr<GLC>>> glcs,
+                 chrono::time_point<chrono::system_clock> start)
     : n_ops(n_ops), n_vars(n_vars), glcs(glcs), start(start) {}
 
-int PrinterPlots::compute_times_made_progress() {
+int Printer::compute_times_made_progress() {
     int times_made_progress = 0;
     if (this->plot_lp_oc_solution.size() >= 2) {
         for (int i = 0; i < (int)(this->plot_lp_oc_solution.size() - 1); ++i) {
@@ -43,8 +43,8 @@ int PrinterPlots::compute_times_made_progress() {
     return times_made_progress;
 }
 
-void PrinterPlots::update(int lp_h_oc, vector<long> rounded_solution,
-                          int c_size, int x_size) {
+void Printer::update(int lp_h_oc, vector<long> rounded_solution, int c_size,
+                     int x_size) {
     // Store values to plots
     this->plot_lp_all_constraints.emplace_back(c_size);
     this->plot_lp_all_variables.emplace_back(x_size);
@@ -58,9 +58,9 @@ void PrinterPlots::update(int lp_h_oc, vector<long> rounded_solution,
         [](int count) { return count > 0; }));
 }
 
-void PrinterPlots::show_data(int seq, double best_bound_found,
-                             int repeated_sequencings, int restarts,
-                             int min_plan_in_cache) {
+void Printer::show_data(int seq, double best_bound_found,
+                        int repeated_sequencings, int restarts,
+                        int min_plan_in_cache) {
     double total_solve_time = chrono::duration_cast<chrono::microseconds>(
                                   chrono::system_clock::now() - this->start)
                                   .count();

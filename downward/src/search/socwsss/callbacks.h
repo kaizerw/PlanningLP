@@ -22,6 +22,7 @@
 
 #include "../heuristics/blind_search_heuristic.h"
 #include "../heuristics/lm_cut_heuristic.h"
+#include "../heuristics/lm_cut_landmarks.h"
 #include "../operator_counting/delete_relaxation_constraints.h"
 #include "../operator_counting/flow_constraints.h"
 #include "../operator_counting/lm_cut_constraints.h"
@@ -30,8 +31,20 @@
 #include "../pdbs/pattern_collection_generator_systematic.h"
 #include "../pdbs/pattern_generator_manual.h"
 #include "../pdbs/pdb_heuristic.h"
-#include "astar_optimal_plans_search.h"
-#include "glcs_constraints.h"
+
+#include "searches/astar_optimal_plans_search.h"
+#include "searches/astar_seq.h"
+#include "searches/sat_seq.h"
+
+#include "glc.h"
+#include "printer.h"
+
+#include "constraints/delete_relaxation_constraints.h"
+#include "constraints/flow_constraints.h"
+//#include "constraints/relaxed_exploration_landmarks.h"
+#include "constraints/dynamic_merging.h"
+#include "constraints/glcs_constraints.h"
+#include "constraints/seq_constraints.h"
 
 using astar_optimal_plans_search::AStarOptimalPlansSearch;
 using blind_search_heuristic::BlindSearchHeuristic;
@@ -46,15 +59,6 @@ using operator_counting::OperatorCountingHeuristic;
 using operator_counting::StateEquationConstraints;
 using pdbs::PatternCollectionGenerator;
 using pdbs::PatternCollectionGeneratorSystematic;
-
-#include "../heuristics/lm_cut_landmarks.h"
-#include "astar_search.h"
-
-#include "dynamic_merging.h"
-#include "glc.h"
-#include "printer_plots.h"
-#include "sat_seq.h"
-#include "seq_constraints.h"
 
 #include <chrono>
 #include <cstdio>
@@ -86,13 +90,6 @@ struct SequenceInfo {
     int plan_cost = numeric_limits<int>::max();
 };
 
-enum GLCState {
-    NEW,
-    ADDED_AS_LAZY,
-    ADDED_AS_USERCUT,
-    ADDED_AS_LAZY_AND_USERCUT
-};
-
 struct CacheGLCs {
     struct Hash {
         size_t operator()(const shared_ptr<GLC> &v) const {
@@ -111,18 +108,20 @@ struct CacheGLCs {
 
     bool add(shared_ptr<GLC> glc) {
         if (cache.count(glc) == 0) {
-            cache[glc] = NEW;
+            cache[glc] = GLCState::NEW;
             return false;
         }
         return true;
     }
 
     void set(shared_ptr<GLC> glc, GLCState state) {
-        if (cache[glc] == NEW) {
+        if (cache[glc] == GLCState::NEW) {
             cache[glc] = state;
-        } else if ((cache[glc] == ADDED_AS_USERCUT && state == ADDED_AS_LAZY) ||
-                   (cache[glc] == ADDED_AS_LAZY && state == ADDED_AS_USERCUT)) {
-            cache[glc] = ADDED_AS_LAZY_AND_USERCUT;
+        } else if ((cache[glc] == GLCState::ADDED_AS_USERCUT &&
+                    state == GLCState::ADDED_AS_LAZY) ||
+                   (cache[glc] == GLCState::ADDED_AS_LAZY &&
+                    state == GLCState::ADDED_AS_USERCUT)) {
+            cache[glc] = GLCState::ADDED_AS_LAZY_AND_USERCUT;
         }
     }
 };
@@ -181,26 +180,19 @@ enum CallbackType { LAZY, USERCUT, HEURISTIC };
 
 struct Shared {
     Options opts;
-    int constraint_type;
-    string constraint_generators;
-    string heuristic;
-    bool mip_start;
-    bool sat_seq;
-    bool best_seq;
-    bool minimal_seq;
-    bool recost;
-    bool mip_loop;
-    bool add_cstar_constraint;
-    int cstar;
-    bool add_yf_bound;
-    bool add_yt_bound;
-    string callbacks;
-
     shared_ptr<TaskProxy> task_proxy;
     OperatorsProxy ops;
     VariablesProxy vars;
     shared_ptr<AbstractTask> task;
     chrono::time_point<chrono::system_clock> start;
+    bool restart;
+    int restarts, seq, repeated_seqs;
+    double epsilon;
+    int yt_index;
+    int yf_index;
+    shared_ptr<vector<shared_ptr<GLC>>> glcs;
+    shared_ptr<Printer> printer;
+
     shared_ptr<Evaluator> full_pdb;
 
     shared_ptr<vector<vector<int>>> bounds_literals;
@@ -212,14 +204,6 @@ struct Shared {
     shared_ptr<IloCplex> cplex;
     shared_ptr<vector<lp::LPVariable>> lp_variables;
     shared_ptr<vector<lp::LPConstraint>> lp_constraints;
-
-    bool restart = false;
-    int restarts = 0, seq = 0, repeated_seqs = 0;
-    int yt_index;
-    int yf_index;
-    double epsilon = 0;
-    shared_ptr<vector<shared_ptr<GLC>>> glcs;
-    shared_ptr<PrinterPlots> printer_plots;
 
     CacheOperatorCounts cache_op_counts;
     CacheGLCs cache_glcs;
@@ -251,7 +235,7 @@ struct Shared {
     void log();
     void post_best_plan(IloCplex::HeuristicCallbackI *callback);
 
-    OperatorCount plan2opcount(shared_ptr<SequenceInfo> info);
+    OperatorCount plan2opcount(Plan plan);
     long opcount2cost(OperatorCount &op_count);
     long plan2cost(Plan &plan);
     double get_op_cost(OperatorProxy op);

@@ -7,6 +7,13 @@
 
 using namespace std;
 
+enum GLCState {
+    NEW,
+    ADDED_AS_LAZY,
+    ADDED_AS_USERCUT,
+    ADDED_AS_LAZY_AND_USERCUT
+};
+
 struct GLC {
     // This struct can represent generalized landmark constraints in the form:
     // [Y_T >= yt_bound] + {[o.id >= o.bound] | for o in ops_bounds}

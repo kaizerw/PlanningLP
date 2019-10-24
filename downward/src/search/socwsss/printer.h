@@ -1,5 +1,5 @@
-#ifndef PRINTER_PLOTS_H
-#define PRINTER_PLOTS_H
+#ifndef PRINTER_H
+#define PRINTER_H
 
 #include <algorithm>
 #include <chrono>
@@ -13,7 +13,7 @@
 
 using namespace std;
 
-class PrinterPlots {
+class Printer {
    public:
     int n_ops;
     int n_vars;
@@ -41,9 +41,8 @@ class PrinterPlots {
     int total_learned_glcs = 0;
     int total_astar_is_better = 0;
 
-    PrinterPlots(int n_ops, int n_vars,
-                 shared_ptr<vector<shared_ptr<GLC>>> glcs,
-                 chrono::time_point<chrono::system_clock> start);
+    Printer(int n_ops, int n_vars, shared_ptr<vector<shared_ptr<GLC>>> glcs,
+            chrono::time_point<chrono::system_clock> start);
     int compute_times_made_progress();
     void update(int lp_h_oc, vector<long> rounded_solution, int c_size,
                 int x_size);

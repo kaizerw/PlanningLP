@@ -1,5 +1,5 @@
-#ifndef SEARCH_ENGINES_SOCWSSS_CPLEX_SEARCH_H
-#define SEARCH_ENGINES_SOCWSSS_CPLEX_SEARCH_H
+#ifndef SEARCH_ENGINES_SOCWSSS_H
+#define SEARCH_ENGINES_SOCWSSS_H
 
 #include "../algorithms/ordered_set.h"
 #include "../evaluation_context.h"
@@ -16,10 +16,7 @@
 #include "../search_engines/search_common.h"
 #include "../task_utils/successor_generator.h"
 
-#include "Florian/delete_relaxation_constraints.h"
-#include "Florian/flow_constraints.h"
-#include "relaxed_exploration_landmarks.h"
-#include "socwssscallback.h"
+#include "callbacks.h"
 
 #include <chrono>
 #include <memory>
@@ -37,38 +34,19 @@ namespace options {
 class Options;
 }
 
-namespace SOCWSSS_cplex_search {
-
-struct SOCWSSSCplexSearch : public SearchEngine {
+struct SOCWSSS : public SearchEngine {
     Options opts;
-    int constraint_type;
-    string constraint_generators;
-    string heuristic;
-    bool mip_start;
-    bool sat_seq;
-    bool best_seq;
-    bool minimal_seq;
-    bool recost;
-    bool mip_loop;
-    bool add_cstar_constraint;
-    int cstar;
-    bool add_yf_bound;
-    bool add_yt_bound;
-    string callbacks;
-
     OperatorsProxy ops;
     VariablesProxy vars;
-    double infinity = IloInfinity;
+    int k_prealloc_bounds_ops;
+    int k_prealloc_bounds_yt;
+    int k_prealloc_bounds_yf;
+    const double M;
     double epsilon;
 
     shared_ptr<vector<lp::LPVariable>> lp_variables;
     shared_ptr<vector<lp::LPConstraint>> lp_constraints;
-    int yt_index;
-    int yf_index;
-    int k_prealloc_bounds_ops = 2;
-    int k_prealloc_bounds_yt = 2;
-    int k_prealloc_bounds_yf = 2;
-    const double M = 1e10;
+    int yt_index, yf_index;
     shared_ptr<vector<vector<int>>> bounds_literals;
     shared_ptr<vector<int>> c2_ops;
 
@@ -95,11 +73,10 @@ struct SOCWSSSCplexSearch : public SearchEngine {
                                 int previous_bound);
     virtual SearchStatus step() override;
 
-    explicit SOCWSSSCplexSearch(const options::Options &opts);
-    virtual ~SOCWSSSCplexSearch() = default;
+    explicit SOCWSSS(const options::Options &opts);
+    virtual ~SOCWSSS() = default;
 
     virtual void print_statistics() const override;
 };
-}  // namespace SOCWSSS_cplex_search
 
 #endif

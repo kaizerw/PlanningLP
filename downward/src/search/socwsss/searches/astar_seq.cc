@@ -1,37 +1,22 @@
-#include "astar_search.h"
+#include "astar_seq.h"
 
-namespace soc_astar_search {
-SOCAStarSearch::SOCAStarSearch(const Options &opts)
+AStarSeq::AStarSeq(const Options &opts)
     : EagerSearch(opts),
       opts(opts),
-      constraint_type(opts.get<int>("constraint_type")),
-      constraint_generators(opts.get<string>("constraint_generators")),
-      heuristic(opts.get<string>("heuristic")),
-      mip_start(opts.get<bool>("mip_start")),
-      sat_seq(opts.get<bool>("sat_seq")),
-      best_seq(opts.get<bool>("best_seq")),
-      minimal_seq(opts.get<bool>("minimal_seq")),
-      recost(opts.get<bool>("recost")),
-      mip_loop(opts.get<bool>("mip_loop")),
-      add_cstar_constraint(opts.get<bool>("add_cstar_constraint")),
-      cstar(opts.get<int>("cstar")),
-      add_yf_bound(opts.get<bool>("add_yf_bound")),
-      add_yt_bound(opts.get<bool>("add_yt_bound")),
-      callbacks(opts.get<string>("callbacks")),
-      initial_op_count(opts.get<OperatorCount>("initial_op_count")),
-      f_bound(opts.get<long>("f_bound")),
       max_f_found(0),
       ops_learned_constraint(task_proxy.get_operators().size(),
-                             (constraint_type == 1)),
+                             (opts.get<int>("constraint_type") == 1)),
       yf_bound(numeric_limits<int>::max()),
-      state_registry(task_proxy, true, initial_op_count),
+      state_registry(task_proxy, true,
+                     opts.get<OperatorCount>("initial_op_count")),
       search_space(state_registry),
       cache_hstar(make_shared<CacheHStar>(opts, task_proxy)),
-      hstar_by_search(heuristic.find("hstar_search") != string::npos) {
+      hstar_by_search(opts.get<string>("heuristic").find("hstar_search") !=
+                      string::npos) {
     cout << "Initializing SOC A* search..." << endl;
 }
 
-bool SOCAStarSearch::check_goal_and_set_plan(const GlobalState &state) {
+bool AStarSeq::check_goal_and_set_plan(const GlobalState &state) {
     if (task_properties::is_goal_state(task_proxy, state)) {
         cout << "Solution found!" << endl;
         Plan plan;
@@ -42,7 +27,7 @@ bool SOCAStarSearch::check_goal_and_set_plan(const GlobalState &state) {
     return false;
 }
 
-void SOCAStarSearch::initialize() {
+void AStarSeq::initialize() {
     assert(open_list);
 
     set<Evaluator *> evals;
@@ -106,13 +91,13 @@ void SOCAStarSearch::initialize() {
     pruning_method->initialize(task);
 }
 
-void SOCAStarSearch::print_statistics() const {
+void AStarSeq::print_statistics() const {
     // statistics.print_detailed_statistics();
     // search_space.print_statistics();
     // pruning_method->print_statistics();
 }
 
-SearchStatus SOCAStarSearch::step() {
+SearchStatus AStarSeq::step() {
     tl::optional<SearchNode> node;
     OperatorCount s_op_count;
     while (true) {
@@ -197,10 +182,12 @@ SearchStatus SOCAStarSearch::step() {
     cout << string(80, '-') << endl;
     */
 
-    if (node_f > f_bound) {
+    if (node_f > opts.get<double>("f_bound")) {
         // In T2 and T3 we add the YT bound if A* selects for expansion a state
         // with f > f_bound
-        if ((constraint_type == 2 || constraint_type == 3) && add_yf_bound) {
+        if ((opts.get<int>("constraint_type") == 2 ||
+             opts.get<int>("constraint_type") == 3) &&
+            opts.get<bool>("add_yf_bound")) {
             yf_bound = min(yf_bound, node_f);
         }
 
@@ -256,16 +243,16 @@ SearchStatus SOCAStarSearch::step() {
         // In this case succ_node won't be added to open list later
         if (s_op_count[op.get_id()] == 0) {
             // 1. Add all operators
-            if (constraint_type == 1) {
+            if (opts.get<int>("constraint_type") == 1) {
                 // 2. Add operators o that could generate states s' from states
                 // s only if s' is a new state
-            } else if (constraint_type == 2) {
+            } else if (opts.get<int>("constraint_type") == 2) {
                 if (succ_node.is_new()) {
                     ops_learned_constraint[op.get_id()] = true;
                 }
                 // 3. Add operators o that could generate states s' from states
                 // s only if s' is a new state and f(s') <= f_bound
-            } else if (constraint_type == 3) {
+            } else if (opts.get<int>("constraint_type") == 3) {
                 long new_succ_f =
                     (hstar_by_search
                          ? node->get_g() + get_adjusted_cost(op) +
@@ -277,10 +264,10 @@ SearchStatus SOCAStarSearch::step() {
                                .get_evaluator_value(f_evaluator.get()));
 
                 if (succ_node.is_new()) {
-                    if (new_succ_f <= f_bound) {
+                    if (new_succ_f <= opts.get<double>("f_bound")) {
                         ops_learned_constraint[op.get_id()] = true;
                     } else {
-                        if (add_yf_bound) {
+                        if (opts.get<bool>("add_yf_bound")) {
                             // In T3, we add the YT bound if a state with f >
                             // f_bound could be generated if there were one more
                             // of the operator
@@ -369,11 +356,12 @@ SearchStatus SOCAStarSearch::step() {
     return IN_PROGRESS;
 }
 
-void SOCAStarSearch::generate_constraint() {
+void AStarSeq::generate_constraint() {
     learned_glc = make_shared<GLC>();
     for (size_t op_id = 0; op_id < task_proxy.get_operators().size(); ++op_id) {
         if (ops_learned_constraint[op_id]) {
-            learned_glc->add_op_bound(op_id, initial_op_count[op_id] + 1);
+            learned_glc->add_op_bound(
+                op_id, opts.get<OperatorCount>("initial_op_count")[op_id] + 1);
         }
     }
     if (yf_bound != numeric_limits<int>::max()) {
@@ -383,4 +371,3 @@ void SOCAStarSearch::generate_constraint() {
         learned_glc = nullptr;
     }
 }
-}  // namespace soc_astar_search

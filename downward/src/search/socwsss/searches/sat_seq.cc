@@ -1,19 +1,11 @@
 #include "sat_seq.h"
 
-/*
-// Test PlanToMinisat
-// simplegripper/prob01.pddl
-vector<int> op_counts({0, 1, 0, 1, 1, 1, 1, 0, 1, 0});
-PlanToMinisat(make_shared<TaskProxy>(task_proxy), op_counts)();
-exit(0);
-*/
-
-PlanToMinisat::PlanToMinisat(shared_ptr<TaskProxy> task_proxy,
-                             vector<long>& op_counts, bool add_yt_bound)
+SATSeq::SATSeq(const Options& opts, shared_ptr<TaskProxy> task_proxy,
+               vector<long>& op_counts)
     : Minisat22::Solver(),
+      opts(opts),
       task_proxy(task_proxy),
       op_counts(op_counts),
-      add_yt_bound(add_yt_bound),
       n_layers(accumulate(op_counts.begin(), op_counts.end(), 0)) {
     ops = make_shared<OperatorsProxy>(task_proxy->get_operators());
     vars = make_shared<VariablesProxy>(task_proxy->get_variables());
@@ -66,7 +58,7 @@ PlanToMinisat::PlanToMinisat(shared_ptr<TaskProxy> task_proxy,
     initialize_assumptions();
 }
 
-void PlanToMinisat::initialize_ids() {
+void SATSeq::initialize_ids() {
     for (int l = 1; l <= n_layers; ++l) {
         for (size_t op_id = 0; op_id < ops->size(); ++op_id) {
             stringstream key;
@@ -105,7 +97,7 @@ void PlanToMinisat::initialize_ids() {
     }
 }
 
-void PlanToMinisat::initialize_assumptions() {
+void SATSeq::initialize_assumptions() {
     stringstream key;
     key << "[Y_T >= " << (n_layers + 1) << "]";
     int id = id_generator;
@@ -135,7 +127,7 @@ void PlanToMinisat::initialize_assumptions() {
     }
 }
 
-int PlanToMinisat::s(int i, int j) {
+int SATSeq::s(int i, int j) {
     tuple<int, int> key(i, j);
     if (aux_vars.count(key) == 0) {
         aux_vars[key] = id_generator++;
@@ -143,7 +135,7 @@ int PlanToMinisat::s(int i, int j) {
     return aux_vars[key];
 }
 
-vector<vector<int>> PlanToMinisat::encode_bcc(map<int, int>& x, int k) {
+vector<vector<int>> SATSeq::encode_bcc(map<int, int>& x, int k) {
     int n = x.size();
 
     if (k == 0) {
@@ -179,7 +171,7 @@ vector<vector<int>> PlanToMinisat::encode_bcc(map<int, int>& x, int k) {
     return clauses;
 }
 
-vector<vector<int>> PlanToMinisat::do_part1(int l) {
+vector<vector<int>> SATSeq::do_part1(int l) {
     if (l == 0) {
         return {};
     }
@@ -194,7 +186,7 @@ vector<vector<int>> PlanToMinisat::do_part1(int l) {
     return encode_bcc(x, 1);
 }
 
-vector<vector<int>> PlanToMinisat::do_part2(int l) {
+vector<vector<int>> SATSeq::do_part2(int l) {
     vector<vector<int>> encoded;
 
     for (size_t var_id = 0; var_id < vars->size(); ++var_id) {
@@ -213,7 +205,7 @@ vector<vector<int>> PlanToMinisat::do_part2(int l) {
     return encoded;
 }
 
-vector<vector<int>> PlanToMinisat::do_part3(int l) {
+vector<vector<int>> SATSeq::do_part3(int l) {
     if (l != 0) {
         return {};
     }
@@ -244,7 +236,7 @@ vector<vector<int>> PlanToMinisat::do_part3(int l) {
     return encoded;
 }
 
-vector<vector<int>> PlanToMinisat::do_part4(int l) {
+vector<vector<int>> SATSeq::do_part4(int l) {
     if (l == 0) {
         return {};
     }
@@ -270,7 +262,7 @@ vector<vector<int>> PlanToMinisat::do_part4(int l) {
     return encoded;
 }
 
-vector<vector<int>> PlanToMinisat::do_part5(int l) {
+vector<vector<int>> SATSeq::do_part5(int l) {
     if (l == 0) {
         return {};
     }
@@ -296,7 +288,7 @@ vector<vector<int>> PlanToMinisat::do_part5(int l) {
     return encoded;
 }
 
-vector<vector<int>> PlanToMinisat::do_part6(int l) {
+vector<vector<int>> SATSeq::do_part6(int l) {
     if (l == n_layers) {
         return {};
     }
@@ -327,7 +319,7 @@ vector<vector<int>> PlanToMinisat::do_part6(int l) {
     return encoded;
 }
 
-vector<vector<int>> PlanToMinisat::do_part7(int l) {
+vector<vector<int>> SATSeq::do_part7(int l) {
     if (l != n_layers) {
         return {};
     }
@@ -354,7 +346,7 @@ vector<vector<int>> PlanToMinisat::do_part7(int l) {
     return encoded;
 }
 
-vector<vector<int>> PlanToMinisat::do_part8(int l) {
+vector<vector<int>> SATSeq::do_part8(int l) {
     if (l != n_layers) {
         return {};
     }
@@ -385,7 +377,7 @@ vector<vector<int>> PlanToMinisat::do_part8(int l) {
     return encoded;
 }
 
-vector<vector<int>> PlanToMinisat::convert() {
+vector<vector<int>> SATSeq::convert() {
     vector<vector<int>> encoded;
 
     for (int l = 0; l <= n_layers; ++l) {
@@ -411,7 +403,7 @@ vector<vector<int>> PlanToMinisat::convert() {
     return encoded;
 }
 
-vector<vector<int>> PlanToMinisat::get_assumptions() {
+vector<vector<int>> SATSeq::get_assumptions() {
     vector<vector<int>> assumptions;
     for (pair<int, string> a : ids_to_assumptions) {
         assumptions.emplace_back(initializer_list<int>({-a.first}));
@@ -419,8 +411,7 @@ vector<vector<int>> PlanToMinisat::get_assumptions() {
     return assumptions;
 }
 
-void PlanToMinisat::make_minisat_input(vector<vector<int>> encoded,
-                                       string filename) {
+void SATSeq::make_minisat_input(vector<vector<int>> encoded, string filename) {
     ofstream file(filename);
     if (file.is_open()) {
         vector<int> m;
@@ -442,7 +433,7 @@ void PlanToMinisat::make_minisat_input(vector<vector<int>> encoded,
     file.close();
 }
 
-void PlanToMinisat::save_file(vector<vector<int>> encoded, string filename) {
+void SATSeq::save_file(vector<vector<int>> encoded, string filename) {
     ofstream file(filename);
     if (file.is_open()) {
         for (vector<int>& clause : encoded) {
@@ -455,7 +446,7 @@ void PlanToMinisat::save_file(vector<vector<int>> encoded, string filename) {
     file.close();
 }
 
-string PlanToMinisat::tos(vector<vector<int>> encoded) {
+string SATSeq::tos(vector<vector<int>> encoded) {
     stringstream file;
     for (vector<int>& clause : encoded) {
         for (int c : clause) {
@@ -466,7 +457,7 @@ string PlanToMinisat::tos(vector<vector<int>> encoded) {
     return file.str();
 }
 
-string PlanToMinisat::format(vector<vector<int>> part, bool ignore_aux) {
+string SATSeq::format(vector<vector<int>> part, bool ignore_aux) {
     string formula = "\t";
 
     for (vector<int>& clause : part) {
@@ -526,7 +517,7 @@ string PlanToMinisat::format(vector<vector<int>> part, bool ignore_aux) {
     return formula;
 }
 
-string PlanToMinisat::print() {
+string SATSeq::print() {
     string r;
     int line_size = 80;
 
@@ -554,7 +545,7 @@ string PlanToMinisat::print() {
     return r;
 }
 
-string PlanToMinisat::exec(const char* cmd) {
+string SATSeq::exec(const char* cmd) {
     array<char, 128> buffer;
     string result;
     unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
@@ -567,14 +558,14 @@ string PlanToMinisat::exec(const char* cmd) {
     return result;
 }
 
-void PlanToMinisat::declare_vars(const int max_id) {
+void SATSeq::declare_vars(const int max_id) {
     while (nVars() < max_id + 1) {
         newVar();
     }
 }
 
-void PlanToMinisat::iterate(vector<int>& obj, Minisat22::vec<Minisat22::Lit>& v,
-                            int& max_var) {
+void SATSeq::iterate(vector<int>& obj, Minisat22::vec<Minisat22::Lit>& v,
+                     int& max_var) {
     for (int l : obj) {
         v.push((l > 0) ? Minisat22::mkLit(l, false)
                        : Minisat22::mkLit(-l, true));
@@ -585,7 +576,7 @@ void PlanToMinisat::iterate(vector<int>& obj, Minisat22::vec<Minisat22::Lit>& v,
     }
 }
 
-bool PlanToMinisat::sat() {
+bool SATSeq::sat() {
     for (vector<int>& obj : base) {
         Minisat22::vec<Minisat22::Lit> cl;
         int max_var = -1;
@@ -614,7 +605,7 @@ bool PlanToMinisat::sat() {
     return solve(a);
 }
 
-vector<int> PlanToMinisat::get_core() {
+vector<int> SATSeq::get_core() {
     Minisat22::vec<Minisat22::Lit>* c = &(conflict);
     vector<int> ret;
     for (int i = 0; i < c->size(); ++i) {
@@ -624,7 +615,7 @@ vector<int> PlanToMinisat::get_core() {
     return ret;
 }
 
-vector<int> PlanToMinisat::get_model() {
+vector<int> SATSeq::get_model() {
     Minisat22::vec<Minisat22::lbool>* m = &(model);
 
     Minisat22::lbool True = Minisat22::lbool((uint8_t)0);
@@ -637,7 +628,7 @@ vector<int> PlanToMinisat::get_model() {
     return ret;
 }
 
-void PlanToMinisat::print_solver_info() {
+void SATSeq::print_solver_info() {
     cerr << string(80, '*') << endl;
 
     vector<vector<int>> proc_conflict;
@@ -683,7 +674,7 @@ void PlanToMinisat::print_solver_info() {
     cerr << string(80, '*') << endl;
 }
 
-void PlanToMinisat::operator()() {
+void SATSeq::operator()() {
     base = convert();
     assumptions = get_assumptions();
 
@@ -711,7 +702,7 @@ void PlanToMinisat::operator()() {
             auto [op_id, op_bound] = ids_to_assumptions_pairs[v];
 
             if (op_id == -1) {
-                if (add_yt_bound) {
+                if (opts.get<bool>("add_yt_bound")) {
                     learned_glc->yt_bound = op_bound;
                 }
             } else {

@@ -763,27 +763,28 @@ fast_downward_plugin(
     NAME SOCWSSS_SEARCH
     HELP "SOCWSSS search algorithm"
     SOURCES
-        socwsss/hmax/relaxation_heuristic
+        socwsss/constraints/delete_relaxation_constraints
+        socwsss/constraints/dynamic_merging
+        socwsss/constraints/flow_constraints
+        socwsss/constraints/glcs_constraints
+	    socwsss/constraints/relaxed_exploration_landmarks
+        socwsss/constraints/seq_constraints
+    
         socwsss/hmax/hmax_heuristic
-        socwsss/Florian/delete_relaxation_constraints
-        socwsss/Florian/flow_constraint_internals
-        socwsss/Florian/flow_constraints
+        socwsss/hmax/relaxation_heuristic
+        
+        socwsss/searches/minisat22/core/Solver
+        socwsss/searches/minisat22/utils/Options
+        socwsss/searches/minisat22/utils/System
+        socwsss/searches/astar_optimal_plans_search
+        socwsss/searches/astar_seq
+        socwsss/searches/mini_search
+        socwsss/searches/sat_seq
+        
+        socwsss/callbacks
         socwsss/glc
-        socwsss/astar_search
-        socwsss/printer_plots
-        socwsss/dynamic_merging
-        socwsss/socwssscallback
-        socwsss/seq_constraints
-        socwsss/glcs_constraints
-	    socwsss/relaxed_exploration_landmarks
-        socwsss/socwsss_search
-        socwsss/astar_optimal_plans_search
-        socwsss/minisat22/core/Solver
-        socwsss/minisat22/utils/Options
-        socwsss/minisat22/utils/System
-        socwsss/mini_search
-        socwsss/sat_seq
-        socwsss/socwsss_cplex_search
+        socwsss/printer
+        socwsss/socwsss
     DEPENDS OPERATOR_COUNTING PRIORITY_QUEUES SEARCH_COMMON LP_SOLVER NULL_PRUNING_METHOD ORDERED_SET SUCCESSOR_GENERATOR
 )
 ########################################################################

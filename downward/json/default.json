@@ -1,7 +1,7 @@
 [
    {
         "name": "T1",
-        "search": "socwsss_cplex(constraint_type=1, constraint_generators=seq_landmarks, heuristic=lmcut)",
+        "search": "socwsss(constraint_type=1, constraint_generators=seq_landmarks, heuristic=lmcut)",
         "domains": [
             "elevators-opt11-strips",
             "parcprinter-opt11-strips",
@@ -11,7 +11,7 @@
    },
    {
         "name": "T2",
-        "search": "socwsss_cplex(constraint_type=2, constraint_generators=seq_landmarks, heuristic=lmcut)",
+        "search": "socwsss(constraint_type=2, constraint_generators=seq_landmarks, heuristic=lmcut)",
         "domains": [
             "elevators-opt11-strips",
             "parcprinter-opt11-strips",
@@ -21,7 +21,7 @@
     },
     {
         "name": "T3",
-        "search": "socwsss_cplex(constraint_type=3, constraint_generators=seq_landmarks, heuristic=lmcut)",
+        "search": "socwsss(constraint_type=3, constraint_generators=seq_landmarks, heuristic=lmcut)",
         "domains": [
             "elevators-opt11-strips",
             "parcprinter-opt11-strips",
@@ -31,7 +31,7 @@
     },
     {
         "name": "SAT",
-        "search": "socwsss_cplex(sat_seq=true, constraint_generators=seq_landmarks, heuristic=lmcut)",
+        "search": "socwsss(sat_seq=true, constraint_generators=seq_landmarks, heuristic=lmcut)",
         "domains": [
             "elevators-opt11-strips",
             "parcprinter-opt11-strips",
