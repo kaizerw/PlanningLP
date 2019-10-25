@@ -738,7 +738,7 @@ void LazyCallbackI::main() {
         add(cut >= 1.0).end();
         shr->cache_glcs.set(shr->info->learned_glc, GLCState::ADDED_AS_LAZY);
     }
-    shr->log(this, CallbackType::LAZY);
+    // shr->log(this, CallbackType::LAZY);
 }
 
 IloCplex::Callback LazyCallback(shared_ptr<Shared> shr) {
@@ -759,7 +759,7 @@ void UserCutCallbackI::main() {
         add(cut >= 1.0).end();
         shr->cache_glcs.set(shr->info->learned_glc, GLCState::ADDED_AS_USERCUT);
     }
-    shr->log(this, CallbackType::USERCUT);
+    // shr->log(this, CallbackType::USERCUT);
 }
 
 IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
@@ -775,7 +775,7 @@ void HeuristicCallbackI::main() {
         shr->log(this, CallbackType::HEURISTIC);
     }
 
-    shr->post_best_plan(this);
+    // shr->post_best_plan(this);
 }
 
 IloCplex::Callback HeuristicCallback(shared_ptr<Shared> shr) {

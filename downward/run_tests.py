@@ -107,7 +107,11 @@ class Slave:
 
     @staticmethod
     def executed(name, domain, instance):
-        return pathlib.Path(os.path.join('.', 'OUTPUT', name, domain, instance, 'parsed.xlsx')).exists()
+        with open(os.path.join('.', 'OUTPUT', name, domain, instance, 'output1.txt')) as file:
+            for line in file:
+                if "search exit code" in line:
+                    return True
+        return False
 
 
 class Master:
