@@ -107,6 +107,7 @@ class Slave:
 
     @staticmethod
     def executed(name, domain, instance):
+        if not os.path.exists(os.path.join('.', 'OUTPUT', name, domain, instance, 'output1.txt')): return False
         with open(os.path.join('.', 'OUTPUT', name, domain, instance, 'output1.txt')) as file:
             for line in file:
                 if "search exit code" in line:
