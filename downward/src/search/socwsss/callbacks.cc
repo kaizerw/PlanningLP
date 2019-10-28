@@ -98,12 +98,14 @@ void Shared::sequence() {
     found_in_cache = false;
     if (cache_op_counts.has(rounded_x)) {
         repeated_seqs++;
-        if (!cache_op_counts[rounded_x]->sequenciable) {
-            repeated_glc =
-                cache_glcs.add(cache_op_counts[rounded_x]->learned_glc);
-        }
         found_in_cache = true;
         info = cache_op_counts[rounded_x];
+        if (!info->sequenciable) {
+            for (size_t i = 0; i < info->learned_glcs.size(); ++i) {
+                info->repeated_glcs[i] =
+                    cache_glcs.add(info->learned_glcs[i]);
+            }
+        }
     }
 
     if (!found_in_cache) {
@@ -114,6 +116,8 @@ void Shared::sequence() {
             info = get_sat_sequence();
         } else if (opts.get<bool>("minimal_seq")) {
             info = get_minimal_sequence();
+        } else if (opts.get<bool>("two_seq")) {
+            info = get_two_sequence();
         } else {
             info = get_astar_sequence();
         }
@@ -122,8 +126,10 @@ void Shared::sequence() {
         if (info->sequenciable) {
             cache_op_counts.add(plan2opcount(info->plan), info);
         } else {
-            glcs->emplace_back(info->learned_glc);
-            repeated_glc = cache_glcs.add(info->learned_glc);
+            for (size_t i = 0; i < info->learned_glcs.size(); ++i) {
+                glcs->emplace_back(info->learned_glcs[i]);
+                info->repeated_glcs[i] = cache_glcs.add(info->learned_glcs[i]);
+            }
         }
         cache_op_counts.add(rounded_x, info);
     }
@@ -166,11 +172,39 @@ shared_ptr<SequenceInfo> Shared::get_minimal_sequence() {
 
         cplex2.solve();
 
-        ret->learned_glc = make_shared<GLC>();
+        ret->learned_glcs.emplace_back(make_shared<GLC>());
+        ret->repeated_glcs.emplace_back(false);
         for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
             long v = lround(ceil(cplex2.getValue(x2[op_id]) - 0.01));
-            if (v > 0) ret->learned_glc->add_op_bound(op_id, v);
+            if (v > 0) ret->learned_glcs[0]->add_op_bound(op_id, v);
         }
+    }
+
+    return ret;
+}
+
+shared_ptr<SequenceInfo> Shared::get_two_sequence() {
+    auto info_sat = get_sat_sequence();
+
+    auto ret = make_shared<SequenceInfo>();
+    if (info_sat->sequenciable) {
+        ret = info_sat;
+    } else {
+        auto info_astar = get_astar_sequence();
+
+        int sat_bounds = info_sat->learned_glcs[0]->get_num_bounds();
+        int astar_bounds = info_astar->learned_glcs[0]->get_num_bounds();
+
+        cut_sat = get_cut(info_sat->learned_glcs[0]);
+        cut_astar = get_cut(info_astar->learned_glcs[0]);
+
+        bool astar_is_better = (astar_bounds < sat_bounds);
+        ret = info_sat;
+        ret->learned_glcs.emplace_back(info_astar->learned_glcs[0]);
+        ret->repeated_glcs.emplace_back(info_astar->repeated_glcs[0]);
+
+        printer->total_learned_glcs++;
+        printer->total_astar_is_better += (int)(astar_is_better);
     }
 
     return ret;
@@ -185,11 +219,11 @@ shared_ptr<SequenceInfo> Shared::get_best_sequence() {
     } else {
         auto info_astar = get_astar_sequence();
 
-        int sat_bounds = info_sat->learned_glc->get_num_bounds();
-        int astar_bounds = info_astar->learned_glc->get_num_bounds();
+        int sat_bounds = info_sat->learned_glcs[0]->get_num_bounds();
+        int astar_bounds = info_astar->learned_glcs[0]->get_num_bounds();
 
-        cut_sat = get_cut(info_sat->learned_glc);
-        cut_astar = get_cut(info_astar->learned_glc);
+        cut_sat = get_cut(info_sat->learned_glcs[0]);
+        cut_astar = get_cut(info_astar->learned_glcs[0]);
 
         bool astar_is_better = (astar_bounds < sat_bounds);
         ret = (astar_is_better ? info_astar : info_sat);
@@ -218,14 +252,12 @@ shared_ptr<SequenceInfo> Shared::get_sat_sequence() {
     auto ret = make_shared<SequenceInfo>();
     if (sat_solver.sequenciable) {
         ret->sequenciable = true;
-        ret->learned_glc = nullptr;
         ret->plan = sat_solver.plan;
         ret->plan_cost = plan2cost(ret->plan);
     } else {
         ret->sequenciable = false;
-        ret->learned_glc = sat_solver.learned_glc;
-        ret->plan = Plan();
-        ret->plan_cost = numeric_limits<int>::max();
+        ret->learned_glcs.emplace_back(sat_solver.learned_glc);
+        ret->repeated_glcs.emplace_back(false);
     }
 
     return ret;
@@ -344,7 +376,7 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
     opts_astar.set("preferred", preferred_list);
 
     opts_astar.set("initial_op_count", rounded_x);
-    opts_astar.set("f_bound", rounded_z);
+    opts_astar.set("f_bound", (double)rounded_z);
 
     seq++;
     printer->show_data(seq, cplex->getBestObjValue(), repeated_seqs, restarts,
@@ -363,14 +395,12 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
     auto ret = make_shared<SequenceInfo>();
     if (astar->found_solution()) {
         ret->sequenciable = true;
-        ret->learned_glc = nullptr;
         ret->plan = astar->get_plan();
         ret->plan_cost = plan2cost(ret->plan);
     } else {
         ret->sequenciable = false;
-        ret->learned_glc = astar->learned_glc;
-        ret->plan = Plan();
-        ret->plan_cost = numeric_limits<int>::max();
+        ret->learned_glcs.emplace_back(astar->learned_glc);
+        ret->repeated_glcs.emplace_back(false);
     }
 
     return ret;
@@ -459,6 +489,8 @@ IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc) {
 }
 
 void Shared::log(IloCplex::ControlCallbackI* callback, CallbackType type) {
+    if (!opts.get<bool>("print_log")) return;
+    
     cerr << string(80, '*') << endl;
     cerr << boolalpha;
     switch (type) {
@@ -501,35 +533,41 @@ void Shared::log(IloCplex::ControlCallbackI* callback, CallbackType type) {
                      << ops[op_id.get_index()].get_name() << endl;
             }
         } else {
-            cerr << "LEARNED GLC WITH " << info->learned_glc->get_num_bounds()
-                 << " BOUNDS:" << endl;
-            if (info->learned_glc->yt_bound != -1) {
-                cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]"
-                     << endl;
+            for (size_t i = 0; i < info->learned_glcs.size(); ++i) {         
+                cerr << "LEARNED GLC WITH " << info->learned_glcs[i]->get_num_bounds()
+                    << " BOUNDS:" << endl;
+                if (info->learned_glcs[i]->yt_bound != -1) {
+                    cerr << "\t[YT >= " << info->learned_glcs[i]->yt_bound << "]"
+                        << endl;
+                }
+                if (info->learned_glcs[i]->yf_bound != -1) {
+                    cerr << "\t[YF >= " << info->learned_glcs[i]->yf_bound << "]"
+                        << endl;
+                }
+                for (auto i : info->learned_glcs[i]->ops_bounds) {
+                    cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
+                        << "]" << endl;
+                }
+                cerr << endl;
             }
-            if (info->learned_glc->yf_bound != -1) {
-                cerr << "\t[YF >= " << info->learned_glc->yf_bound << "]"
-                     << endl;
-            }
-            for (auto i : info->learned_glc->ops_bounds) {
-                cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
-                     << "]" << endl;
-            }
-            cerr << endl;
             if (opts.get<bool>("best_seq")) {
                 cerr << "SAT CUT:\t" << (cut_sat >= 1) << endl;
                 cerr << "ASTAR CUT:\t" << (cut_astar >= 1) << endl;
                 cerr << endl;
             }
-            cerr << "REPEATED GLC? " << repeated_glc << endl;
-            cerr << "ADDED CUT: " << (get_cut(info->learned_glc, callback) >= 1)
-                 << endl;
+            for (size_t i = 0; i < info->learned_glcs.size(); ++i) {
+                cerr << "REPEATED GLC? " << info->repeated_glcs[i] << endl;
+                cerr << "ADDED CUT: " << (get_cut(info->learned_glcs[i], callback) >= 1)
+                     << endl;
+            }
         }
     }
     cerr << string(80, '*') << endl;
 }
 
 void Shared::log() {
+    if (!opts.get<bool>("print_log")) return;
+
     cerr << string(80, '*') << endl;
     cerr << boolalpha;
     cerr << "SEQ: " << seq << endl;
@@ -557,28 +595,32 @@ void Shared::log() {
                      << ops[op_id.get_index()].get_name() << endl;
             }
         } else {
-            cerr << "LEARNED GLC WITH " << info->learned_glc->get_num_bounds()
-                 << " BOUNDS:" << endl;
-            if (info->learned_glc->yt_bound != -1) {
-                cerr << "\t[YT >= " << info->learned_glc->yt_bound << "]"
-                     << endl;
+            for (size_t i = 0; i < info->learned_glcs.size(); ++i) {
+                cerr << "LEARNED GLC WITH " << info->learned_glcs[i]->get_num_bounds()
+                    << " BOUNDS:" << endl;
+                if (info->learned_glcs[i]->yt_bound != -1) {
+                    cerr << "\t[YT >= " << info->learned_glcs[i]->yt_bound << "]"
+                        << endl;
+                }
+                if (info->learned_glcs[i]->yf_bound != -1) {
+                    cerr << "\t[YF >= " << info->learned_glcs[i]->yf_bound << "]"
+                        << endl;
+                }
+                for (auto i : info->learned_glcs[i]->ops_bounds) {
+                    cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
+                        << "]" << endl;
+                }
+                cerr << endl;
             }
-            if (info->learned_glc->yf_bound != -1) {
-                cerr << "\t[YF >= " << info->learned_glc->yf_bound << "]"
-                     << endl;
-            }
-            for (auto i : info->learned_glc->ops_bounds) {
-                cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
-                     << "]" << endl;
-            }
-            cerr << endl;
             if (opts.get<bool>("best_seq")) {
                 cerr << "SAT CUT:\t" << (cut_sat >= 1) << endl;
                 cerr << "ASTAR CUT:\t" << (cut_astar >= 1) << endl;
                 cerr << endl;
             }
-            cerr << "REPEATED GLC? " << repeated_glc << endl;
-            cerr << "ADDED CUT: " << (get_cut(info->learned_glc) >= 1) << endl;
+            for (size_t i = 0; i < info->learned_glcs.size(); ++i) {
+                cerr << "REPEATED GLC? " << info->repeated_glcs[i] << endl;
+                cerr << "ADDED CUT: " << (get_cut(info->learned_glcs[i]) >= 1) << endl;
+            }
         }
     }
     cerr << string(80, '*') << endl;
@@ -718,7 +760,9 @@ void Shared::step_mip_loop() {
 
     sequence();
     if (!info->sequenciable) {
-        cache_glcs.set(info->learned_glc, GLCState::ADDED_AS_LAZY_AND_USERCUT);
+        for (auto &glc : info->learned_glcs) {
+            cache_glcs.set(glc, GLCState::ADDED_AS_LAZY_AND_USERCUT);
+        }
         restart = true;
     }
     log();
@@ -733,12 +777,14 @@ void LazyCallbackI::main() {
 
     shr->sequence();
     if (!shr->info->sequenciable) {
-        auto cut = shr->get_cut(shr->info->learned_glc, this);
-        if (shr->restart) return;
-        add(cut >= 1.0).end();
-        shr->cache_glcs.set(shr->info->learned_glc, GLCState::ADDED_AS_LAZY);
+        for (auto &glc : shr->info->learned_glcs) {
+            auto cut = shr->get_cut(glc, this);
+            if (shr->restart) return;
+            add(cut >= 1.0).end();
+            shr->cache_glcs.set(glc, GLCState::ADDED_AS_LAZY);
+        }
     }
-    // shr->log(this, CallbackType::LAZY);
+    shr->log(this, CallbackType::LAZY);
 }
 
 IloCplex::Callback LazyCallback(shared_ptr<Shared> shr) {
@@ -754,12 +800,14 @@ void UserCutCallbackI::main() {
 
     shr->sequence();
     if (!shr->info->sequenciable) {
-        auto cut = shr->get_cut(shr->info->learned_glc, this);
-        if (shr->restart) return;
-        add(cut >= 1.0).end();
-        shr->cache_glcs.set(shr->info->learned_glc, GLCState::ADDED_AS_USERCUT);
+        for (auto &glc : shr->info->learned_glcs) {
+            auto cut = shr->get_cut(glc, this);
+            if (shr->restart) return;
+            add(cut >= 1.0).end();
+            shr->cache_glcs.set(glc, GLCState::ADDED_AS_USERCUT);
+        }
     }
-    // shr->log(this, CallbackType::USERCUT);
+    shr->log(this, CallbackType::USERCUT);
 }
 
 IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
@@ -775,7 +823,7 @@ void HeuristicCallbackI::main() {
         shr->log(this, CallbackType::HEURISTIC);
     }
 
-    // shr->post_best_plan(this);
+    shr->post_best_plan(this);
 }
 
 IloCplex::Callback HeuristicCallback(shared_ptr<Shared> shr) {

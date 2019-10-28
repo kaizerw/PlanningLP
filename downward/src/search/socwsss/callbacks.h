@@ -85,9 +85,10 @@ class Options;
 
 struct SequenceInfo {
     bool sequenciable = false;
-    shared_ptr<GLC> learned_glc = nullptr;
+    vector<shared_ptr<GLC>> learned_glcs;
     Plan plan = Plan();
     int plan_cost = numeric_limits<int>::max();
+    vector<bool> repeated_glcs;
 };
 
 struct CacheGLCs {
@@ -213,7 +214,6 @@ struct Shared {
     long rounded_z;
     OperatorCount rounded_x;
     bool found_in_cache;
-    bool repeated_glc;
     shared_ptr<SequenceInfo> info;
     IloExpr cut_sat, cut_astar;
     vector<Plan> optimal_plans;
@@ -225,6 +225,7 @@ struct Shared {
     bool test_card();
     void sequence();
     shared_ptr<SequenceInfo> get_minimal_sequence();
+    shared_ptr<SequenceInfo> get_two_sequence();
     shared_ptr<SequenceInfo> get_best_sequence();
     shared_ptr<SequenceInfo> get_sat_sequence();
     shared_ptr<SequenceInfo> get_astar_sequence();

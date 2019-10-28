@@ -530,13 +530,15 @@ void SOCWSSS::print_statistics() const {
 static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.document_synopsis("SOCWSSS", "SOCWSSS");
 
-    parser.add_option<int>("constraint_type", "", "1");
-    parser.add_option<string>("constraint_generators", "", "seq_landmarks");
-    parser.add_option<string>("heuristic", "", "blind");
+    parser.add_option<int>("constraint_type", "", "3");
+    parser.add_option<string>("constraint_generators", "", "landmarks_h+_flow");
+    parser.add_option<string>("heuristic", "", "lmcut");
     parser.add_option<bool>("mip_start", "", "false");
     parser.add_option<bool>("sat_seq", "", "false");
     parser.add_option<bool>("best_seq", "", "false");
     parser.add_option<bool>("minimal_seq", "", "false");
+    parser.add_option<bool>("two_seq", "", "false");
+    parser.add_option<bool>("print_log", "", "false");
     parser.add_option<bool>("recost", "", "false");
     parser.add_option<bool>("mip_loop", "", "false");
     parser.add_option<bool>("add_cstar_constraint", "", "false");

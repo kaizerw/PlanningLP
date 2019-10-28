@@ -338,8 +338,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--configs', help='Config file.', type=str, default='json/default.json')
 
-    parser.add_argument('--max_time', help='Max time per test in minutes.', type=int, default=30)
-    parser.add_argument('--max_memory', help='Max mem per test in MB.', type=int, default=3584)
+    parser.add_argument('--max_time', help='Max time per test in minutes.', type=int, default=60)
+    parser.add_argument('--max_memory', help='Max mem per test in MB.', type=int, default=4096)
     parser.add_argument('--n_procs', help='Number of CPUS.', type=int, default=os.cpu_count())
 
     parser.add_argument('--name', help='Experiment name.', type=str, default=os.getcwd().split('/')[-1])
