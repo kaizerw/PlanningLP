@@ -30,7 +30,7 @@ SATSeq::SATSeq(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       opts(opts),
       task_proxy(task_proxy),
       op_counts(op_counts),
-      n_layers(accumulate(op_counts.begin(), op_counts.end(), 0)) {
+      n_layers(accumulate(op_counts.begin(), op_counts.end(), 0L)) {
     ops = make_shared<OperatorsProxy>(task_proxy->get_operators());
     vars = make_shared<VariablesProxy>(task_proxy->get_variables());
 
@@ -93,6 +93,7 @@ void SATSeq::initialize_ids() {
 
             all_to_ids[key] = id;
             ids_to_all[id] = key;
+
             ids_to_operators_pairs[id] = {op_id, l};
 
             id_generator++;
@@ -111,6 +112,7 @@ void SATSeq::initialize_ids() {
 
                 all_to_ids[key] = id;
                 ids_to_all[id] = key;
+
                 ids_to_facts_pairs[id] = {var_id, var_val, l};
 
                 id_generator++;
@@ -128,6 +130,7 @@ void SATSeq::initialize_assumptions() {
 
     all_to_ids[key] = id;
     ids_to_all[id] = key;
+
     ids_to_assumptions_pairs[id] = {-1, (n_layers + 1)};
 
     id_generator++;
@@ -141,6 +144,7 @@ void SATSeq::initialize_assumptions() {
 
         all_to_ids[key] = id;
         ids_to_all[id] = key;
+
         ids_to_assumptions_pairs[id] = {op_id, (op_counts[op_id] + 1)};
 
         id_generator++;
@@ -190,9 +194,7 @@ vector<vector<int>> SATSeq::encode_bcc(map<int, int>& x, int k) {
 }
 
 vector<vector<int>> SATSeq::do_part1(int l) {
-    if (l == 0) {
-        return {};
-    }
+    if (l == 0) return {};
 
     map<int, int> x;
     for (size_t op_id = 0; op_id < ops->size(); ++op_id) {
@@ -222,9 +224,7 @@ vector<vector<int>> SATSeq::do_part2(int l) {
 }
 
 vector<vector<int>> SATSeq::do_part3(int l) {
-    if (l != 0) {
-        return {};
-    }
+    if (l != 0) return {};
 
     vector<vector<int>> encoded;
 
@@ -233,14 +233,12 @@ vector<vector<int>> SATSeq::do_part3(int l) {
 
         if (var_val != -1) {
             string key = get_fact_key(var_id, var_val, 0);
-
             int fact_id = facts_to_ids[key];
             encoded.emplace_back(ili({fact_id}));
         } else {
             int domain_size = (*vars)[var_id].get_domain_size();
             for (int var_val = 0; var_val < domain_size; ++var_val) {
                 string key = get_fact_key(var_id, var_val, 0);
-
                 int fact_id = facts_to_ids[key];
                 encoded.emplace_back(ili({-fact_id}));
             }
@@ -251,9 +249,7 @@ vector<vector<int>> SATSeq::do_part3(int l) {
 }
 
 vector<vector<int>> SATSeq::do_part4(int l) {
-    if (l == 0) {
-        return {};
-    }
+    if (l == 0) return {};
 
     vector<vector<int>> encoded;
 
@@ -274,9 +270,7 @@ vector<vector<int>> SATSeq::do_part4(int l) {
 }
 
 vector<vector<int>> SATSeq::do_part5(int l) {
-    if (l == 0) {
-        return {};
-    }
+    if (l == 0) return {};
 
     vector<vector<int>> encoded;
 
@@ -297,9 +291,7 @@ vector<vector<int>> SATSeq::do_part5(int l) {
 }
 
 vector<vector<int>> SATSeq::do_part6(int l) {
-    if (l == n_layers) {
-        return {};
-    }
+    if (l == n_layers) return {};
 
     vector<vector<int>> encoded;
 
@@ -325,9 +317,7 @@ vector<vector<int>> SATSeq::do_part6(int l) {
 }
 
 vector<vector<int>> SATSeq::do_part7(int l) {
-    if (l != n_layers) {
-        return {};
-    }
+    if (l != n_layers) return {};
 
     vector<vector<int>> encoded;
 
@@ -348,9 +338,7 @@ vector<vector<int>> SATSeq::do_part7(int l) {
 }
 
 vector<vector<int>> SATSeq::do_part8(int l) {
-    if (l != n_layers) {
-        return {};
-    }
+    if (l != n_layers) return {};
 
     vector<vector<int>> encoded;
 
@@ -683,8 +671,7 @@ void SATSeq::operator()() {
     if (sequenciable) {
         vector<pair<int, int>> used_ops;
         for (int v : get_model()) {
-            if (v >= 0 && ids_to_operators_pairs.find(v) !=
-                              ids_to_operators_pairs.end()) {
+            if (v >= 0 && ids_to_operators_pairs.count(v) > 0) {
                 auto [op_id, layer] = ids_to_operators_pairs[v];
                 used_ops.emplace_back(op_id, layer);
             }
