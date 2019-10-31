@@ -1,5 +1,29 @@
 #include "sat_seq.h"
 
+string get_op_key(int op_id, int l) {
+    stringstream key;
+    key << "op[" << op_id << "," << l << "]";
+    return key.str();
+}
+
+string get_fact_key(int var_id, int var_val, int l) {
+    stringstream key;
+    key << "fact[" << var_id << "," << var_val << "," << l << "]";
+    return key.str();
+}
+
+string get_yt_assumption_key(int n_layers) {
+    stringstream key;
+    key << "[Y_T >= " << (n_layers + 1) << "]";
+    return key.str();
+}
+
+string get_op_assumption_key(int op_id, int op_count) {
+    stringstream key;
+    key << "[op(" << op_id << ") >= " << (op_count + 1) << "]";
+    return key.str();
+}
+
 SATSeq::SATSeq(const Options& opts, shared_ptr<TaskProxy> task_proxy,
                vector<long>& op_counts)
     : Minisat22::Solver(),
@@ -61,15 +85,14 @@ SATSeq::SATSeq(const Options& opts, shared_ptr<TaskProxy> task_proxy,
 void SATSeq::initialize_ids() {
     for (int l = 1; l <= n_layers; ++l) {
         for (size_t op_id = 0; op_id < ops->size(); ++op_id) {
-            stringstream key;
-            key << "op[" << op_id << "," << l << "]";
+            string key = get_op_key(op_id, l);
             int id = id_generator;
 
-            operators_to_ids[key.str()] = id;
-            ids_to_operators[id] = key.str();
+            operators_to_ids[key] = id;
+            ids_to_operators[id] = key;
 
-            all_to_ids[key.str()] = id;
-            ids_to_all[id] = key.str();
+            all_to_ids[key] = id;
+            ids_to_all[id] = key;
             ids_to_operators_pairs[id] = {op_id, l};
 
             id_generator++;
@@ -80,15 +103,14 @@ void SATSeq::initialize_ids() {
         for (size_t var_id = 0; var_id < vars->size(); ++var_id) {
             int domain_size = (*vars)[var_id].get_domain_size();
             for (int var_val = 0; var_val < domain_size; ++var_val) {
-                stringstream key;
-                key << "fact[" << var_id << "," << var_val << "," << l << "]";
+                string key = get_fact_key(var_id, var_val, l);
                 int id = id_generator;
 
-                facts_to_ids[key.str()] = id;
-                ids_to_facts[id] = key.str();
+                facts_to_ids[key] = id;
+                ids_to_facts[id] = key;
 
-                all_to_ids[key.str()] = id;
-                ids_to_all[id] = key.str();
+                all_to_ids[key] = id;
+                ids_to_all[id] = key;
                 ids_to_facts_pairs[id] = {var_id, var_val, l};
 
                 id_generator++;
@@ -98,29 +120,27 @@ void SATSeq::initialize_ids() {
 }
 
 void SATSeq::initialize_assumptions() {
-    stringstream key;
-    key << "[Y_T >= " << (n_layers + 1) << "]";
+    string key = get_yt_assumption_key(n_layers);
     int id = id_generator;
 
-    assumptions_to_ids[key.str()] = id;
-    ids_to_assumptions[id] = key.str();
+    assumptions_to_ids[key] = id;
+    ids_to_assumptions[id] = key;
 
-    all_to_ids[key.str()] = id;
-    ids_to_all[id] = key.str();
+    all_to_ids[key] = id;
+    ids_to_all[id] = key;
     ids_to_assumptions_pairs[id] = {-1, (n_layers + 1)};
 
     id_generator++;
 
     for (size_t op_id = 0; op_id < ops->size(); ++op_id) {
-        stringstream key;
-        key << "[op(" << op_id << ") >= " << (op_counts[op_id] + 1) << "]";
+        string key = get_op_assumption_key(op_id, op_counts[op_id]);
         int id = id_generator;
 
-        assumptions_to_ids[key.str()] = id;
-        ids_to_assumptions[id] = key.str();
+        assumptions_to_ids[key] = id;
+        ids_to_assumptions[id] = key;
 
-        all_to_ids[key.str()] = id;
-        ids_to_all[id] = key.str();
+        all_to_ids[key] = id;
+        ids_to_all[id] = key;
         ids_to_assumptions_pairs[id] = {op_id, (op_counts[op_id] + 1)};
 
         id_generator++;
@@ -176,9 +196,8 @@ vector<vector<int>> SATSeq::do_part1(int l) {
 
     map<int, int> x;
     for (size_t op_id = 0; op_id < ops->size(); ++op_id) {
-        stringstream key;
-        key << "op[" << op_id << "," << l << "]";
-        x[op_id + 1] = operators_to_ids[key.str()];
+        string key = get_op_key(op_id, l);
+        x[op_id + 1] = operators_to_ids[key];
     }
 
     return encode_bcc(x, 1);
@@ -191,9 +210,8 @@ vector<vector<int>> SATSeq::do_part2(int l) {
         map<int, int> x;
         for (int var_val = 0; var_val < (*vars)[var_id].get_domain_size();
              ++var_val) {
-            stringstream key;
-            key << "fact[" << var_id << "," << var_val << "," << l << "]";
-            int fact_id = facts_to_ids[key.str()];
+            string key = get_fact_key(var_id, var_val, l);
+            int fact_id = facts_to_ids[key];
             x[var_val + 1] = fact_id;
         }
         vector<vector<int>> clauses = encode_bcc(x, 1);
@@ -214,18 +232,16 @@ vector<vector<int>> SATSeq::do_part3(int l) {
         int var_val = initial_state[var_id];
 
         if (var_val != -1) {
-            stringstream key;
-            key << "fact[" << var_id << "," << var_val << "," << 0 << "]";
+            string key = get_fact_key(var_id, var_val, 0);
 
-            int fact_id = facts_to_ids[key.str()];
+            int fact_id = facts_to_ids[key];
             encoded.emplace_back(ili({fact_id}));
         } else {
             int domain_size = (*vars)[var_id].get_domain_size();
             for (int var_val = 0; var_val < domain_size; ++var_val) {
-                stringstream key;
-                key << "fact[" << var_id << "," << var_val << "," << 0 << "]";
+                string key = get_fact_key(var_id, var_val, 0);
 
-                int fact_id = facts_to_ids[key.str()];
+                int fact_id = facts_to_ids[key];
                 encoded.emplace_back(ili({-fact_id}));
             }
         }
@@ -242,16 +258,13 @@ vector<vector<int>> SATSeq::do_part4(int l) {
     vector<vector<int>> encoded;
 
     for (size_t op_id = 0; op_id < ops->size(); ++op_id) {
-        stringstream op_key;
-        op_key << "op[" << op_id << "," << l << "]";
+        string op_key = get_op_key(op_id, l);
         for (size_t var_id = 0; var_id < vars->size(); ++var_id) {
             int var_val = pres[op_id][var_id];
             if (var_val != -1) {
-                stringstream fact_key;
-                fact_key << "fact[" << var_id << "," << var_val << ","
-                         << (l - 1) << "]";
-                int op_id = operators_to_ids[op_key.str()];
-                int fact_id = facts_to_ids[fact_key.str()];
+                string fact_key = get_fact_key(var_id, var_val, l - 1);
+                int op_id = operators_to_ids[op_key];
+                int fact_id = facts_to_ids[fact_key];
                 encoded.emplace_back(ili({-op_id, fact_id}));
             }
         }
@@ -268,16 +281,13 @@ vector<vector<int>> SATSeq::do_part5(int l) {
     vector<vector<int>> encoded;
 
     for (size_t op_id = 0; op_id < ops->size(); ++op_id) {
-        stringstream op_key;
-        op_key << "op[" << op_id << "," << l << "]";
+        string op_key = get_op_key(op_id, l);
         for (size_t var_id = 0; var_id < vars->size(); ++var_id) {
             int var_val = posts[op_id][var_id];
             if (var_val != -1) {
-                stringstream fact_key;
-                fact_key << "fact[" << var_id << "," << var_val << "," << l
-                         << "]";
-                int op_id = operators_to_ids[op_key.str()];
-                int fact_id = facts_to_ids[fact_key.str()];
+                string fact_key = get_fact_key(var_id, var_val, l);
+                int op_id = operators_to_ids[op_key];
+                int fact_id = facts_to_ids[fact_key];
                 encoded.emplace_back(ili({-op_id, fact_id}));
             }
         }
@@ -296,18 +306,15 @@ vector<vector<int>> SATSeq::do_part6(int l) {
     for (size_t var_id = 0; var_id < vars->size(); ++var_id) {
         for (int var_val = 0; var_val < (*vars)[var_id].get_domain_size();
              ++var_val) {
-            stringstream fact1_key, fact2_key;
-            fact1_key << "fact[" << var_id << "," << var_val << "," << (l + 1)
-                      << "]";
-            fact2_key << "fact[" << var_id << "," << var_val << "," << l << "]";
-            int fact1_id = facts_to_ids[fact1_key.str()];
-            int fact2_id = facts_to_ids[fact2_key.str()];
+            string fact1_key = get_fact_key(var_id, var_val, l + 1);
+            string fact2_key = get_fact_key(var_id, var_val, l);
+            int fact1_id = facts_to_ids[fact1_key];
+            int fact2_id = facts_to_ids[fact2_key];
 
             vector<int> clause({-fact1_id, fact2_id});
             for (int op_id : prods[var_id][var_val]) {
-                stringstream op_key;
-                op_key << "op[" << op_id << "," << (l + 1) << "]";
-                op_id = operators_to_ids[op_key.str()];
+                string op_key = get_op_key(op_id, l + 1);
+                op_id = operators_to_ids[op_key];
                 clause.push_back(op_id);
             }
             encoded.push_back(clause);
@@ -327,14 +334,11 @@ vector<vector<int>> SATSeq::do_part7(int l) {
     for (size_t var_id = 0; var_id < vars->size(); ++var_id) {
         int var_val = goal_state[var_id];
         if (var_val != -1) {
-            stringstream fact_key;
-            fact_key << "fact[" << var_id << "," << var_val << "," << n_layers
-                     << "]";
-            int fact_id = facts_to_ids[fact_key.str()];
+            string fact_key = get_fact_key(var_id, var_val, n_layers);
+            int fact_id = facts_to_ids[fact_key];
 
-            stringstream assumption_key;
-            assumption_key << "[Y_T >= " << (n_layers + 1) << "]";
-            int assumption_id = assumptions_to_ids[assumption_key.str()];
+            string assumption_key = get_yt_assumption_key(n_layers);
+            int assumption_id = assumptions_to_ids[assumption_key];
 
             encoded.emplace_back(ili({fact_id, assumption_id}));
         }
@@ -353,17 +357,15 @@ vector<vector<int>> SATSeq::do_part8(int l) {
     for (size_t op_id = 0; op_id < ops->size(); ++op_id) {
         map<int, int> x;
         for (int l = 1; l <= n_layers; ++l) {
-            stringstream op_key;
-            op_key << "op[" << op_id << "," << l << "]";
-            x[l] = operators_to_ids[op_key.str()];
+            string op_key = get_op_key(op_id, l);
+            x[l] = operators_to_ids[op_key];
         }
 
         int k = op_counts[op_id];
         vector<vector<int>> clause = encode_bcc(x, k);
 
-        stringstream key;
-        key << "[op(" << op_id << ") >= " << (k + 1) << "]";
-        int assumption_id = assumptions_to_ids[key.str()];
+        string key = get_op_assumption_key(op_id, k);
+        int assumption_id = assumptions_to_ids[key];
         for (vector<int>& c : clause) {
             c.push_back(assumption_id);
         }
