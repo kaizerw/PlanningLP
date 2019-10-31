@@ -1,5 +1,6 @@
 downward/builds/*
 downward/sas_plan
+downward/driver/__pycache__
 lab/revision-cache/*
 downward/.vscode/*
 *.swp
