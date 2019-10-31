@@ -29,6 +29,8 @@ namespace options {
 class Options;
 }
 
+using ili = initializer_list<int>;
+
 using namespace std;
 
 struct SATSeq : Minisat22::Solver {

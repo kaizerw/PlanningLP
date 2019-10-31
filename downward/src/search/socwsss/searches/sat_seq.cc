@@ -141,7 +141,7 @@ vector<vector<int>> SATSeq::encode_bcc(map<int, int>& x, int k) {
     if (k == 0) {
         vector<vector<int>> clauses;
         for (int i = 1; i <= n; ++i) {
-            clauses.emplace_back(initializer_list<int>({-x[i]}));
+            clauses.emplace_back(ili({-x[i]}));
         }
         return clauses;
     }
@@ -149,22 +149,20 @@ vector<vector<int>> SATSeq::encode_bcc(map<int, int>& x, int k) {
     vector<vector<int>> clauses({{-x[1], s(1, 1)}});
 
     for (int j = 2; j <= k; ++j) {
-        clauses.emplace_back(initializer_list<int>({-s(1, j)}));
+        clauses.emplace_back(ili({-s(1, j)}));
     }
 
     for (int i = 2; i < n; ++i) {
-        clauses.emplace_back(initializer_list<int>({-x[i], s(i, 1)}));
-        clauses.emplace_back(initializer_list<int>({-s(i - 1, 1), s(i, 1)}));
+        clauses.emplace_back(ili({-x[i], s(i, 1)}));
+        clauses.emplace_back(ili({-s(i - 1, 1), s(i, 1)}));
         for (int j = 2; j <= k; ++j) {
-            clauses.emplace_back(
-                initializer_list<int>({-x[i], -s(i - 1, j - 1), s(i, j)}));
-            clauses.emplace_back(
-                initializer_list<int>({-s(i - 1, j), s(i, j)}));
+            clauses.emplace_back(ili({-x[i], -s(i - 1, j - 1), s(i, j)}));
+            clauses.emplace_back(ili({-s(i - 1, j), s(i, j)}));
         }
-        clauses.emplace_back(initializer_list<int>({-x[i], -s(i - 1, k)}));
+        clauses.emplace_back(ili({-x[i], -s(i - 1, k)}));
     }
 
-    clauses.emplace_back(initializer_list<int>({-x[n], -s(n - 1, k)}));
+    clauses.emplace_back(ili({-x[n], -s(n - 1, k)}));
 
     aux_vars.clear();
 
@@ -220,7 +218,7 @@ vector<vector<int>> SATSeq::do_part3(int l) {
             key << "fact[" << var_id << "," << var_val << "," << 0 << "]";
 
             int fact_id = facts_to_ids[key.str()];
-            encoded.emplace_back(initializer_list<int>({fact_id}));
+            encoded.emplace_back(ili({fact_id}));
         } else {
             int domain_size = (*vars)[var_id].get_domain_size();
             for (int var_val = 0; var_val < domain_size; ++var_val) {
@@ -228,7 +226,7 @@ vector<vector<int>> SATSeq::do_part3(int l) {
                 key << "fact[" << var_id << "," << var_val << "," << 0 << "]";
 
                 int fact_id = facts_to_ids[key.str()];
-                encoded.emplace_back(initializer_list<int>({-fact_id}));
+                encoded.emplace_back(ili({-fact_id}));
             }
         }
     }
@@ -254,7 +252,7 @@ vector<vector<int>> SATSeq::do_part4(int l) {
                          << (l - 1) << "]";
                 int op_id = operators_to_ids[op_key.str()];
                 int fact_id = facts_to_ids[fact_key.str()];
-                encoded.emplace_back(initializer_list<int>({-op_id, fact_id}));
+                encoded.emplace_back(ili({-op_id, fact_id}));
             }
         }
     }
@@ -280,7 +278,7 @@ vector<vector<int>> SATSeq::do_part5(int l) {
                          << "]";
                 int op_id = operators_to_ids[op_key.str()];
                 int fact_id = facts_to_ids[fact_key.str()];
-                encoded.emplace_back(initializer_list<int>({-op_id, fact_id}));
+                encoded.emplace_back(ili({-op_id, fact_id}));
             }
         }
     }
@@ -338,8 +336,7 @@ vector<vector<int>> SATSeq::do_part7(int l) {
             assumption_key << "[Y_T >= " << (n_layers + 1) << "]";
             int assumption_id = assumptions_to_ids[assumption_key.str()];
 
-            encoded.emplace_back(
-                initializer_list<int>({fact_id, assumption_id}));
+            encoded.emplace_back(ili({fact_id, assumption_id}));
         }
     }
 
@@ -406,7 +403,7 @@ vector<vector<int>> SATSeq::convert() {
 vector<vector<int>> SATSeq::get_assumptions() {
     vector<vector<int>> assumptions;
     for (pair<int, string> a : ids_to_assumptions) {
-        assumptions.emplace_back(initializer_list<int>({-a.first}));
+        assumptions.emplace_back(ili({-a.first}));
     }
     return assumptions;
 }
