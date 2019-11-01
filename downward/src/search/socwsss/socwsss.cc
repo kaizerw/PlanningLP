@@ -267,12 +267,6 @@ void SOCWSSS::create_cplex_model() {
         double lb = variable.lower_bound;
         double ub = variable.upper_bound;
 
-        if (vi < ops.size()) {
-            double new_ub = (*bounds_literals)[vi].size() - 1;
-            ub = new_ub;
-            (*lp_variables)[vi].upper_bound = new_ub;
-        }
-
         string name =
             (v_names.count(vi) > 0 ? v_names[vi] : "var_" + to_string(vi));
 
