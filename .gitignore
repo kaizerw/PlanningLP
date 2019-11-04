@@ -3,3 +3,4 @@ downward/sas_plan
 lab/revision-cache/*
 downward/.vscode/*
 *.swp
+*.pyc
