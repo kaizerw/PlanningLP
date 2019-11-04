@@ -378,7 +378,17 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
     vector<shared_ptr<Evaluator>> preferred_list;
     opts_astar.set("preferred", preferred_list);
 
-    opts_astar.set("initial_op_count", rounded_x);
+    OperatorCount initial_op_count = rounded_x;
+
+    if (opts.get<bool>("ignore_zero_cost_ops")) {
+        for (OperatorProxy op : ops) {
+            if (op.get_cost() == 0) {
+                initial_op_count[op.get_id()] = 0;
+            }
+        }
+    }
+
+    opts_astar.set("initial_op_count", initial_op_count);
     opts_astar.set("f_bound", (double)rounded_z);
 
     seq++;

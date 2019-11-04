@@ -544,6 +544,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("add_yf_bound", "", "true");
     parser.add_option<bool>("add_yt_bound", "", "true");
     parser.add_option<string>("callbacks", "", "lazy_usercut_heuristic");
+    parser.add_option<bool>("ignore_zero_cost_ops", "", "false");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);
