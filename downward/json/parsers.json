@@ -229,6 +229,36 @@
         "type": "float",
         "summary": "mean"
     },
+    "sat_n_vars": {
+        "regex": "SAT n vars: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "sat_n_clauses": {
+        "regex": "SAT n clauses: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "any_zero_cost_ops": {
+        "regex": "Any zero cost ops: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "all_unit_cost_ops": {
+        "regex": "All unit cost ops: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "sum"
+    },
+    "min_op_cost": {
+        "regex": "Min op cost: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
+    "max_op_cost": {
+        "regex": "Max op cost: (\\d+\\.?\\d*)",
+        "type": "int",
+        "summary": "mean"
+    },
     "exit_code": {
         "regex": "search exit code: (-?\\d+\\.?\\d*)",
         "type": "int",

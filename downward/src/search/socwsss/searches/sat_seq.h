@@ -88,6 +88,7 @@ struct SATSeq : Minisat22::Solver {
     vector<vector<int>> do_part8(int l);
     vector<vector<int>> convert();
     vector<vector<int>> get_assumptions();
+    pair<int, int> get_n_vars_n_clauses();
     void make_minisat_input(vector<vector<int>> encoded, string filename);
     void save_file(vector<vector<int>> encoded, string filename);
     string tos(vector<vector<int>> encoded);

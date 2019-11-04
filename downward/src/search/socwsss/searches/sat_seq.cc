@@ -80,6 +80,9 @@ SATSeq::SATSeq(const Options& opts, shared_ptr<TaskProxy> task_proxy,
 
     initialize_ids();
     initialize_assumptions();
+
+    base = convert();
+    assumptions = get_assumptions();
 }
 
 void SATSeq::initialize_ids() {
@@ -398,17 +401,22 @@ vector<vector<int>> SATSeq::get_assumptions() {
     return assumptions;
 }
 
+pair<int, int> SATSeq::get_n_vars_n_clauses() {
+    auto fn = [](vector<int> i) {
+        auto fn = [](int i, int j) { return abs(i) < abs(j); };
+        return *max_element(i.begin(), i.end(), fn);
+    };
+    vector<int> m;
+    transform(base.begin(), base.end(), back_inserter(m), fn);
+    int n_vars = *max_element(m.begin(), m.end());
+    int n_clauses = base.size();
+    return {n_vars, n_clauses};
+}
+
 void SATSeq::make_minisat_input(vector<vector<int>> encoded, string filename) {
     ofstream file(filename);
     if (file.is_open()) {
-        vector<int> m;
-        auto fn = [](vector<int> i) {
-            auto fn = [](int i, int j) { return abs(i) < abs(j); };
-            return *max_element(i.begin(), i.end(), fn);
-        };
-        transform(encoded.begin(), encoded.end(), back_inserter(m), fn);
-        int n_vars = *max_element(m.begin(), m.end());
-        int n_clauses = encoded.size();
+        auto [n_vars, n_clauses] = get_n_vars_n_clauses();
         file << "p cnf " << n_vars << " " << n_clauses << endl;
         for (vector<int>& clause : encoded) {
             for (int c : clause) {
@@ -662,9 +670,6 @@ void SATSeq::print_solver_info() {
 }
 
 void SATSeq::operator()() {
-    base = convert();
-    assumptions = get_assumptions();
-
     sequenciable = sat();
     // print_solver_info();
 
