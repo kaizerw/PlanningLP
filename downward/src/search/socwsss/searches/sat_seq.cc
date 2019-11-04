@@ -25,12 +25,12 @@ string get_op_assumption_key(int op_id, int op_count) {
 }
 
 SATSeq::SATSeq(const Options& opts, shared_ptr<TaskProxy> task_proxy,
-               vector<long>& op_counts)
+               vector<long>& op_counts, int n_layers)
     : Minisat22::Solver(),
       opts(opts),
       task_proxy(task_proxy),
       op_counts(op_counts),
-      n_layers(accumulate(op_counts.begin(), op_counts.end(), 0L)) {
+      n_layers(n_layers) {
     ops = make_shared<OperatorsProxy>(task_proxy->get_operators());
     vars = make_shared<VariablesProxy>(task_proxy->get_variables());
 
@@ -333,7 +333,10 @@ vector<vector<int>> SATSeq::do_part7(int l) {
             string assumption_key = get_yt_assumption_key(n_layers);
             int assumption_id = assumptions_to_ids[assumption_key];
 
-            encoded.emplace_back(ili({fact_id, assumption_id}));
+            if (opts.get<bool>("sat_loop"))
+                encoded.emplace_back(ili({fact_id}));
+            else
+                encoded.emplace_back(ili({fact_id, assumption_id}));
         }
     }
 
@@ -341,7 +344,7 @@ vector<vector<int>> SATSeq::do_part7(int l) {
 }
 
 vector<vector<int>> SATSeq::do_part8(int l) {
-    if (l != n_layers) return {};
+    if (l != n_layers || opts.get<bool>("sat_loop")) return {};
 
     vector<vector<int>> encoded;
 

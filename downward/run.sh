@@ -76,7 +76,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 3
 #opts="socwsss(minimal_seq=true, constraint_generators=seq_landmarks, cstar=15)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts" > "$d2"/out1 2> "$d2"/out2
 
-opts="socwsss(two_seq=true, print_log=true, constraint_generators=landmarks_h+_flow, cstar=8)"
+#opts="socwsss(two_seq=true, print_log=true, constraint_generators=landmarks_h+_flow, cstar=8)"
+opts="socwsss(sat_loop=true, cstar=8)"
 $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem03-full.sas --search "$opts"
 ###############################################################################################################################################################################################################
 # CPLEX error during SAT sequencing

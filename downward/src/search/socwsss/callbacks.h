@@ -241,6 +241,7 @@ struct Shared {
     long plan2cost(Plan &plan);
     double get_op_cost(OperatorProxy op);
     void step_mip_loop();
+    void step_sat_loop();
 };
 
 struct LazyCallbackI : public IloCplex::LazyConstraintCallbackI {

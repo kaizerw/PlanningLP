@@ -73,7 +73,7 @@ struct SATSeq : Minisat22::Solver {
     shared_ptr<GLC> learned_glc;
 
     SATSeq(const Options& opts, shared_ptr<TaskProxy> task_proxy,
-           vector<long>& op_counts);
+           vector<long>& op_counts, int n_layers);
     void initialize_ids();
     void initialize_assumptions();
     int s(int i, int j);

@@ -241,7 +241,8 @@ shared_ptr<SequenceInfo> Shared::get_sat_sequence() {
     printer->show_data(seq, cplex->getBestObjValue(), repeated_seqs, restarts,
                        cache_op_counts.get_best_plan().second->plan_cost);
     auto start = chrono::system_clock::now();
-    auto sat_solver = SATSeq(opts, task_proxy, rounded_x);
+    int n_layers = accumulate(rounded_x.begin(), rounded_x.end(), 0L);
+    auto sat_solver = SATSeq(opts, task_proxy, rounded_x, n_layers);
     auto [n_vars, n_clauses] = sat_solver.get_n_vars_n_clauses();
     cout << "SAT n vars: " << n_vars << endl;
     cout << "SAT n clauses: " << n_clauses << endl;
@@ -771,6 +772,40 @@ void Shared::step_mip_loop() {
         restart = true;
     }
     log();
+}
+
+void Shared::step_sat_loop() {
+    int n_layers = opts.get<int>("cstar");
+    rounded_x = OperatorCount(ops.size(), 0L);
+
+    while (true) {
+        seq++;
+        printer->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
+                           restarts,
+                           cache_op_counts.get_best_plan().second->plan_cost);
+        auto start = chrono::system_clock::now();
+        auto sat_solver = SATSeq(opts, task_proxy, rounded_x, n_layers);
+        auto [n_vars, n_clauses] = sat_solver.get_n_vars_n_clauses();
+        cout << "SAT n vars: " << n_vars << endl;
+        cout << "SAT n clauses: " << n_clauses << endl;
+        sat_solver();
+        double elapsed_microseconds =
+            chrono::duration_cast<chrono::microseconds>(
+                chrono::system_clock::now() - start)
+                .count();
+        printer->plot_astar_time.emplace_back(elapsed_microseconds);
+
+        auto ret = make_shared<SequenceInfo>();
+        if (sat_solver.sequenciable) {
+            ret->sequenciable = true;
+            ret->plan = sat_solver.plan;
+            ret->plan_cost = plan2cost(ret->plan);
+            cache_op_counts.add(plan2opcount(ret->plan), ret);
+            return;
+        } else {
+            n_layers++;
+        }
+    }
 }
 
 void LazyCallbackI::main() {
