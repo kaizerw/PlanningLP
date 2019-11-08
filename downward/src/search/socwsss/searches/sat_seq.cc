@@ -25,12 +25,12 @@ string get_op_assumption_key(int op_id, int op_count) {
 }
 
 SATSeq::SATSeq(const Options& opts, shared_ptr<TaskProxy> task_proxy,
-               vector<long>& op_counts)
+               vector<long>& op_counts, int n_layers)
     : Minisat22::Solver(),
       opts(opts),
       task_proxy(task_proxy),
       op_counts(op_counts),
-      n_layers(accumulate(op_counts.begin(), op_counts.end(), 0L)) {
+      n_layers(n_layers) {
     ops = make_shared<OperatorsProxy>(task_proxy->get_operators());
     vars = make_shared<VariablesProxy>(task_proxy->get_variables());
 
@@ -80,6 +80,9 @@ SATSeq::SATSeq(const Options& opts, shared_ptr<TaskProxy> task_proxy,
 
     initialize_ids();
     initialize_assumptions();
+
+    base = convert();
+    assumptions = get_assumptions();
 }
 
 void SATSeq::initialize_ids() {
@@ -330,7 +333,10 @@ vector<vector<int>> SATSeq::do_part7(int l) {
             string assumption_key = get_yt_assumption_key(n_layers);
             int assumption_id = assumptions_to_ids[assumption_key];
 
-            encoded.emplace_back(ili({fact_id, assumption_id}));
+            if (opts.get<bool>("sat_loop"))
+                encoded.emplace_back(ili({fact_id}));
+            else
+                encoded.emplace_back(ili({fact_id, assumption_id}));
         }
     }
 
@@ -338,7 +344,7 @@ vector<vector<int>> SATSeq::do_part7(int l) {
 }
 
 vector<vector<int>> SATSeq::do_part8(int l) {
-    if (l != n_layers) return {};
+    if (l != n_layers || opts.get<bool>("sat_loop")) return {};
 
     vector<vector<int>> encoded;
 
@@ -398,17 +404,22 @@ vector<vector<int>> SATSeq::get_assumptions() {
     return assumptions;
 }
 
+pair<int, int> SATSeq::get_n_vars_n_clauses() {
+    auto fn = [](vector<int> i) {
+        auto fn = [](int i, int j) { return abs(i) < abs(j); };
+        return *max_element(i.begin(), i.end(), fn);
+    };
+    vector<int> m;
+    transform(base.begin(), base.end(), back_inserter(m), fn);
+    int n_vars = *max_element(m.begin(), m.end());
+    int n_clauses = base.size();
+    return {n_vars, n_clauses};
+}
+
 void SATSeq::make_minisat_input(vector<vector<int>> encoded, string filename) {
     ofstream file(filename);
     if (file.is_open()) {
-        vector<int> m;
-        auto fn = [](vector<int> i) {
-            auto fn = [](int i, int j) { return abs(i) < abs(j); };
-            return *max_element(i.begin(), i.end(), fn);
-        };
-        transform(encoded.begin(), encoded.end(), back_inserter(m), fn);
-        int n_vars = *max_element(m.begin(), m.end());
-        int n_clauses = encoded.size();
+        auto [n_vars, n_clauses] = get_n_vars_n_clauses();
         file << "p cnf " << n_vars << " " << n_clauses << endl;
         for (vector<int>& clause : encoded) {
             for (int c : clause) {
@@ -662,9 +673,6 @@ void SATSeq::print_solver_info() {
 }
 
 void SATSeq::operator()() {
-    base = convert();
-    assumptions = get_assumptions();
-
     sequenciable = sat();
     // print_solver_info();
 

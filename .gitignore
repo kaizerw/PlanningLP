@@ -4,3 +4,4 @@ downward/driver/__pycache__
 lab/revision-cache/*
 downward/.vscode/*
 *.swp
+*.pyc

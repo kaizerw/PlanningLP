@@ -16,7 +16,7 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       yt_index(ops.size()),
       yf_index(ops.size() + 1),
       glcs(make_shared<vector<shared_ptr<GLC>>>()),
-      printer(make_shared<Printer>(ops.size(), vars.size(), glcs, start)) {
+      printer(make_shared<Printer>(ops, vars, glcs, start)) {
     if (opts.get<string>("heuristic").find("hstar_pdb") != string::npos) {
         vector<int> pattern;
         for (size_t var_id = 0; var_id < vars.size(); ++var_id) {
@@ -102,8 +102,7 @@ void Shared::sequence() {
         info = cache_op_counts[rounded_x];
         if (!info->sequenciable) {
             for (size_t i = 0; i < info->learned_glcs.size(); ++i) {
-                info->repeated_glcs[i] =
-                    cache_glcs.add(info->learned_glcs[i]);
+                info->repeated_glcs[i] = cache_glcs.add(info->learned_glcs[i]);
             }
         }
     }
@@ -242,7 +241,11 @@ shared_ptr<SequenceInfo> Shared::get_sat_sequence() {
     printer->show_data(seq, cplex->getBestObjValue(), repeated_seqs, restarts,
                        cache_op_counts.get_best_plan().second->plan_cost);
     auto start = chrono::system_clock::now();
-    auto sat_solver = SATSeq(opts, task_proxy, rounded_x);
+    int n_layers = accumulate(rounded_x.begin(), rounded_x.end(), 0L);
+    auto sat_solver = SATSeq(opts, task_proxy, rounded_x, n_layers);
+    auto [n_vars, n_clauses] = sat_solver.get_n_vars_n_clauses();
+    cout << "SAT n vars: " << n_vars << endl;
+    cout << "SAT n clauses: " << n_clauses << endl;
     sat_solver();
     double elapsed_microseconds = chrono::duration_cast<chrono::microseconds>(
                                       chrono::system_clock::now() - start)
@@ -375,7 +378,17 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
     vector<shared_ptr<Evaluator>> preferred_list;
     opts_astar.set("preferred", preferred_list);
 
-    opts_astar.set("initial_op_count", rounded_x);
+    OperatorCount initial_op_count = rounded_x;
+
+    if (opts.get<bool>("ignore_zero_cost_ops")) {
+        for (OperatorProxy op : ops) {
+            if (op.get_cost() == 0) {
+                initial_op_count[op.get_id()] = 0;
+            }
+        }
+    }
+
+    opts_astar.set("initial_op_count", initial_op_count);
     opts_astar.set("f_bound", (double)rounded_z);
 
     seq++;
@@ -490,7 +503,7 @@ IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc) {
 
 void Shared::log(IloCplex::ControlCallbackI* callback, CallbackType type) {
     if (!opts.get<bool>("print_log")) return;
-    
+
     cerr << string(80, '*') << endl;
     cerr << boolalpha;
     switch (type) {
@@ -533,20 +546,21 @@ void Shared::log(IloCplex::ControlCallbackI* callback, CallbackType type) {
                      << ops[op_id.get_index()].get_name() << endl;
             }
         } else {
-            for (size_t i = 0; i < info->learned_glcs.size(); ++i) {         
-                cerr << "LEARNED GLC WITH " << info->learned_glcs[i]->get_num_bounds()
-                    << " BOUNDS:" << endl;
+            for (size_t i = 0; i < info->learned_glcs.size(); ++i) {
+                cerr << "LEARNED GLC WITH "
+                     << info->learned_glcs[i]->get_num_bounds()
+                     << " BOUNDS:" << endl;
                 if (info->learned_glcs[i]->yt_bound != -1) {
-                    cerr << "\t[YT >= " << info->learned_glcs[i]->yt_bound << "]"
-                        << endl;
+                    cerr << "\t[YT >= " << info->learned_glcs[i]->yt_bound
+                         << "]" << endl;
                 }
                 if (info->learned_glcs[i]->yf_bound != -1) {
-                    cerr << "\t[YF >= " << info->learned_glcs[i]->yf_bound << "]"
-                        << endl;
+                    cerr << "\t[YF >= " << info->learned_glcs[i]->yf_bound
+                         << "]" << endl;
                 }
                 for (auto i : info->learned_glcs[i]->ops_bounds) {
-                    cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
-                        << "]" << endl;
+                    cerr << "\t[" << ops[i.first].get_name()
+                         << " >= " << i.second << "]" << endl;
                 }
                 cerr << endl;
             }
@@ -557,8 +571,8 @@ void Shared::log(IloCplex::ControlCallbackI* callback, CallbackType type) {
             }
             for (size_t i = 0; i < info->learned_glcs.size(); ++i) {
                 cerr << "REPEATED GLC? " << info->repeated_glcs[i] << endl;
-                cerr << "ADDED CUT: " << (get_cut(info->learned_glcs[i], callback) >= 1)
-                     << endl;
+                cerr << "ADDED CUT: "
+                     << (get_cut(info->learned_glcs[i], callback) >= 1) << endl;
             }
         }
     }
@@ -596,19 +610,20 @@ void Shared::log() {
             }
         } else {
             for (size_t i = 0; i < info->learned_glcs.size(); ++i) {
-                cerr << "LEARNED GLC WITH " << info->learned_glcs[i]->get_num_bounds()
-                    << " BOUNDS:" << endl;
+                cerr << "LEARNED GLC WITH "
+                     << info->learned_glcs[i]->get_num_bounds()
+                     << " BOUNDS:" << endl;
                 if (info->learned_glcs[i]->yt_bound != -1) {
-                    cerr << "\t[YT >= " << info->learned_glcs[i]->yt_bound << "]"
-                        << endl;
+                    cerr << "\t[YT >= " << info->learned_glcs[i]->yt_bound
+                         << "]" << endl;
                 }
                 if (info->learned_glcs[i]->yf_bound != -1) {
-                    cerr << "\t[YF >= " << info->learned_glcs[i]->yf_bound << "]"
-                        << endl;
+                    cerr << "\t[YF >= " << info->learned_glcs[i]->yf_bound
+                         << "]" << endl;
                 }
                 for (auto i : info->learned_glcs[i]->ops_bounds) {
-                    cerr << "\t[" << ops[i.first].get_name() << " >= " << i.second
-                        << "]" << endl;
+                    cerr << "\t[" << ops[i.first].get_name()
+                         << " >= " << i.second << "]" << endl;
                 }
                 cerr << endl;
             }
@@ -619,7 +634,8 @@ void Shared::log() {
             }
             for (size_t i = 0; i < info->learned_glcs.size(); ++i) {
                 cerr << "REPEATED GLC? " << info->repeated_glcs[i] << endl;
-                cerr << "ADDED CUT: " << (get_cut(info->learned_glcs[i]) >= 1) << endl;
+                cerr << "ADDED CUT: " << (get_cut(info->learned_glcs[i]) >= 1)
+                     << endl;
             }
         }
     }
@@ -760,12 +776,46 @@ void Shared::step_mip_loop() {
 
     sequence();
     if (!info->sequenciable) {
-        for (auto &glc : info->learned_glcs) {
+        for (auto& glc : info->learned_glcs) {
             cache_glcs.set(glc, GLCState::ADDED_AS_LAZY_AND_USERCUT);
         }
         restart = true;
     }
     log();
+}
+
+void Shared::step_sat_loop() {
+    int n_layers = opts.get<int>("cstar");
+    rounded_x = OperatorCount(ops.size(), 0L);
+
+    while (true) {
+        seq++;
+        printer->show_data(seq, cplex->getBestObjValue(), repeated_seqs,
+                           restarts,
+                           cache_op_counts.get_best_plan().second->plan_cost);
+        auto start = chrono::system_clock::now();
+        auto sat_solver = SATSeq(opts, task_proxy, rounded_x, n_layers);
+        auto [n_vars, n_clauses] = sat_solver.get_n_vars_n_clauses();
+        cout << "SAT n vars: " << n_vars << endl;
+        cout << "SAT n clauses: " << n_clauses << endl;
+        sat_solver();
+        double elapsed_microseconds =
+            chrono::duration_cast<chrono::microseconds>(
+                chrono::system_clock::now() - start)
+                .count();
+        printer->plot_astar_time.emplace_back(elapsed_microseconds);
+
+        auto ret = make_shared<SequenceInfo>();
+        if (sat_solver.sequenciable) {
+            ret->sequenciable = true;
+            ret->plan = sat_solver.plan;
+            ret->plan_cost = plan2cost(ret->plan);
+            cache_op_counts.add(plan2opcount(ret->plan), ret);
+            return;
+        } else {
+            n_layers++;
+        }
+    }
 }
 
 void LazyCallbackI::main() {
@@ -777,7 +827,7 @@ void LazyCallbackI::main() {
 
     shr->sequence();
     if (!shr->info->sequenciable) {
-        for (auto &glc : shr->info->learned_glcs) {
+        for (auto& glc : shr->info->learned_glcs) {
             auto cut = shr->get_cut(glc, this);
             if (shr->restart) return;
             add(cut >= 1.0).end();
@@ -800,7 +850,7 @@ void UserCutCallbackI::main() {
 
     shr->sequence();
     if (!shr->info->sequenciable) {
-        for (auto &glc : shr->info->learned_glcs) {
+        for (auto& glc : shr->info->learned_glcs) {
             auto cut = shr->get_cut(glc, this);
             if (shr->restart) return;
             add(cut >= 1.0).end();

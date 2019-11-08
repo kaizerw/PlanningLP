@@ -241,7 +241,8 @@ SearchStatus AStarSeq::step() {
         ////////////////////////////////////////////////////////////////////////
         // If OC(op) == 0 then a new constraint can be learned
         // In this case succ_node won't be added to open list later
-        if (s_op_count[op.get_id()] == 0) {
+        if (s_op_count[op.get_id()] == 0 &&
+            !(opts.get<bool>("ignore_zero_cost_ops") && op.get_cost() == 0)) {
             // 1. Add all operators
             if (opts.get<int>("constraint_type") == 1) {
                 // 2. Add operators o that could generate states s' from states

@@ -9,14 +9,15 @@
 #include <memory>
 #include <numeric>
 
+#include "../task_proxy.h"
 #include "glc.h"
 
 using namespace std;
 
 class Printer {
    public:
-    int n_ops;
-    int n_vars;
+    OperatorsProxy ops;
+    VariablesProxy vars;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;
     chrono::time_point<chrono::system_clock> start;
 
@@ -41,7 +42,8 @@ class Printer {
     int total_learned_glcs = 0;
     int total_astar_is_better = 0;
 
-    Printer(int n_ops, int n_vars, shared_ptr<vector<shared_ptr<GLC>>> glcs,
+    Printer(OperatorsProxy ops, VariablesProxy vars,
+            shared_ptr<vector<shared_ptr<GLC>>> glcs,
             chrono::time_point<chrono::system_clock> start);
     int compute_times_made_progress();
     void update(int lp_h_oc, vector<long> rounded_solution, int c_size,

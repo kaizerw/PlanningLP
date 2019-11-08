@@ -444,6 +444,8 @@ SearchStatus SOCWSSS::step() {
 
             if (opts.get<bool>("mip_loop")) {
                 shr->step_mip_loop();
+            } else if (opts.get<bool>("sat_loop")) {
+                shr->step_sat_loop();
             } else {
                 if (opts.get<string>("callbacks").find("lazy") !=
                     string::npos) {
@@ -501,7 +503,8 @@ SearchStatus SOCWSSS::step() {
     }
 
     // Get final plan
-    if (cplex->getStatus() == IloAlgorithm::Status::Optimal) {
+    if (cplex->getStatus() == IloAlgorithm::Status::Optimal ||
+        opts.get<bool>("sat_loop")) {
         status = SOLVED;
 
         Plan plan = shr->cache_op_counts.get_best_plan().second->plan;
@@ -535,11 +538,13 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("print_log", "", "false");
     parser.add_option<bool>("recost", "", "false");
     parser.add_option<bool>("mip_loop", "", "false");
+    parser.add_option<bool>("sat_loop", "", "false");
     parser.add_option<bool>("add_cstar_constraint", "", "false");
     parser.add_option<int>("cstar", "", "0");
     parser.add_option<bool>("add_yf_bound", "", "true");
     parser.add_option<bool>("add_yt_bound", "", "true");
     parser.add_option<string>("callbacks", "", "lazy_usercut_heuristic");
+    parser.add_option<bool>("ignore_zero_cost_ops", "", "false");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);
