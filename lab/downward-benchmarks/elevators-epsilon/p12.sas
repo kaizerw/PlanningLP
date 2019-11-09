@@ -4699,559 +4699,559 @@ move-down-fast fast0 n2 n0
 0
 1
 0 3 1 0
-700000
+7000000
 end_operator
 begin_operator
 move-down-fast fast0 n4 n0
 0
 1
 0 3 2 0
-1300000
+13000000
 end_operator
 begin_operator
 move-down-fast fast0 n4 n2
 0
 1
 0 3 2 1
-700000
+7000000
 end_operator
 begin_operator
 move-down-fast fast0 n6 n0
 0
 1
 0 3 3 0
-1900000
+19000000
 end_operator
 begin_operator
 move-down-fast fast0 n6 n2
 0
 1
 0 3 3 1
-1300000
+13000000
 end_operator
 begin_operator
 move-down-fast fast0 n6 n4
 0
 1
 0 3 3 2
-700000
+7000000
 end_operator
 begin_operator
 move-down-fast fast0 n8 n0
 0
 1
 0 3 4 0
-2500000
+25000000
 end_operator
 begin_operator
 move-down-fast fast0 n8 n2
 0
 1
 0 3 4 1
-1900000
+19000000
 end_operator
 begin_operator
 move-down-fast fast0 n8 n4
 0
 1
 0 3 4 2
-1300000
+13000000
 end_operator
 begin_operator
 move-down-fast fast0 n8 n6
 0
 1
 0 3 4 3
-700000
+7000000
 end_operator
 begin_operator
 move-down-fast fast1 n2 n0
 0
 1
 0 2 1 0
-700000
+7000000
 end_operator
 begin_operator
 move-down-fast fast1 n4 n0
 0
 1
 0 2 2 0
-1300000
+13000000
 end_operator
 begin_operator
 move-down-fast fast1 n4 n2
 0
 1
 0 2 2 1
-700000
+7000000
 end_operator
 begin_operator
 move-down-fast fast1 n6 n0
 0
 1
 0 2 3 0
-1900000
+19000000
 end_operator
 begin_operator
 move-down-fast fast1 n6 n2
 0
 1
 0 2 3 1
-1300000
+13000000
 end_operator
 begin_operator
 move-down-fast fast1 n6 n4
 0
 1
 0 2 3 2
-700000
+7000000
 end_operator
 begin_operator
 move-down-fast fast1 n8 n0
 0
 1
 0 2 4 0
-2500000
+25000000
 end_operator
 begin_operator
 move-down-fast fast1 n8 n2
 0
 1
 0 2 4 1
-1900000
+19000000
 end_operator
 begin_operator
 move-down-fast fast1 n8 n4
 0
 1
 0 2 4 2
-1300000
+13000000
 end_operator
 begin_operator
 move-down-fast fast1 n8 n6
 0
 1
 0 2 4 3
-700000
+7000000
 end_operator
 begin_operator
 move-down-slow slow0-0 n1 n0
 0
 1
 0 1 1 0
-600000
+6000000
 end_operator
 begin_operator
 move-down-slow slow0-0 n2 n0
 0
 1
 0 1 2 0
-700000
+7000000
 end_operator
 begin_operator
 move-down-slow slow0-0 n2 n1
 0
 1
 0 1 2 1
-600000
+6000000
 end_operator
 begin_operator
 move-down-slow slow0-0 n3 n0
 0
 1
 0 1 3 0
-800000
+8000000
 end_operator
 begin_operator
 move-down-slow slow0-0 n3 n1
 0
 1
 0 1 3 1
-700000
+7000000
 end_operator
 begin_operator
 move-down-slow slow0-0 n3 n2
 0
 1
 0 1 3 2
-600000
+6000000
 end_operator
 begin_operator
 move-down-slow slow0-0 n4 n0
 0
 1
 0 1 4 0
-900000
+9000000
 end_operator
 begin_operator
 move-down-slow slow0-0 n4 n1
 0
 1
 0 1 4 1
-800000
+8000000
 end_operator
 begin_operator
 move-down-slow slow0-0 n4 n2
 0
 1
 0 1 4 2
-700000
+7000000
 end_operator
 begin_operator
 move-down-slow slow0-0 n4 n3
 0
 1
 0 1 4 3
-600000
+6000000
 end_operator
 begin_operator
 move-down-slow slow1-0 n5 n4
 0
 1
 0 0 1 0
-600000
+6000000
 end_operator
 begin_operator
 move-down-slow slow1-0 n6 n4
 0
 1
 0 0 2 0
-700000
+7000000
 end_operator
 begin_operator
 move-down-slow slow1-0 n6 n5
 0
 1
 0 0 2 1
-600000
+6000000
 end_operator
 begin_operator
 move-down-slow slow1-0 n7 n4
 0
 1
 0 0 3 0
-800000
+8000000
 end_operator
 begin_operator
 move-down-slow slow1-0 n7 n5
 0
 1
 0 0 3 1
-700000
+7000000
 end_operator
 begin_operator
 move-down-slow slow1-0 n7 n6
 0
 1
 0 0 3 2
-600000
+6000000
 end_operator
 begin_operator
 move-down-slow slow1-0 n8 n4
 0
 1
 0 0 4 0
-900000
+9000000
 end_operator
 begin_operator
 move-down-slow slow1-0 n8 n5
 0
 1
 0 0 4 1
-800000
+8000000
 end_operator
 begin_operator
 move-down-slow slow1-0 n8 n6
 0
 1
 0 0 4 2
-700000
+7000000
 end_operator
 begin_operator
 move-down-slow slow1-0 n8 n7
 0
 1
 0 0 4 3
-600000
+6000000
 end_operator
 begin_operator
 move-up-fast fast0 n0 n2
 0
 1
 0 3 0 1
-700000
+7000000
 end_operator
 begin_operator
 move-up-fast fast0 n0 n4
 0
 1
 0 3 0 2
-1300000
+13000000
 end_operator
 begin_operator
 move-up-fast fast0 n0 n6
 0
 1
 0 3 0 3
-1900000
+19000000
 end_operator
 begin_operator
 move-up-fast fast0 n0 n8
 0
 1
 0 3 0 4
-2500000
+25000000
 end_operator
 begin_operator
 move-up-fast fast0 n2 n4
 0
 1
 0 3 1 2
-700000
+7000000
 end_operator
 begin_operator
 move-up-fast fast0 n2 n6
 0
 1
 0 3 1 3
-1300000
+13000000
 end_operator
 begin_operator
 move-up-fast fast0 n2 n8
 0
 1
 0 3 1 4
-1900000
+19000000
 end_operator
 begin_operator
 move-up-fast fast0 n4 n6
 0
 1
 0 3 2 3
-700000
+7000000
 end_operator
 begin_operator
 move-up-fast fast0 n4 n8
 0
 1
 0 3 2 4
-1300000
+13000000
 end_operator
 begin_operator
 move-up-fast fast0 n6 n8
 0
 1
 0 3 3 4
-700000
+7000000
 end_operator
 begin_operator
 move-up-fast fast1 n0 n2
 0
 1
 0 2 0 1
-700000
+7000000
 end_operator
 begin_operator
 move-up-fast fast1 n0 n4
 0
 1
 0 2 0 2
-1300000
+13000000
 end_operator
 begin_operator
 move-up-fast fast1 n0 n6
 0
 1
 0 2 0 3
-1900000
+19000000
 end_operator
 begin_operator
 move-up-fast fast1 n0 n8
 0
 1
 0 2 0 4
-2500000
+25000000
 end_operator
 begin_operator
 move-up-fast fast1 n2 n4
 0
 1
 0 2 1 2
-700000
+7000000
 end_operator
 begin_operator
 move-up-fast fast1 n2 n6
 0
 1
 0 2 1 3
-1300000
+13000000
 end_operator
 begin_operator
 move-up-fast fast1 n2 n8
 0
 1
 0 2 1 4
-1900000
+19000000
 end_operator
 begin_operator
 move-up-fast fast1 n4 n6
 0
 1
 0 2 2 3
-700000
+7000000
 end_operator
 begin_operator
 move-up-fast fast1 n4 n8
 0
 1
 0 2 2 4
-1300000
+13000000
 end_operator
 begin_operator
 move-up-fast fast1 n6 n8
 0
 1
 0 2 3 4
-700000
+7000000
 end_operator
 begin_operator
 move-up-slow slow0-0 n0 n1
 0
 1
 0 1 0 1
-600000
+6000000
 end_operator
 begin_operator
 move-up-slow slow0-0 n0 n2
 0
 1
 0 1 0 2
-700000
+7000000
 end_operator
 begin_operator
 move-up-slow slow0-0 n0 n3
 0
 1
 0 1 0 3
-800000
+8000000
 end_operator
 begin_operator
 move-up-slow slow0-0 n0 n4
 0
 1
 0 1 0 4
-900000
+9000000
 end_operator
 begin_operator
 move-up-slow slow0-0 n1 n2
 0
 1
 0 1 1 2
-600000
+6000000
 end_operator
 begin_operator
 move-up-slow slow0-0 n1 n3
 0
 1
 0 1 1 3
-700000
+7000000
 end_operator
 begin_operator
 move-up-slow slow0-0 n1 n4
 0
 1
 0 1 1 4
-800000
+8000000
 end_operator
 begin_operator
 move-up-slow slow0-0 n2 n3
 0
 1
 0 1 2 3
-600000
+6000000
 end_operator
 begin_operator
 move-up-slow slow0-0 n2 n4
 0
 1
 0 1 2 4
-700000
+7000000
 end_operator
 begin_operator
 move-up-slow slow0-0 n3 n4
 0
 1
 0 1 3 4
-600000
+6000000
 end_operator
 begin_operator
 move-up-slow slow1-0 n4 n5
 0
 1
 0 0 0 1
-600000
+6000000
 end_operator
 begin_operator
 move-up-slow slow1-0 n4 n6
 0
 1
 0 0 0 2
-700000
+7000000
 end_operator
 begin_operator
 move-up-slow slow1-0 n4 n7
 0
 1
 0 0 0 3
-800000
+8000000
 end_operator
 begin_operator
 move-up-slow slow1-0 n4 n8
 0
 1
 0 0 0 4
-900000
+9000000
 end_operator
 begin_operator
 move-up-slow slow1-0 n5 n6
 0
 1
 0 0 1 2
-600000
+6000000
 end_operator
 begin_operator
 move-up-slow slow1-0 n5 n7
 0
 1
 0 0 1 3
-700000
+7000000
 end_operator
 begin_operator
 move-up-slow slow1-0 n5 n8
 0
 1
 0 0 1 4
-800000
+8000000
 end_operator
 begin_operator
 move-up-slow slow1-0 n6 n7
 0
 1
 0 0 2 3
-600000
+6000000
 end_operator
 begin_operator
 move-up-slow slow1-0 n6 n8
 0
 1
 0 0 2 4
-700000
+7000000
 end_operator
 begin_operator
 move-up-slow slow1-0 n7 n8
 0
 1
 0 0 3 4
-600000
+6000000
 end_operator
 0
