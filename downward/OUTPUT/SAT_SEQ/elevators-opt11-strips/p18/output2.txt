@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "./fast-downward.py", line 6, in <module>
+    main()
+  File "/home/wlkaizer/planninglp/downward/driver/main.py", line 39, in main
+    (exitcode, continue_execution) = run_components.run_search(args)
+  File "/home/wlkaizer/planninglp/downward/driver/run_components.py", line 132, in run_search
+    memory_limit=memory_limit)
+  File "/home/wlkaizer/planninglp/downward/driver/call.py", line 67, in check_call
+    return subprocess.check_call(cmd, stdin=stdin_file, **kwargs)
+  File "/home/wlkaizer/.anaconda3/lib/python3.7/subprocess.py", line 342, in check_call
+    retcode = call(*popenargs, **kwargs)
+  File "/home/wlkaizer/.anaconda3/lib/python3.7/subprocess.py", line 325, in call
+    return p.wait(timeout=timeout)
+  File "/home/wlkaizer/.anaconda3/lib/python3.7/subprocess.py", line 990, in wait
+    return self._wait(timeout=timeout)
+  File "/home/wlkaizer/.anaconda3/lib/python3.7/subprocess.py", line 1624, in _wait
+    (pid, sts) = self._try_wait(0)
+  File "/home/wlkaizer/.anaconda3/lib/python3.7/subprocess.py", line 1582, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+KeyboardInterrupt

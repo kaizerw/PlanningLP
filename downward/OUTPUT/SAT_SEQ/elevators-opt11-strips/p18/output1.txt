@@ -1,0 +1,159 @@
+INFO     Running search (release).
+INFO     search stdin: /home/wlkaizer/planninglp/lab/downward-benchmarks/elevators-opt11-strips/p18.sas
+INFO     search time limit: 3599.9s
+INFO     search memory limit: 4096 MB
+INFO     search command line string: /home/wlkaizer/planninglp/downward/builds/release/bin/downward --search 'socwsss(sat_seq=true, constraint_generators=landmarks_h+_seq, cstar=61)' --internal-plan-file sas_plan < /home/wlkaizer/planninglp/lab/downward-benchmarks/elevators-opt11-strips/p18.sas
+reading input... [t=0.000162166s]
+done reading input! [t=0.019567s]
+Building successor generator...done! [t=0.0244637s]
+peak memory difference for successor generator creation: 124 KB
+time for successor generation creation: 0.00167315s
+Variables: 14
+FactPairs: 140
+Bytes per state: 8
+Initializing SOCWSSS...
+Using SEQ constraints
+Using lmcut constraints
+Using delete relaxation constraints
+Starting SOCWSSS CPLEX search...
+USING LAZY CONSTRAINT CALLBACK
+USING USERCUT CALLBACK
+USING HEURISTIC CALLBACK
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Any zero cost ops: 1
+All unit cost ops: 0
+Min op cost: 6
+Max op cost: 37
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.00000
+Median ops by constraint: 0.00000
+Last ops by constraint: 0.00000
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 820
+Number of variables: 14
+Number of seqs: 1
+Times made progress: 0
+Last nodes expanded: 0
+Last astar time: 0.00000
+Mean nodes expanded: 0.00000
+Max op count: 0
+Max num ops: 0
+Max num distinct ops: 0
+Max LP solution: 0.00000
+Initial LP solution: 0.00000
+Total astar time: 0.00000s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 1.99433s
+SAT n vars: 88792
+SAT n clauses: 342116
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Any zero cost ops: 1
+All unit cost ops: 0
+Min op cost: 6
+Max op cost: 37
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.01585
+Median ops by constraint: 0.01585
+Last ops by constraint: 0.01585
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 820
+Number of variables: 14
+Number of seqs: 2
+Times made progress: 0
+Last nodes expanded: 0
+Last astar time: 2.96105
+Mean nodes expanded: 0.00000
+Max op count: 2
+Max num ops: 45
+Max num distinct ops: 43
+Max LP solution: 45.00000
+Initial LP solution: 45.00000
+Total astar time: 2.96105s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 14.24118s
+SAT n vars: 104808
+SAT n clauses: 403718
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Any zero cost ops: 1
+All unit cost ops: 0
+Min op cost: 6
+Max op cost: 37
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.19878
+Median ops by constraint: 0.19878
+Last ops by constraint: 0.38171
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 820
+Number of variables: 14
+Number of seqs: 3
+Times made progress: 1
+Last nodes expanded: 0
+Last astar time: 3.85373
+Mean nodes expanded: 0.00000
+Max op count: 2
+Max num ops: 53
+Max num distinct ops: 49
+Max LP solution: 47.00000
+Initial LP solution: 45.00000
+Total astar time: 3.85374s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 18.54060s
+SAT n vars: 112864
+SAT n clauses: 434616
+SEQUENCING WITH SAT...
+Repeated seqs: 0
+Restarts: 0
+Any zero cost ops: 1
+All unit cost ops: 0
+Min op cost: 6
+Max op cost: 37
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 0.00000
+Best bound found: 0.00000
+Mean ops by constraint: 0.25894
+Median ops by constraint: 0.37927
+Last ops by constraint: 0.37927
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 820
+Number of variables: 14
+Number of seqs: 4
+Times made progress: 1
+Last nodes expanded: 0
+Last astar time: 4.06755
+Mean nodes expanded: 0.00000
+Max op count: 3
+Max num ops: 57
+Max num distinct ops: 51
+Max LP solution: 47.00000
+Initial LP solution: 45.00000
+Total astar time: 4.06755s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 30.89755s
+SAT n vars: 116904
+SAT n clauses: 450084
+Peak memory: 220800 KB
+caught signal 2 -- exiting
