@@ -43,6 +43,7 @@ struct SOCWSSS : public SearchEngine {
     int k_prealloc_bounds_yf;
     const double M;
     double epsilon;
+    const double lambda;
 
     shared_ptr<vector<lp::LPVariable>> lp_variables;
     shared_ptr<vector<lp::LPConstraint>> lp_constraints;

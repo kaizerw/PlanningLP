@@ -189,6 +189,7 @@ struct Shared {
     bool restart;
     int restarts, seq, repeated_seqs;
     double epsilon;
+    double lambda;
     int yt_index;
     int yf_index;
     shared_ptr<vector<shared_ptr<GLC>>> glcs;

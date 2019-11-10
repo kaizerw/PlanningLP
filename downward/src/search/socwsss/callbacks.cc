@@ -13,6 +13,7 @@ Shared::Shared(const Options& opts, shared_ptr<TaskProxy> task_proxy,
       seq(0),
       repeated_seqs(0),
       epsilon(0.0),
+      lambda(1e10),
       yt_index(ops.size()),
       yf_index(ops.size() + 1),
       glcs(make_shared<vector<shared_ptr<GLC>>>()),
@@ -64,7 +65,9 @@ void Shared::extract_sol(IloCplex::ControlCallbackI* callback) {
     for (size_t i = 0; i < ops.size(); ++i) {
         original_x.emplace_back(callback->getValue((*x)[i]));
     }
-    original_z = callback->getObjValue();
+    // Subtract tiebreaking artificial cost
+    original_z = callback->getObjValue() - 
+                 (callback->getValue((*x)[yt_index]) * lambda);
 
     rounded_x.clear();
     transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
@@ -77,7 +80,9 @@ void Shared::extract_sol() {
     for (size_t i = 0; i < ops.size(); ++i) {
         original_x.emplace_back(cplex->getValue((*x)[i]));
     }
-    original_z = cplex->getObjValue();
+    // Subtract tiebreaking artificial cost
+    original_z = cplex->getObjValue() - 
+                 (cplex->getValue((*x)[yt_index]) * lambda);
 
     rounded_x.clear();
     transform(original_x.begin(), original_x.end(), back_inserter(rounded_x),
@@ -730,7 +735,9 @@ void Shared::post_best_plan(IloCplex::HeuristicCallbackI* callback) {
             vals.add(primal[i]);
         }
 
-        callback->setSolution(vars, vals, info->plan_cost);
+        // Do not pass info->plan_cost with tiebreaking
+        // callback->setSolution(vars, vals, info->plan_cost);
+        callback->setSolution(vars, vals);
 
         vars.end();
         vals.end();

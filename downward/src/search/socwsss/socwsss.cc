@@ -9,7 +9,8 @@ SOCWSSS::SOCWSSS(const Options &opts)
       k_prealloc_bounds_yt(2),
       k_prealloc_bounds_yf(2),
       M(1e10),
-      epsilon(0.0) {}
+      epsilon(0.0),
+      lambda(1e10) {}
 
 void SOCWSSS::initialize() {
     cout << "Initializing SOCWSSS..." << endl;
@@ -51,7 +52,9 @@ void SOCWSSS::add_base_constraints() {
         lp_variables->emplace_back(0, IloInfinity, shr->get_op_cost(op));
     }
 
-    lp_variables->emplace_back(0, IloInfinity, 0);
+    // Tiebreaking by total number of operators
+    // lp_variables->emplace_back(0, IloInfinity, 0);
+    lp_variables->emplace_back(0, IloInfinity, lambda);
     lp_variables->emplace_back(0, IloInfinity, 0);
 
     yt_index = ops.size();
