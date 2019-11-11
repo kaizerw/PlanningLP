@@ -270,7 +270,7 @@ void SOCWSSS::create_cplex_model() {
         string name =
             (v_names.count(vi) > 0 ? v_names[vi] : "var_" + to_string(vi));
 
-        x->add(IloNumVar((*env), lb, ub, ILOINT, name.c_str()));
+        x->add(IloNumVar((*env), lb, ub, ILOFLOAT, name.c_str()));
         obj->setLinearCoef((*x)[vi], variable.objective_coefficient);
     }
 

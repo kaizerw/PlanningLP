@@ -772,6 +772,10 @@ void Shared::step_mip_loop() {
     if (cplex->getStatus() != IloAlgorithm::Status::Optimal) return;
 
     extract_sol();
+
+    cout << "Initial LP solution: " << original_z << endl;
+    exit(0);
+
     if (!test_card()) return;
 
     sequence();

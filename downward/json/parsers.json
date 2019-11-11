@@ -64,6 +64,11 @@
         "type": "int",
         "summary": "mean"
     },
+    "initial_lp_solution": {
+        "regex": "Initial LP solution: (\\d+\\.?\\d*)",
+        "type": "float",
+        "summary": "mean"
+    },
     "perc_astar_is_better": {
         "regex": "Perc astar is better: (\\d+\\.?\\d*)",
         "type": "float",
@@ -206,11 +211,6 @@
     },
     "mean_nodes_expanded": {
         "regex": "Mean nodes expanded: (\\d+\\.?\\d*)",
-        "type": "float",
-        "summary": "mean"
-    },
-    "initial_lp_solution": {
-        "regex": "Initial LP solution: (\\d+\\.?\\d*)",
         "type": "float",
         "summary": "mean"
     },
