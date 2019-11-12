@@ -1,30 +1,36 @@
 [
-   {
-        "name": "T3_FLOW",
-        "search": "socwsss(constraint_type=3, constraint_generators=landmarks_h+_flow, heuristic=lmcut)",
+      {
+        "name": "LMCUT_T3",
+        "search": "socwsss(constraint_type=3, constraint_generators=seq_landmarks_h+, heuristic=lmcut, ignore_zero_cost_ops=true)",
         "domains": [
-            "elevators-opt11-strips"
+            "barman-opt11-strips",
+            "elevators-opt11-strips",
+            "nomystery-opt11-strips",
+            "openstacks-opt11-strips",
+            "parcprinter-opt11-strips",
+            "pegsol-opt11-strips",
+            "scanalyzer-opt11-strips",
+            "sokoban-opt11-strips",
+            "transport-opt11-strips",
+            "visitall-opt11-strips",
+            "woodworking-opt11-strips"
         ]
    },
    {
-        "name": "T3_SEQ",
-        "search": "socwsss(constraint_type=3, constraint_generators=landmarks_h+_seq, heuristic=lmcut)",
+        "name": "SAT",
+        "search": "socwsss(sat_seq=true, constraint_generators=seq_landmarks_h+, ignore_zero_cost_ops=true)",
         "domains": [
-            "elevators-opt11-strips"
-        ]
-   },
-   {
-        "name": "SAT_FLOW",
-        "search": "socwsss(sat_seq=true, constraint_generators=landmarks_h+_flow)",
-        "domains": [
-            "elevators-opt11-strips"
-        ]
-   },
-   {
-        "name": "SAT_SEQ",
-        "search": "socwsss(sat_seq=true, constraint_generators=landmarks_h+_seq)",
-        "domains": [
-            "elevators-opt11-strips"
+            "barman-opt11-strips",
+            "elevators-opt11-strips",
+            "nomystery-opt11-strips",
+            "openstacks-opt11-strips",
+            "parcprinter-opt11-strips",
+            "pegsol-opt11-strips",
+            "scanalyzer-opt11-strips",
+            "sokoban-opt11-strips",
+            "transport-opt11-strips",
+            "visitall-opt11-strips",
+            "woodworking-opt11-strips"
         ]
    }
 ]
