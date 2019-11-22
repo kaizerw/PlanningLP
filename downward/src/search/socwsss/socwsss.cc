@@ -528,7 +528,8 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.document_synopsis("SOCWSSS", "SOCWSSS");
 
     parser.add_option<int>("constraint_type", "", "3");
-    parser.add_option<string>("constraint_generators", "", "landmarks_h+_flow");
+    parser.add_option<string>("constraint_generators", "", "landmarks_h+_seq");
+    parser.add_option<string>("operator_counting_constraints", "", "landmarks_h+_seq");
     parser.add_option<string>("heuristic", "", "lmcut");
     parser.add_option<bool>("mip_start", "", "false");
     parser.add_option<bool>("sat_seq", "", "false");
@@ -544,7 +545,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("add_yf_bound", "", "true");
     parser.add_option<bool>("add_yt_bound", "", "true");
     parser.add_option<string>("callbacks", "", "lazy_usercut_heuristic");
-    parser.add_option<bool>("ignore_zero_cost_ops", "", "false");
+    parser.add_option<bool>("ignore_zero_cost_ops", "", "true");
 
     lp::add_lp_solver_option_to_parser(parser);
     SearchEngine::add_pruning_option(parser);

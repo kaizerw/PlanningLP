@@ -36,9 +36,9 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 3
 #	$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/$i.sas --search "$opts" > logs_sat/$i-output1 2> logs_sat/$i-output2
 #done
 
-#opts="socwsss(constraint_type=3, constraint_generators=_, mip_start=false)"
+opts="socwsss(constraint_type=3, constraint_generators=_, mip_start=false)"
 #opts="socwsss(sat_seq=true, constraint_generators=_, mip_start=false)"
-#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem02-full.sas --search "$opts"
+$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem02-full.sas --search "$opts"
 
 #opts="socwsss(sat_seq=true, constraint_generators=_, mip_start=false)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts" > "$d2"/p04_full_output1 2> "$d2"/p04_full_output2
@@ -84,8 +84,8 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 3
 #$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 
 #opts="astar(operatorcounting([lmcut_constraints()]))"
-opts="socwsss(constraint_type=3, print_log=true, constraint_generators=landmarks_h+_seq, heuristic=lmcut)"
-$run_pref $DOWNWARD_BENCHMARKS/elevators-epsilon/p01.sas --search "$opts"
+#opts="socwsss(constraint_type=3, print_log=true, constraint_generators=landmarks_h+_seq, heuristic=lmcut)"
+#$run_pref $DOWNWARD_BENCHMARKS/elevators-epsilon/p01.sas --search "$opts"
 ###############################################################################################################################################################################################################
 # CPLEX error during SAT sequencing
 #opts="socwsss(sat_seq=true, constraint_generators=seq_landmarks, add_cstar_constraint=true, add_yt_bound=false, callbacks=lazy_heuristic, cstar=550)"

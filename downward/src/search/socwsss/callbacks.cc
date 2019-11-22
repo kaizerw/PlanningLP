@@ -291,7 +291,7 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
         cout << "USING OPERATOR COUNT HEURISTIC" << endl;
         vector<shared_ptr<ConstraintGenerator>> cs;
 
-        if (opts.get<string>("constraint_generators").find("seq") !=
+        if (opts.get<string>("operator_counting_constraints").find("seq") !=
             string::npos) {
             cout << "USING SEQ CONSTRAINT GENERATOR" << endl;
             Options o;
@@ -301,13 +301,13 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
                 make_shared<StateEquationConstraints>(o);
             cs.emplace_back(c);
         }
-        if (opts.get<string>("constraint_generators").find("landmarks") !=
+        if (opts.get<string>("operator_counting_constraints").find("landmarks") !=
             string::npos) {
             cout << "USING LANDMARK CONSTRAINT GENERATOR" << endl;
             shared_ptr<ConstraintGenerator> c = make_shared<LMCutConstraints>();
             cs.emplace_back(c);
         }
-        if (opts.get<string>("constraint_generators").find("h+") !=
+        if (opts.get<string>("operator_counting_constraints").find("h+") !=
             string::npos) {
             cout << "USING H+ CONSTRAINT GENERATOR" << endl;
             Options o;
@@ -317,7 +317,7 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
                 make_shared<DeleteRelaxationConstraints>(o);
             cs.emplace_back(c);
         }
-        if (opts.get<string>("constraint_generators").find("flow") !=
+        if (opts.get<string>("operator_counting_constraints").find("flow") !=
             string::npos) {
             cout << "USING FLOW CONSTRAINT GENERATOR" << endl;
             Options o_p;
@@ -341,7 +341,7 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
             shared_ptr<ConstraintGenerator> c = make_shared<FlowConstraints>(o);
             cs.emplace_back(c);
         }
-        if (opts.get<string>("constraint_generators").find("glcs") !=
+        if (opts.get<string>("operator_counting_constraints").find("glcs") !=
             string::npos) {
             cout << "USING GLCS CONSTRAINT GENERATOR" << endl;
             shared_ptr<ConstraintGenerator> c =
