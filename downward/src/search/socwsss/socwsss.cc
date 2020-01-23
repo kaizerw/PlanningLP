@@ -321,9 +321,9 @@ void SOCWSSS::create_cplex_model() {
 
     cplex = make_shared<IloCplex>((*model));
 
-    cplex->setOut(env->getNullStream());
-    cplex->setWarning(env->getNullStream());
-    // cplex->setParam(IloCplex::MIPInterval, 1);
+    //cplex->setOut(env->getNullStream());
+    //cplex->setWarning(env->getNullStream());
+    cplex->setParam(IloCplex::MIPInterval, 1);
 
     cplex->setParam(IloCplex::Threads, 1);
     cplex->setParam(IloCplex::HeurFreq, -1);
@@ -334,22 +334,24 @@ void SOCWSSS::create_cplex_model() {
     cplex->setParam(IloCplex::Probe, 3);
 
     /*
-    cplex->setParam(IloCplex::Param::MIP::Cuts::BQP, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::BQP, -1); // -INF
     cplex->setParam(IloCplex::Param::MIP::Cuts::Cliques, -1);
     cplex->setParam(IloCplex::Param::MIP::Cuts::Covers, -1);
-    cplex->setParam(IloCplex::Param::MIP::Cuts::Disjunctive, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::Disjunctive, -1); // -INF
     cplex->setParam(IloCplex::Param::MIP::Cuts::FlowCovers, -1);
     cplex->setParam(IloCplex::Param::MIP::Cuts::Gomory, -1);
-    cplex->setParam(IloCplex::Param::MIP::Cuts::GUBCovers, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::GUBCovers, -1); // -INF
     cplex->setParam(IloCplex::Param::MIP::Cuts::Implied, -1);
     cplex->setParam(IloCplex::Param::MIP::Cuts::LiftProj, -1);
-    cplex->setParam(IloCplex::Param::MIP::Cuts::LocalImplied, -1);
-    cplex->setParam(IloCplex::Param::MIP::Cuts::MCFCut, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::LocalImplied, -1); // -INF
+    cplex->setParam(IloCplex::Param::MIP::Cuts::MCFCut, -1); // -INF
     cplex->setParam(IloCplex::Param::MIP::Cuts::MIRCut, -1);
-    cplex->setParam(IloCplex::Param::MIP::Cuts::PathCut, -1);
-    cplex->setParam(IloCplex::Param::MIP::Cuts::RLT, -1);
+    cplex->setParam(IloCplex::Param::MIP::Cuts::PathCut, -1); // -INF
+    cplex->setParam(IloCplex::Param::MIP::Cuts::RLT, -1); // -INF
     cplex->setParam(IloCplex::Param::MIP::Cuts::ZeroHalfCut, -1);
     */
+
+    cplex->exportModel(("model" + to_string(shr->restarts) + ".lp").c_str());
 
     // Add MIP start from cache_op_counts
     auto [found, info] = shr->cache_op_counts.get_best_plan();
@@ -499,6 +501,73 @@ SearchStatus SOCWSSS::step() {
     if (cplex->getStatus() == IloAlgorithm::Status::Infeasible ||
         cplex->getStatus() == IloAlgorithm::Status::InfeasibleOrUnbounded) {
         cout << "INFEASIBLE" << endl;
+
+        for (OperatorProxy op : ops) {
+            cout << op.get_name() << endl;
+        }
+
+        /*
+        cout << "LAST ONLY ADDED GLC VERIFICATION:" << endl;
+        for (auto &[glc, state] : shr->cache_glcs.cache) {
+            if (state != GLCState::NEW) {
+                shr->verify_glc(glc);
+            }
+        }
+        */
+
+        cout << "LAST ALL GLC VERIFICATION:" << endl;
+        for (auto &[glc, state] : shr->cache_glcs.cache) {
+            shr->verify_glc(glc);
+        }
+
+
+
+        ////////////////////////////////////////////////////////////////////////
+        for (auto &[k, v] : shr->cache_op_counts.cache) {
+            cout << "\t sequenciable? " << v->sequenciable;
+
+            vector<int> opcount(ops.size(), 0);
+            for (auto &[k1, v1] : k) opcount[k1] = v1;
+
+            bool subset = true;
+            for (size_t i = 0; i < ops.size(); ++i) {
+                if (!(opcount[i] >= shr->plan_op_counts[i])) {
+                    cout << "\t op " << i << " = [" << opcount[i] << " -> " << shr->plan_op_counts[i] << "]";
+                    subset = false;
+                    break;
+                }
+            }
+            cout << "\t subset? " << subset << endl;
+        }
+        exit(0);
+        ////////////////////////////////////////////////////////////////////////
+
+
+
+        cout << "SOLVING AGAIN..." << endl;
+        create_cplex_model();
+        
+        cplex->setParam(IloCplex::Param::MIP::Strategy::Search, IloCplex::Traditional);
+        cplex->setParam(IloCplex::Reduce, 0);
+        cplex->setParam(IloCplex::Param::Preprocessing::Dual, -1);
+        cplex->setParam(IloCplex::Param::Preprocessing::Linear, 0);
+        cplex->setParam(IloCplex::Param::Preprocessing::RepeatPresolve, 0);
+        cplex->setParam(IloCplex::PreInd, 0);
+        
+        //cplex->use((*lazy_callback));
+        cplex->use(EmptyLazyCallback(shr));
+        //cplex->use((*usercut_callback));
+        //cplex->use((*heuristic_callback));
+        cplex->solve();
+
+        cout << "STATUS: " << cplex->getStatus() << endl;
+        cout << "OBJ VALUE: " << cplex->getObjValue() << endl;
+        //cout << "PRIMAL: " << endl;
+        //for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
+        //    cout << "\t" << ops[op_id].get_name();
+        //    cout << " -> " << cplex->getValue((*x)[op_id]) << endl;
+        //}
+
         exit(13);
     }
 
@@ -529,7 +598,8 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
 
     parser.add_option<int>("constraint_type", "", "3");
     parser.add_option<string>("constraint_generators", "", "landmarks_h+_seq");
-    parser.add_option<string>("operator_counting_constraints", "", "landmarks_h+_seq");
+    parser.add_option<string>("operator_counting_constraints", "",
+                              "landmarks_h+_seq");
     parser.add_option<string>("heuristic", "", "lmcut");
     parser.add_option<bool>("mip_start", "", "false");
     parser.add_option<bool>("sat_seq", "", "false");

@@ -301,8 +301,8 @@ shared_ptr<SequenceInfo> Shared::get_astar_sequence() {
                 make_shared<StateEquationConstraints>(o);
             cs.emplace_back(c);
         }
-        if (opts.get<string>("operator_counting_constraints").find("landmarks") !=
-            string::npos) {
+        if (opts.get<string>("operator_counting_constraints")
+                .find("landmarks") != string::npos) {
             cout << "USING LANDMARK CONSTRAINT GENERATOR" << endl;
             shared_ptr<ConstraintGenerator> c = make_shared<LMCutConstraints>();
             cs.emplace_back(c);
@@ -819,6 +819,8 @@ void Shared::step_sat_loop() {
 }
 
 void LazyCallbackI::main() {
+    cout << "CALLING LAZY CALLBACK" << endl;
+
     if (shr->restart) return;
     if (isUnboundedNode()) return;
 
@@ -828,6 +830,7 @@ void LazyCallbackI::main() {
     shr->sequence();
     if (!shr->info->sequenciable) {
         for (auto& glc : shr->info->learned_glcs) {
+            // shr->verify_glc(glc);
             auto cut = shr->get_cut(glc, this);
             if (shr->restart) return;
             add(cut >= 1.0).end();
@@ -842,6 +845,8 @@ IloCplex::Callback LazyCallback(shared_ptr<Shared> shr) {
 }
 
 void UserCutCallbackI::main() {
+    cout << "CALLING USERCUT CALLBACK" << endl;
+
     if (shr->restart) return;
     if (!isAfterCutLoop()) return;
 
@@ -851,6 +856,7 @@ void UserCutCallbackI::main() {
     shr->sequence();
     if (!shr->info->sequenciable) {
         for (auto& glc : shr->info->learned_glcs) {
+            // shr->verify_glc(glc);
             auto cut = shr->get_cut(glc, this);
             if (shr->restart) return;
             add(cut >= 1.0).end();
@@ -865,6 +871,8 @@ IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
 }
 
 void HeuristicCallbackI::main() {
+    cout << "CALLING HEURISTIC CALLBACK" << endl;
+
     if (shr->restart) return;
 
     shr->extract_sol(this);
@@ -878,4 +886,12 @@ void HeuristicCallbackI::main() {
 
 IloCplex::Callback HeuristicCallback(shared_ptr<Shared> shr) {
     return (IloCplex::Callback(new (*shr->env) HeuristicCallbackI(shr)));
+}
+
+
+
+
+
+IloCplex::Callback EmptyLazyCallback(shared_ptr<Shared> shr) {
+    return (IloCplex::Callback(new (*shr->env) EmptyLazyCallbackI(shr)));
 }

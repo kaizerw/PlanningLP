@@ -196,6 +196,44 @@ struct Shared {
 
     shared_ptr<Evaluator> full_pdb;
 
+    vector<int> plan_op_counts{
+        0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1,  0,
+        0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,  1,
+        0, 0, 1, 0, 0, 0, 0, 1, 6, 5, 1, 0, 0, 0, 0, 1, 0, 0, 1,  0,
+        0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,  1,
+        0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 35, 35};
+
+    double verify_bound(int op_id, int op_bound) {
+        int last_bound = (*bounds_literals)[op_id].size() - 1;
+        if (op_bound > 0) {
+            if (op_bound <= last_bound) {
+                return plan_op_counts[op_id] >= op_bound;
+            } else {
+                return (1.0 / op_bound) * plan_op_counts[op_id];
+            }
+        }
+        return 0;
+    }
+
+    void verify_glc(shared_ptr<GLC> glc) {
+        double sat = 0;
+        for (auto &[op_id, op_bound] : glc->ops_bounds) {
+            sat += verify_bound(op_id, op_bound);
+        }
+        sat += verify_bound(yt_index, glc->yt_bound);
+        sat += verify_bound(yf_index, glc->yf_bound);
+
+        cout << (sat >= 1 ? "GLC SATISFIED" : "GLC NOT SATISFIED") << "(" << sat
+             << "):" << endl;
+        if (glc->yt_bound > 0) cout << "+ [YT >= " << glc->yt_bound << "]";
+        if (glc->yf_bound > 0) cout << "+ [YF >= " << glc->yf_bound << "]";
+        for (auto &[op_id, op_bound] : glc->ops_bounds) {
+            cout << " + [" << ops[op_id].get_name() << " >= " << op_bound
+                 << "]";
+        }
+        cout << " >= 1" << endl;
+    }
+
     shared_ptr<vector<vector<int>>> bounds_literals;
     shared_ptr<IloEnv> env;
     shared_ptr<IloModel> model;
@@ -273,5 +311,22 @@ struct HeuristicCallbackI : public IloCplex::HeuristicCallbackI {
     void main();
 };
 IloCplex::Callback HeuristicCallback(shared_ptr<Shared> shr);
+
+
+
+
+
+struct EmptyLazyCallbackI : public IloCplex::LazyConstraintCallbackI {
+    shared_ptr<Shared> shr;
+    
+    ILOCOMMONCALLBACKSTUFF(EmptyLazyCallback)
+    EmptyLazyCallbackI(shared_ptr<Shared> shr) 
+        : IloCplex::LazyConstraintCallbackI(*shr->env), shr(shr) {}
+    void main() {
+        cout << "CALLING EMPTY LAZY CALLBACK" << endl;
+    }
+};
+IloCplex::Callback EmptyLazyCallback(shared_ptr<Shared> shr);
+
 
 #endif

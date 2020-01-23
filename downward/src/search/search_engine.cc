@@ -118,6 +118,11 @@ bool SearchEngine::check_goal_and_set_plan(const GlobalState &state) {
              << (count_if(op_count.begin(), op_count.end(),
                           [](int count) { return count > 0; }))
              << endl;
+        cout << "Optimal solution operator counts: ";
+        for (int op_count : op_count) {
+            cout << op_count << " ";
+        }
+        cout << endl;
         ////////////////////////////////////////////////////////////////////////
 
         return true;

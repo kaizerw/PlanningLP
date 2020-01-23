@@ -36,9 +36,48 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 3
 #	$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/$i.sas --search "$opts" > logs_sat/$i-output1 2> logs_sat/$i-output2
 #done
 
-opts="socwsss(constraint_type=3, constraint_generators=_, mip_start=false)"
+#opts="socwsss(constraint_type=3, constraint_generators=_, mip_start=false)"
 #opts="socwsss(sat_seq=true, constraint_generators=_, mip_start=false)"
-$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem02-full.sas --search "$opts"
+#$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem02-full.sas --search "$opts"
+
+
+
+#################################################################################
+run_pref="./fast-downward.py --overall-memory-limit 4096M --overall-time-limit 5m"
+
+rm -rf logs && mkdir logs && mkdir logs/blind && mkdir logs/lmcut && mkdir logs/oc && mkdir logs/hstar && mkdir logs/sat
+
+#opts="astar(blind())"
+#opts="astar(lmcut())"
+
+#opts="socwsss(heuristic=blind)"
+#$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob07.sas --search "$opts" > logs/blind/1.txt
+#$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob18.sas --search "$opts" > logs/blind/2.txt
+
+#opts="socwsss(heuristic=lmcut)"
+#$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts" > logs/lmcut/1.txt
+#$run_pref $DOWNWARD_BENCHMARKS/hiking-opt14-strips-hstar/ptesting-1-2-3.sas --search "$opts" > logs/lmcut/2.txt
+#$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob07.sas --search "$opts" > logs/lmcut/3.txt
+#$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob18.sas --search "$opts" > logs/lmcut/4.txt
+
+#opts="socwsss(heuristic=operatorcounting, operator_counting_constraints=seq_landmarks)"
+#$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts" > logs/oc/1.txt
+#$run_pref $DOWNWARD_BENCHMARKS/hiking-opt14-strips-hstar/ptesting-1-2-3.sas --search "$opts" > logs/oc/2.txt
+#$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob07.sas --search "$opts" > logs/oc/3.txt
+#$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob18.sas --search "$opts" > logs/oc/4.txt
+
+opts="socwsss(heuristic=hstar_pdb, print_log=false)"
+#$run_pref $DOWNWARD_BENCHMARKS/gripper-hstar/prob04.sas --search "$opts" > logs/hstar/1.txt
+$run_pref $DOWNWARD_BENCHMARKS/gripper-hstar/prob05.sas --search "$opts"
+#$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob07.sas --search "$opts" > logs/hstar/3.txt
+#$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob18.sas --search "$opts" > logs/hstar/4.txt
+
+#opts="socwsss(sat_seq=true)"
+#$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob07.sas --search "$opts" > logs/sat/1.txt
+#$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob18.sas --search "$opts" > logs/sat/2.txt
+#################################################################################
+
+
 
 #opts="socwsss(sat_seq=true, constraint_generators=_, mip_start=false)"
 #$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem04-full.sas --search "$opts" > "$d2"/p04_full_output1 2> "$d2"/p04_full_output2
