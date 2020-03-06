@@ -108,7 +108,7 @@ void Shared::sequence() {
     }
 
     if (!found_in_cache) {
-        // cout.setstate(ios_base::failbit);
+        cout.setstate(ios_base::failbit);
         if (opts.get<bool>("best_seq")) {
             info = get_best_sequence();
         } else if (opts.get<bool>("sat_seq")) {
@@ -120,7 +120,7 @@ void Shared::sequence() {
         } else {
             info = get_astar_sequence();
         }
-        // cout.clear();
+        cout.clear();
 
         if (info->sequenciable) {
             cache_op_counts.add(plan2opcount(info->plan), info);
@@ -819,7 +819,7 @@ void Shared::step_sat_loop() {
 }
 
 void LazyCallbackI::main() {
-    cout << "CALLING LAZY CALLBACK" << endl;
+    //cout << "CALLING LAZY CALLBACK" << endl;
 
     if (shr->restart) return;
     if (isUnboundedNode()) return;
@@ -845,7 +845,7 @@ IloCplex::Callback LazyCallback(shared_ptr<Shared> shr) {
 }
 
 void UserCutCallbackI::main() {
-    cout << "CALLING USERCUT CALLBACK" << endl;
+    //cout << "CALLING USERCUT CALLBACK" << endl;
 
     if (shr->restart) return;
     if (!isAfterCutLoop()) return;
@@ -871,7 +871,7 @@ IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
 }
 
 void HeuristicCallbackI::main() {
-    cout << "CALLING HEURISTIC CALLBACK" << endl;
+    //cout << "CALLING HEURISTIC CALLBACK" << endl;
 
     if (shr->restart) return;
 

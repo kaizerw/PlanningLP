@@ -1,0 +1,592 @@
+INFO     Running search (release).
+INFO     search stdin: /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/blocks-hstar/probBLOCKS-6-2.sas
+INFO     search time limit: 1799.97s
+INFO     search memory limit: 4096 MB
+INFO     search command line string: /home/wlkaizer/Mestrado/PlanningLP/downward/builds/release/bin/downward --search 'socwsss(heuristic=operatorcounting, operator_counting_constraints=seq_landmarks, print_log=false)' --internal-plan-file sas_plan < /home/wlkaizer/Mestrado/PlanningLP/lab/downward-benchmarks/blocks-hstar/probBLOCKS-6-2.sas
+reading input... [t=0.00011653s]
+done reading input! [t=0.000774278s]
+Building successor generator...done! [t=0.0025424s]
+peak memory difference for successor generator creation: 0 KB
+time for successor generation creation: 5.7655e-05s
+Variables: 13
+FactPairs: 56
+Bytes per state: 4
+Initializing SOCWSSS...
+Using SEQ constraints
+Using lmcut constraints
+Using delete relaxation constraints
+Starting SOCWSSS CPLEX search...
+USING LAZY CONSTRAINT CALLBACK
+USING USERCUT CALLBACK
+USING HEURISTIC CALLBACK
+CPXPARAM_Preprocessing_Linear                    0
+CPXPARAM_LPMethod                                1
+CPXPARAM_QPMethod                                1
+CPXPARAM_Threads                                 1
+CPXPARAM_MIP_Interval                            1
+CPXPARAM_MIP_Strategy_StartAlgorithm             1
+CPXPARAM_MIP_Strategy_SubAlgorithm               1
+CPXPARAM_MIP_Strategy_HeuristicFreq              -1
+CPXPARAM_MIP_Strategy_Probe                      3
+CPXPARAM_Emphasis_MIP                            3
+CPXPARAM_MIP_Strategy_RINSHeur                   -1
+Lazy constraint(s) or lazy constraint callback is present.
+    Disabling dual reductions (CPX_PARAM_REDUCE) in presolve.
+         Disabling repeat represolve because of lazy constraint/incumbent callback.
+Tried aggregator 3 times.
+MIP Presolve eliminated 215 rows and 36 columns.
+MIP Presolve modified 327 coefficients.
+Aggregator did 34 substitutions.
+Reduced MIP has 1144 rows, 684 columns, and 2808 nonzeros.
+Reduced MIP has 516 binaries, 168 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (3.14 ticks)
+Probing fixed 157 vars, tightened 197 bounds.
+Probing time = 0.02 sec. (16.81 ticks)
+Probing added 408 nonzeros.
+Clique table members: 1041.
+MIP emphasis: best bound.
+MIP search method: traditional branch-and-cut.
+Parallel mode: none, using 1 thread.
+Root relaxation solution time = 0.00 sec. (1.38 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap         Variable B NodeID Parent  Depth
+
+      0     0       14.0000     6                     12.0000        1         
+      0     0       14.0000    10                    Fract: 3        2         
+      0     0       14.1176    12                    Fract: 4        3         
+      0     0       15.0000     6                     Cuts: 4       12         
+      0     0       15.0000     3                     Cuts: 7       17         
+      0     0       15.0000     7                     User: 1       22         
+      0     0       15.0000    10                     User: 1       31         
+      0     2       15.0000    10                     15.4286       31                                 0             0
+Elapsed time = 0.13 sec. (87.70 ticks, tree = 0.01 MB, solutions = 0)
+      1     3       16.0000     8                     16.0000       36         [put-down a >= 1 N      1      0      1
+      2     4       16.0000    11                     16.0000       41                pick-up d N      2      1      2
+      3     5       16.0000     4                     16.0000       52                pick-up d U      3      1      2
+      4     6       16.2000     5                     16.0000       53         [put-down d >= 2 U      4      3      3
+      5     7       16.0000    12                     16.0000       60         [put-down a >= 1 D      5      0      1
+      6     8       16.0000    10                     16.0000       63         [put-down b >= 2 D      6      2      3
+
+Flow cuts applied:  2
+Mixed integer rounding cuts applied:  2
+Gomory fractional cuts applied:  1
+User cuts applied:  11
+
+Root node processing (before b&c):
+  Real time             =    0.13 sec. (87.11 ticks)
+Sequential b&c:
+  Real time             =    0.11 sec. (37.91 ticks)
+                          ------------
+Total (root+branch&cut) =    0.24 sec. (125.02 ticks)
+RESTARTING...
+Starting SOCWSSS CPLEX search...
+USING LAZY CONSTRAINT CALLBACK
+USING USERCUT CALLBACK
+USING HEURISTIC CALLBACK
+CPXPARAM_Preprocessing_Linear                    0
+CPXPARAM_LPMethod                                1
+CPXPARAM_QPMethod                                1
+CPXPARAM_Threads                                 1
+CPXPARAM_MIP_Interval                            1
+CPXPARAM_MIP_Strategy_StartAlgorithm             1
+CPXPARAM_MIP_Strategy_SubAlgorithm               1
+CPXPARAM_MIP_Strategy_HeuristicFreq              -1
+CPXPARAM_MIP_Strategy_Probe                      3
+CPXPARAM_Emphasis_MIP                            3
+CPXPARAM_MIP_Strategy_RINSHeur                   -1
+Lazy constraint(s) or lazy constraint callback is present.
+    Disabling dual reductions (CPX_PARAM_REDUCE) in presolve.
+         Disabling repeat represolve because of lazy constraint/incumbent callback.
+Tried aggregator 3 times.
+MIP Presolve eliminated 245 rows and 50 columns.
+MIP Presolve modified 566 coefficients.
+Aggregator did 34 substitutions.
+Reduced MIP has 1161 rows, 688 columns, and 2898 nonzeros.
+Reduced MIP has 520 binaries, 168 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (3.74 ticks)
+Probing fixed 159 vars, tightened 199 bounds.
+Probing changed sense of 2 constraints.
+Probing time = 0.02 sec. (16.95 ticks)
+Probing added 414 nonzeros.
+Clique table members: 1049.
+MIP emphasis: best bound.
+MIP search method: traditional branch-and-cut.
+Parallel mode: none, using 1 thread.
+Root relaxation solution time = 0.00 sec. (2.58 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap         Variable B NodeID Parent  Depth
+
+      0     0       16.0870    35                     16.0000       30         
+      0     1       17.0000    35                     User: 1       31                                 0             0
+Elapsed time = 0.12 sec. (70.43 ticks, tree = 0.01 MB, solutions = 0)
+      1     2       18.0000    10                     18.0000       46                       YF U      1      0      1
+      2     3       18.0000     5                     18.0000       48         [stack a b >= 2] U      2      1      2
+
+User cuts applied:  15
+
+Root node processing (before b&c):
+  Real time             =    0.10 sec. (41.69 ticks)
+Sequential b&c:
+  Real time             =    0.14 sec. (50.86 ticks)
+                          ------------
+Total (root+branch&cut) =    0.24 sec. (92.56 ticks)
+RESTARTING...
+Starting SOCWSSS CPLEX search...
+USING LAZY CONSTRAINT CALLBACK
+USING USERCUT CALLBACK
+USING HEURISTIC CALLBACK
+CPXPARAM_Preprocessing_Linear                    0
+CPXPARAM_LPMethod                                1
+CPXPARAM_QPMethod                                1
+CPXPARAM_Threads                                 1
+CPXPARAM_MIP_Interval                            1
+CPXPARAM_MIP_Strategy_StartAlgorithm             1
+CPXPARAM_MIP_Strategy_SubAlgorithm               1
+CPXPARAM_MIP_Strategy_HeuristicFreq              -1
+CPXPARAM_MIP_Strategy_Probe                      3
+CPXPARAM_Emphasis_MIP                            3
+CPXPARAM_MIP_Strategy_RINSHeur                   -1
+Lazy constraint(s) or lazy constraint callback is present.
+    Disabling dual reductions (CPX_PARAM_REDUCE) in presolve.
+         Disabling repeat represolve because of lazy constraint/incumbent callback.
+Tried aggregator 3 times.
+MIP Presolve eliminated 247 rows and 50 columns.
+MIP Presolve modified 571 coefficients.
+Aggregator did 34 substitutions.
+Reduced MIP has 1178 rows, 690 columns, and 3013 nonzeros.
+Reduced MIP has 522 binaries, 168 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (4.09 ticks)
+Probing fixed 159 vars, tightened 208 bounds.
+Probing changed sense of 2 constraints.
+Probing time = 0.02 sec. (16.64 ticks)
+Probing added 430 nonzeros.
+Clique table members: 1070.
+MIP emphasis: best bound.
+MIP search method: traditional branch-and-cut.
+Parallel mode: none, using 1 thread.
+Root relaxation solution time = 0.00 sec. (4.47 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap         Variable B NodeID Parent  Depth
+
+      0     0       16.1429    31                     16.1429       61         
+      0     0       18.0000    10                     Cuts: 3       84         
+      0     0       18.0000    13                     Cuts: 8       90         
+      0     2       18.0000     8                     User: 2       91                                 0             0
+Elapsed time = 0.16 sec. (57.97 ticks, tree = 0.01 MB, solutions = 0)
+      1     3       18.0000     9                     18.0000       92               put-down a N      1      0      1
+      2     4       18.1053    35                     18.0000       94               put-down a U      2      0      1
+      3     5       18.0000    13                     18.0000       97         [stack b d >= 2] D      3      1      2
+
+Clique cuts applied:  2
+Cover cuts applied:  1
+Flow cuts applied:  4
+Zero-half cuts applied:  1
+Gomory fractional cuts applied:  1
+User cuts applied:  14
+
+Root node processing (before b&c):
+  Real time             =    0.07 sec. (52.17 ticks)
+Sequential b&c:
+  Real time             =    0.35 sec. (45.14 ticks)
+                          ------------
+Total (root+branch&cut) =    0.42 sec. (97.31 ticks)
+RESTARTING...
+Starting SOCWSSS CPLEX search...
+USING LAZY CONSTRAINT CALLBACK
+USING USERCUT CALLBACK
+USING HEURISTIC CALLBACK
+CPXPARAM_Preprocessing_Linear                    0
+CPXPARAM_LPMethod                                1
+CPXPARAM_QPMethod                                1
+CPXPARAM_Threads                                 1
+CPXPARAM_MIP_Interval                            1
+CPXPARAM_MIP_Strategy_StartAlgorithm             1
+CPXPARAM_MIP_Strategy_SubAlgorithm               1
+CPXPARAM_MIP_Strategy_HeuristicFreq              -1
+CPXPARAM_MIP_Strategy_Probe                      3
+CPXPARAM_Emphasis_MIP                            3
+CPXPARAM_MIP_Strategy_RINSHeur                   -1
+Lazy constraint(s) or lazy constraint callback is present.
+    Disabling dual reductions (CPX_PARAM_REDUCE) in presolve.
+         Disabling repeat represolve because of lazy constraint/incumbent callback.
+Tried aggregator 3 times.
+MIP Presolve eliminated 247 rows and 50 columns.
+MIP Presolve modified 573 coefficients.
+Aggregator did 34 substitutions.
+Reduced MIP has 1196 rows, 692 columns, and 3204 nonzeros.
+Reduced MIP has 524 binaries, 168 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (4.46 ticks)
+Probing fixed 159 vars, tightened 208 bounds.
+Probing changed sense of 3 constraints.
+Probing time = 0.03 sec. (18.12 ticks)
+Probing added 441 nonzeros.
+Clique table members: 1079.
+MIP emphasis: best bound.
+MIP search method: traditional branch-and-cut.
+Parallel mode: none, using 1 thread.
+Root relaxation solution time = 0.00 sec. (4.01 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap         Variable B NodeID Parent  Depth
+
+      0     0       16.2222    28                     16.2222       64         
+      0     0       17.0000    14                     Cuts: 2       84         
+      0     0       18.0000    12                    Cuts: 11       90         
+      0     0       18.0000    15                     Cuts: 5       99         
+      0     0       18.0000    12                     Cuts: 2      100         
+      0     0       18.0000     9                 ZeroHalf: 2      101         
+      0     0       18.0000    15                     User: 1      105         
+      0     0       18.0000    10                     User: 1      120         
+      0     2       18.0000    10                     18.0000      120                                 0             0
+Elapsed time = 0.31 sec. (126.82 ticks, tree = 0.01 MB, solutions = 0)
+      1     3       18.0000    12                     18.0000      145         [put-down a >= 2 N      1      0      1
+      2     4       18.0000     7                     18.0000      147         [unstack a b >=  D      2      1      2
+      3     4       19.0000    45                     18.0000      157                stack b d U      3      2      3
+      4     5       18.0000    23                     18.0000      168                stack b d N      4      2      3
+      5     6       18.0952    33                     18.0000      187         [unstack a b >=  U      5      1      2
+      6     7       18.0000    22                     18.0000      202         [stack d e >= 1] D      6      4      4
+      7     7       19.0000    37                     18.0000      217         [stack b a >= 1] U      7      6      5
+      8     8       18.0000    17                     18.0000      221         [stack b a >= 1] D      8      6      5
+      9     8       18.1818    22                     18.0000      226         [put-down d >= 2 N      9      8      6
+     10     9       18.0000    15                     18.0000      234         [put-down d >= 2 N     10      8      6
+Elapsed time = 0.83 sec. (245.66 ticks, tree = 0.01 MB, solutions = 0)
+     11    10       18.2857    16                     18.0000      235                stack f b U     11     10      7
+     12    11       18.0000    18                     18.0000      245                stack f b N     12     10      7
+     13    12       18.2857    16                     18.0000      246                stack f e U     13     12      8
+     14    13       18.0000    18                     18.0000      247                stack f e D     14     12      8
+     15    14       18.2857    16                     18.0000      248               put-down f U     15     14      9
+     16    15       18.0000    17                     18.0000      249               put-down f D     16     14      9
+     17    16       18.2857    16                     18.0000      250                stack f d U     17     16     10
+     18    17       18.0000    11                     18.0000      254                stack f d D     18     16     10
+     19    17       18.2222    17                     18.0000      257         [stack b f >= 1] U     19     18     11
+     20    18       18.0000    11                     18.0000      259         [stack b f >= 1] D     20     18     11
+Elapsed time = 1.06 sec. (302.78 ticks, tree = 0.02 MB, solutions = 0)
+     21    19       18.2857    18                     18.0000      270         [unstack d b >=  U     21     20     12
+     22    20       18.1053    25                     18.0000      282         [unstack d b >=  D     22     20     12
+     23    21       18.0000    19                     18.0000      289         [stack d e >= 1] U     23      4      4
+     24    21       18.2500    23                     18.0000      320         [unstack b f >=  U     24     23      5
+     25    22       18.0000    19                     18.0000      334         [unstack b f >=  N     25     23      5
+     26    22       18.2500    22                     18.0000      376         [put-down b >= 1 N     26     25      6
+     27    23       18.0000    19                     18.0000      381         [put-down b >= 1 D     27     25      6
+     28    24       18.2222    18                     18.0000      407         [stack d b >= 1] U     28     27      7
+     29    25       18.0000    12                     18.0000      413         [stack d b >= 1] D     29     27      7
+     30    25       18.5000    11                     18.0000      446         [put-down d >= 1 N     30     29      8
+Elapsed time = 1.28 sec. (379.08 ticks, tree = 0.02 MB, solutions = 0)
+     31    26       18.2857    20                     18.1053      454         [put-down d >= 1 U     31     29      8
+     32    27       18.1053    21                     18.1053      459         [put-down a >= 1 N     32     22     13
+     33    26    infeasible                           18.1053      459                       YT D     33     32     14
+     34    27       19.0000    18                     18.1053      462                       YT U     34     32     14
+     35    28       18.1176    31                     18.1176      494         [put-down a >= 2 N     35      0      1
+     36    27    infeasible                           18.1176      494                       YT D     36     35      2
+     37    28       19.0000    30                     18.2000      497                       YT U     37     35      2
+     38    27    infeasible                           18.2222      502               [YF >= 19] N     38      5      3
+     39    28       20.0000     5                     18.2222      503                       YF U     39     28      8
+     40    27    infeasible                           18.2500      512                       YF D     40     28      8
+Elapsed time = 1.35 sec. (409.72 ticks, tree = 0.02 MB, solutions = 0)
+     41    28       18.2500    19                     18.2500      516               [YF >= 18] N     41     26      7
+     42    27    infeasible                           18.2500      518                       YF D     42     41      8
+     43    28       20.0000    13                     18.2500      525                       YF U     43     41      8
+     44    29       18.2500    19                     18.2500      526               [YF >= 17] U     44     24      6
+     45    28    infeasible                           18.2500      528                       YF D     45     44      7
+     46    29       20.0000    14                     18.2857      532                       YF U     46     44      7
+     47    28    infeasible                           18.2857      540                       YT D     47     17     11
+     48    27    infeasible                           18.2857      545                       YT D     48     15     10
+     49    28       19.0000    16                     18.2857      559                       YT N     49     15     10
+     50    29       19.0000    20                     18.2857      569                       YT U     50     13      9
+Elapsed time = 1.92 sec. (459.56 ticks, tree = 0.02 MB, solutions = 0)
+     51    28    infeasible                           18.2857      574                       YT D     51     13      9
+     52    27    infeasible                           18.2857      579                       YT D     52     11      8
+     53    28       19.0000    18                     18.2857      594                       YT N     53     11      8
+     54    29       19.0000    17                     18.2857      604                       YT U     54     17     11
+     55    30       18.2857    14                     18.2857      605               [YF >= 21] D     55     21     13
+     56    29    infeasible                           18.2857      607                       YF D     56     55     14
+     57    30       20.0000     4                     18.2857      609                       YF U     57     55     14
+     58    31       19.0000    10                     18.2857      613                       YT N     58     31      9
+     59    30    infeasible                           19.0000      615                       YT D     59     31      9
+     60    29    infeasible                           19.0000      620               [YF >= 20] N     60     58     10
+Elapsed time = 2.13 sec. (482.44 ticks, tree = 0.02 MB, solutions = 0)
+     61    30       20.0000     7                     19.0000      624                       YF U     61     30      9
+     62    29    infeasible                           19.0000      635               [YF >= 20] N     62     49     11
+     63    28    infeasible                           19.0000      645               [YF >= 20] N     63     54     12
+     64    29       19.0000    18                     19.0000      651                       YT N     64     19     12
+     65    28    infeasible                           19.0000      663               [YF >= 20] N     65     53      9
+     66    29       19.0000     8                     19.0000      679         [stack a d >= 2] N     66     34     15
+     67    28    infeasible                           19.0000      679               [YF >= 20] D     67     66     16
+     68    27    infeasible                           19.0000      680               [YF >= 20] N     68     64     13
+     69    28       19.0000    16                     19.0000      681         [stack a d >= 2] D     69     34     15
+
+GUB cover cuts applied:  1
+Clique cuts applied:  3
+Cover cuts applied:  2
+Flow cuts applied:  10
+Zero-half cuts applied:  7
+User cuts applied:  75
+
+Root node processing (before b&c):
+  Real time             =    0.31 sec. (126.23 ticks)
+Sequential b&c:
+  Real time             =    2.03 sec. (384.93 ticks)
+                          ------------
+Total (root+branch&cut) =    2.34 sec. (511.15 ticks)
+RESTARTING...
+Starting SOCWSSS CPLEX search...
+USING LAZY CONSTRAINT CALLBACK
+USING USERCUT CALLBACK
+USING HEURISTIC CALLBACK
+CPXPARAM_Preprocessing_Linear                    0
+CPXPARAM_LPMethod                                1
+CPXPARAM_QPMethod                                1
+CPXPARAM_Threads                                 1
+CPXPARAM_MIP_Interval                            1
+CPXPARAM_MIP_Strategy_StartAlgorithm             1
+CPXPARAM_MIP_Strategy_SubAlgorithm               1
+CPXPARAM_MIP_Strategy_HeuristicFreq              -1
+CPXPARAM_MIP_Strategy_Probe                      3
+CPXPARAM_Emphasis_MIP                            3
+CPXPARAM_MIP_Strategy_RINSHeur                   -1
+Lazy constraint(s) or lazy constraint callback is present.
+    Disabling dual reductions (CPX_PARAM_REDUCE) in presolve.
+         Disabling repeat represolve because of lazy constraint/incumbent callback.
+Tried aggregator 3 times.
+MIP Presolve eliminated 250 rows and 50 columns.
+MIP Presolve modified 583 coefficients.
+Aggregator did 34 substitutions.
+Reduced MIP has 1280 rows, 698 columns, and 4273 nonzeros.
+Reduced MIP has 530 binaries, 168 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (5.72 ticks)
+Probing fixed 159 vars, tightened 206 bounds.
+Probing changed sense of 4 constraints.
+Probing time = 0.02 sec. (18.37 ticks)
+Probing added 505 nonzeros.
+Clique table members: 1104.
+MIP emphasis: best bound.
+MIP search method: traditional branch-and-cut.
+Parallel mode: none, using 1 thread.
+Root relaxation solution time = 0.01 sec. (8.78 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap         Variable B NodeID Parent  Depth
+
+      0     0       16.4000    38                     16.4000      101         
+      0     0       17.0000    19                     Cuts: 5      111         
+      0     0       18.0000    23                    Cuts: 14      130         
+      0     0       18.0000    22                     Cuts: 6      140         
+      0     2       18.0000    14                     18.0000      140                                 0             0
+Elapsed time = 0.15 sec. (130.62 ticks, tree = 0.01 MB, solutions = 0)
+      1     3       18.0000    12                     18.0000      149         [stack d b >= 2] N      1      0      1
+      2     4       18.0000    12                     18.0000      166         [stack a d >= 2] D      2      1      2
+      3     5       18.0000    18                     18.0000      191         [stack d b >= 1] N      3      2      3
+      4     6       18.2857    33                     18.0000      254               put-down f N      4      3      4
+      5     7       18.0000    16                     18.0000      265               put-down f N      5      3      4
+      6     8       18.0000    17                     18.0000      280                stack d e N      6      5      5
+      7     9       18.0000    12                     18.0000      296         [put-down d >= 1 D      7      6      6
+      8     9       19.0000    28                     18.0000      329         [put-down d >= 1 N      8      6      6
+      9    10       18.4000    20                     18.0000      366                stack d a N      9      7      7
+     10    10       21.0000    11                     18.0000      376                stack d a N     10      7      7
+Elapsed time = 0.25 sec. (218.04 ticks, tree = 0.01 MB, solutions = 0)
+     11     9    infeasible                           18.1053      381                stack d e D     11      5      5
+     12     9       18.6667    28                     18.4000      427         [stack d b >= 1] N     12      2      3
+     13    10       18.4000    19                     18.4000      440         [put-down b >= 2 N     13      9      8
+     14    11       18.4000    19                     18.4000      445         [unstack f a >=  D     14     13      9
+     15    12       18.5000    22                     18.5000      462         [stack a f >= 1] N     15     14     10
+     16    12       18.8889    24                     18.6667      479               [YF >= 23] N     16     15     11
+     17    13       18.6667    16                     18.6667      540               [YF >= 17] N     17     12      4
+     18    12    infeasible                           18.6667      540                       YT D     18     17      5
+     19    13       19.0000    24                     18.6667      552                       YT N     19     17      5
+     20    12    infeasible                           19.0000      558               [YF >= 20] N     20      4      5
+Elapsed time = 0.64 sec. (279.81 ticks, tree = 0.01 MB, solutions = 0)
+     21    13       19.3333    16                     19.0000      591         [stack a d >= 2] N     21      1      2
+     22    13       19.0000    18                     19.0000      623         [stack d b >= 2] N     22      0      1
+     23    14       19.0000    15                     19.0000      624               [YF >= 18] U     23     22      2
+     24    13    infeasible                           19.0000      624               [YF >= 20] D     24     23      3
+     25    14       19.0000    23                     19.0000      626                       YT U     25     16     12
+     26    13    infeasible                           19.0000      632               [YF >= 20] D     26     25     13
+     27    12    infeasible                           19.0000      641               [YF >= 20] N     27     19      6
+     28    13       20.0000    18                     19.3333      661                       YT N     28      8      7
+     29    14       19.4400    41                     19.4400      717         [stack a d >= 4] N     29     21      3
+     30    13    infeasible                           20.0000      725               [YF >= 20] N     30     29      4
+Elapsed time = 1.28 sec. (337.06 ticks, tree = 0.01 MB, solutions = 0)
+     31    14       20.3077    21                     20.0000      767         [unstack f a >=  N     31     13      9
+     32    15       20.3636    21                     20.0000      798         [stack a f >= 1] N     32     14     10
+     33    14    infeasible                           20.0000      807               [YF >= 20] U     33     23      3
+     34    15       20.5000    11                     20.0000      815         [stack a d >= 4] U     34     21      3
+     35    16       20.0000     7                     20.0000      816         [put-down d >= 2 U     35     28      8
+     36    17       20.0000    14                     20.0000      844              unstack d e N     36     35      9
+     37    18       20.0000     6                     20.0000      859              unstack d e N     37     35      9
+     38    19       21.0000     5                     20.0000      863         [stack b d >= 1] U     38     37     10
+     39    20       20.0784    24                     20.0000      869         [stack b d >= 1] N     39     37     10
+     40    21       20.6667    15                     20.0000      885         [put-down d >= 3 N     40     36     10
+Elapsed time = 1.78 sec. (395.00 ticks, tree = 0.02 MB, solutions = 0)
+     41    22       20.1000    26                     20.0000      921         [put-down d >= 3 D     41     36     10
+     42    23       20.0000    15                     20.0000      928         [put-down d >= 2 N     42     28      8
+     43    24       20.0000    15                     20.0000      929                stack d f D     43     42      9
+     44    25       20.1818    25                     20.0000      933                stack d f U     44     42      9
+     45    26       20.1818    25                     20.0000      939                stack f d U     45     43     10
+     46    27       20.0000    16                     20.0000      941                stack f d D     46     43     10
+     47    28       20.1333    27                     20.0000      942                stack d a U     47     46     11
+     48    29       20.0000    11                     20.0000      944                stack d a N     48     46     11
+     49    30       20.2500    22                     20.0000      960               put-down c U     49     48     12
+     50    31       20.0000    13                     20.0000      961               put-down c N     50     48     12
+Elapsed time = 2.18 sec. (452.28 ticks, tree = 0.03 MB, solutions = 0)
+     51    32       20.2222    22                     20.0000      966                stack f b U     51     50     13
+     52    33       20.0000    11                     20.0000      969                stack f b N     52     50     13
+     53    34       20.0000    11                     20.0000      971               put-down e N     53     52     14
+     54    35       20.2500    22                     20.0000      976               put-down e U     54     52     14
+     55    36       20.2500     7                     20.0000      977         [put-down a >= 3 U     55     53     15
+     56    37       20.0000    13                     20.0000      978         [put-down a >= 3 D     56     53     15
+     57    38       20.0000    15                     20.0000     1002         [unstack b f >=  N     57     56     16
+     58    39       20.0000    13                     20.0000     1012         [unstack b f >=  N     58     56     16
+     59    40       20.0000    14                     20.0000     1018         [stack f e >= 1] N     59     58     17
+     60    41       20.2857    19                     20.0000     1029         [stack f e >= 1] U     60     58     17
+Elapsed time = 3.11 sec. (513.73 ticks, tree = 0.03 MB, solutions = 0)
+     61    42       21.3333    18                     20.0000     1061         [put-down b >= 2 N     61     59     18
+     62    43       20.0000    13                     20.0000     1062         [put-down b >= 2 D     62     59     18
+     63    44       20.0000    14                     20.0000     1065         [unstack b d >=  U     63     62     19
+     64    45       20.0000    14                     20.0000     1072         [unstack b d >=  N     64     62     19
+     65    45       20.0952    37                     20.0000     1077         [stack b d >= 2] D     65     63     20
+     66    46       20.3333     7                     20.0000     1079         [stack b d >= 2] U     66     63     20
+     67    47       20.5714    18                     20.0000     1101         [stack e d >= 1] N     67     64     20
+     68    48       20.0000    12                     20.0000     1103         [stack e d >= 1] D     68     64     20
+     69    49       20.5000    13                     20.0000     1110                stack b e U     69     68     21
+     70    50       20.0000    14                     20.0000     1114                stack b e D     70     68     21
+Elapsed time = 4.36 sec. (598.05 ticks, tree = 0.04 MB, solutions = 0)
+     71    51       20.2857    19                     20.0000     1136         [stack e b >= 1] U     71     70     22
+     72    52       20.0000    13                     20.0000     1139         [stack e b >= 1] D     72     70     22
+     73    53       20.5000    13                     20.0000     1143              unstack e f U     73     72     23
+     74    54       20.0000    15                     20.0000     1146              unstack e f D     74     72     23
+     75    55       20.8889    15                     20.0000     1169         [stack b a >= 1] N     75     57     17
+     76    56       20.2857    19                     20.0000     1185         [unstack e c >=  U     76     74     24
+     77    57       20.0000    12                     20.0000     1188         [unstack e c >=  D     77     74     24
+     78    58       20.5000    16                     20.0000     1196                stack c b U     78     77     25
+     79    59       20.0000    12                     20.0000     1199                stack c b D     79     77     25
+     80    60       20.5000    16                     20.0000     1212                stack c e U     80     79     26
+Elapsed time = 4.83 sec. (643.54 ticks, tree = 0.05 MB, solutions = 0)
+     81    61       20.0000    13                     20.0000     1214                stack c e D     81     79     26
+     82    62       20.5000    16                     20.0000     1224              unstack b c U     82     81     27
+     83    63       20.0000    13                     20.0000     1225              unstack b c D     83     81     27
+     84    64       20.5000    16                     20.0000     1235              unstack c d U     84     83     28
+     85    65       20.0000    14                     20.0000     1237              unstack c d N     85     83     28
+     86    65       20.5000    20                     20.0000     1242         [unstack a f >=  U     86     85     29
+     87    66       20.0000    13                     20.0000     1244         [unstack a f >=  D     87     85     29
+     88    67       20.0671    19                     20.0000     1263              unstack f a U     88     87     30
+     89    68       20.0000    11                     20.0000     1264              unstack f a N     89     87     30
+     90    69       20.6667    15                     20.0000     1283         [stack b a >= 2] N     90     89     31
+Elapsed time = 5.05 sec. (688.98 ticks, tree = 0.05 MB, solutions = 0)
+     91    70       20.0000    17                     20.0000     1290         [stack b a >= 2] D     91     89     31
+
+GUB cover cuts applied:  1
+Clique cuts applied:  4
+Cover cuts applied:  3
+Flow cuts applied:  13
+Zero-half cuts applied:  15
+Gomory fractional cuts applied:  1
+User cuts applied:  96
+
+Root node processing (before b&c):
+  Real time             =    0.15 sec. (130.00 ticks)
+Sequential b&c:
+  Real time             =    5.06 sec. (566.31 ticks)
+                          ------------
+Total (root+branch&cut) =    5.21 sec. (696.30 ticks)
+RESTARTING...
+Starting SOCWSSS CPLEX search...
+USING LAZY CONSTRAINT CALLBACK
+USING USERCUT CALLBACK
+USING HEURISTIC CALLBACK
+CPXPARAM_Preprocessing_Linear                    0
+CPXPARAM_LPMethod                                1
+CPXPARAM_QPMethod                                1
+CPXPARAM_Threads                                 1
+CPXPARAM_MIP_Interval                            1
+CPXPARAM_MIP_Strategy_StartAlgorithm             1
+CPXPARAM_MIP_Strategy_SubAlgorithm               1
+CPXPARAM_MIP_Strategy_HeuristicFreq              -1
+CPXPARAM_MIP_Strategy_Probe                      3
+CPXPARAM_Emphasis_MIP                            3
+CPXPARAM_MIP_Strategy_RINSHeur                   -1
+Lazy constraint(s) or lazy constraint callback is present.
+    Disabling dual reductions (CPX_PARAM_REDUCE) in presolve.
+         Disabling repeat represolve because of lazy constraint/incumbent callback.
+Tried aggregator 3 times.
+MIP Presolve eliminated 226 rows and 50 columns.
+MIP Presolve modified 595 coefficients.
+Aggregator did 34 substitutions.
+Reduced MIP has 1422 rows, 708 columns, and 6173 nonzeros.
+Reduced MIP has 540 binaries, 168 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (7.12 ticks)
+Probing fixed 159 vars, tightened 207 bounds.
+Probing changed sense of 5 constraints.
+Probing time = 0.02 sec. (17.48 ticks)
+Probing added 593 nonzeros.
+Clique table members: 1151.
+MIP emphasis: best bound.
+MIP search method: traditional branch-and-cut.
+Parallel mode: none, using 1 thread.
+Root relaxation solution time = 0.02 sec. (16.15 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap         Variable B NodeID Parent  Depth
+
+      0     0       16.5926    39                     16.5926      128         
+      0     0       17.0000    33                     Cuts: 8      173         
+      0     0       18.0000    27                    Cuts: 10      216         
+      0     0       18.0000    29                     Cuts: 7      239         
+      0     0        cutoff                                        250                                 0             0
+Elapsed time = 0.17 sec. (146.33 ticks, tree = 0.01 MB, solutions = 0)
+
+GUB cover cuts applied:  1
+Clique cuts applied:  2
+Cover cuts applied:  1
+Flow cuts applied:  6
+Zero-half cuts applied:  3
+Gomory fractional cuts applied:  1
+
+Root node processing (before b&c):
+  Real time             =    0.17 sec. (146.35 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.00 ticks)
+                          ------------
+Total (root+branch&cut) =    0.17 sec. (146.35 ticks)
+Repeated seqs: 22
+Restarts: 5
+Any zero cost ops: 0
+All unit cost ops: 1
+Min op cost: 1
+Max op cost: 1
+Perc astar is better: 0.00000
+Min plan in cache: 2147483647
+Max f found: 24.00000
+Best bound found: 999999999999999926539781176481198923508803215199467887262646419780362305536.00000
+Mean ops by constraint: 0.20118
+Median ops by constraint: 0.18056
+Last ops by constraint: 0.13889
+Mean LP added constraints: 0.00000
+Last LP added constraints: 0
+Number of ops: 72
+Number of variables: 13
+Number of seqs: 235
+Times made progress: 41
+Last nodes expanded: 71
+Last astar time: 0.04038
+Mean nodes expanded: 48.00851
+Max op count: 5
+Max num ops: 25
+Max num distinct ops: 23
+Max LP solution: 25.00000
+Initial LP solution: 12.00000
+Total astar time: 0.04038s
+Total pre LP time: 0.00000s
+Total LP time: 0.00000s
+Total solve time: 8.65006s
+INFEASIBLE
+Actual search time: 8.64475s [t=8.65157s]
+Search time: 8.64888s
+Total time: 8.65158s
+Search stopped without finding a solution.
+Peak memory: 104492 KB
+search exit code: 12
+
+Driver aborting after search

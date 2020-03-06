@@ -1,10 +1,36 @@
+run_pref="./fast-downward.py --overall-memory-limit 4096M --overall-time-limit 30m"
+
+opts="socwsss(heuristic=hstar_pdb, print_log=false)"
+export CPLEXHOME="/opt/ibm/ILOG/CPLEX_Studio128" && export DOWNWARD_CPLEX_ROOT="/opt/ibm/ILOG/CPLEX_Studio128/cplex"
+rm -rf builds && ./build.py
+$run_pref $DOWNWARD_BENCHMARKS/gripper-hstar/prob05.sas --search "$opts" > log_gripper_hstar_cplex1208.txt
+export CPLEXHOME="/home/wlkaizer/.cplex1210" && export DOWNWARD_CPLEX_ROOT="/home/wlkaizer/.cplex1210/cplex"
+rm -rf builds && ./build.py
+$run_pref $DOWNWARD_BENCHMARKS/gripper-hstar/prob05.sas --search "$opts" > log_gripper_hstar_cplex1210.txt
+
+opts="socwsss(heuristic=lmcut, print_log=false)"
+export CPLEXHOME="/opt/ibm/ILOG/CPLEX_Studio128" && export DOWNWARD_CPLEX_ROOT="/opt/ibm/ILOG/CPLEX_Studio128/cplex"
+rm -rf builds && ./build.py
+$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts" > log_blocks_lmcut_cplex1208.txt
+export CPLEXHOME="/home/wlkaizer/.cplex1210" && export DOWNWARD_CPLEX_ROOT="/home/wlkaizer/.cplex1210/cplex"
+rm -rf builds && ./build.py
+$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts" > log_blocks_lmcut_cplex1210.txt
+
+opts="socwsss(heuristic=operatorcounting, operator_counting_constraints=seq_landmarks, print_log=false)"
+export CPLEXHOME="/opt/ibm/ILOG/CPLEX_Studio128" && export DOWNWARD_CPLEX_ROOT="/opt/ibm/ILOG/CPLEX_Studio128/cplex"
+rm -rf builds && ./build.py
+$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts" > log_blocks_oc_cplex1208.txt
+export CPLEXHOME="/home/wlkaizer/.cplex1210" && export DOWNWARD_CPLEX_ROOT="/home/wlkaizer/.cplex1210/cplex"
+rm -rf builds && ./build.py
+$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts" > log_blocks_oc_cplex1210.txt
+
 ##############################################################################
 #opts="socwsss()"
 #$run_pref $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas --search "$opts"
 #valgrind builds/release/bin/downward --search "$opts" < $DOWNWARD_BENCHMARKS/elevators-opt11-strips/p01.sas
 ################################################################################
-./build.py
-run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 30m"
+#./build.py
+#run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 30m"
 ################################################################################
 #opts="astar(lmcut())"
 #opts="socwsss(constraint_type=2, constraint_generators=seq_landmarks, heuristic=lmcut)"
@@ -43,9 +69,9 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 3
 
 
 #################################################################################
-run_pref="./fast-downward.py --overall-memory-limit 4096M --overall-time-limit 5m"
+#run_pref="./fast-downward.py --overall-memory-limit 4096M --overall-time-limit 30m"
 
-rm -rf logs && mkdir logs && mkdir logs/blind && mkdir logs/lmcut && mkdir logs/oc && mkdir logs/hstar && mkdir logs/sat
+#rm -rf logs && mkdir logs && mkdir logs/blind && mkdir logs/lmcut && mkdir logs/oc && mkdir logs/hstar && mkdir logs/sat
 
 #opts="astar(blind())"
 #opts="astar(lmcut())"
@@ -66,9 +92,9 @@ rm -rf logs && mkdir logs && mkdir logs/blind && mkdir logs/lmcut && mkdir logs/
 #$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob07.sas --search "$opts" > logs/oc/3.txt
 #$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob18.sas --search "$opts" > logs/oc/4.txt
 
-opts="socwsss(heuristic=hstar_pdb, print_log=false)"
+#opts="socwsss(heuristic=hstar_pdb, print_log=false)"
 #$run_pref $DOWNWARD_BENCHMARKS/gripper-hstar/prob04.sas --search "$opts" > logs/hstar/1.txt
-$run_pref $DOWNWARD_BENCHMARKS/gripper-hstar/prob05.sas --search "$opts"
+#$run_pref $DOWNWARD_BENCHMARKS/gripper-hstar/prob05.sas --search "$opts"
 #$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob07.sas --search "$opts" > logs/hstar/3.txt
 #$run_pref $DOWNWARD_BENCHMARKS/mystery-hstar/prob18.sas --search "$opts" > logs/hstar/4.txt
 
