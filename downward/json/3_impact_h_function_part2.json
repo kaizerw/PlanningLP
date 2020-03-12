@@ -1,0 +1,67 @@
+[
+  {
+        "name": "OpSeq",
+        "search": "socwsss(sat_seq=true)",
+        "domains": [
+                  "blocks-hstar", "depot-hstar", "driverlog-hstar", "elevators-opt08-strips-hstar", "elevators-opt11-strips-hstar", 
+                  "ged-opt14-strips-hstar", "gripper-hstar", "hiking-opt14-strips-hstar", "logistics00-hstar", "logistics98-hstar", 
+                  "miconic-hstar", "movie-hstar", "mprime-hstar", "mystery-hstar", "nomystery-opt11-strips-hstar", 
+                  "openstacks-opt08-strips-hstar", "openstacks-strips-hstar", "parcprinter-08-strips-hstar", "pathways-noneg-hstar", "pegsol-08-strips-hstar", 
+                  "psr-small-hstar", "rovers-hstar", "satellite-hstar", "scanalyzer-08-strips-hstar", "scanalyzer-opt11-strips-hstar", 
+                  "storage-hstar", "tpp-hstar", "transport-opt08-strips-hstar", "transport-opt11-strips-hstar", "transport-opt14-strips-hstar", 
+                  "trucks-strips-hstar", "visitall-opt11-strips-hstar", "visitall-opt14-strips-hstar", "woodworking-opt08-strips-hstar", "zenotravel-hstar"
+        ]
+   },
+   {
+        "name": "OpSearch_blind",
+        "search": "socwsss(heuristic=blind)",
+        "domains": [
+                  "blocks-hstar", "depot-hstar", "driverlog-hstar", "elevators-opt08-strips-hstar", "elevators-opt11-strips-hstar", 
+                  "ged-opt14-strips-hstar", "gripper-hstar", "hiking-opt14-strips-hstar", "logistics00-hstar", "logistics98-hstar", 
+                  "miconic-hstar", "movie-hstar", "mprime-hstar", "mystery-hstar", "nomystery-opt11-strips-hstar", 
+                  "openstacks-opt08-strips-hstar", "openstacks-strips-hstar", "parcprinter-08-strips-hstar", "pathways-noneg-hstar", "pegsol-08-strips-hstar", 
+                  "psr-small-hstar", "rovers-hstar", "satellite-hstar", "scanalyzer-08-strips-hstar", "scanalyzer-opt11-strips-hstar", 
+                  "storage-hstar", "tpp-hstar", "transport-opt08-strips-hstar", "transport-opt11-strips-hstar", "transport-opt14-strips-hstar", 
+                  "trucks-strips-hstar", "visitall-opt11-strips-hstar", "visitall-opt14-strips-hstar", "woodworking-opt08-strips-hstar", "zenotravel-hstar"
+        ]
+   },
+   {
+        "name": "OpSearch_lmcut",
+        "search": "socwsss(heuristic=lmcut)",
+        "domains": [
+                  "blocks-hstar", "depot-hstar", "driverlog-hstar", "elevators-opt08-strips-hstar", "elevators-opt11-strips-hstar", 
+                  "ged-opt14-strips-hstar", "gripper-hstar", "hiking-opt14-strips-hstar", "logistics00-hstar", "logistics98-hstar", 
+                  "miconic-hstar", "movie-hstar", "mprime-hstar", "mystery-hstar", "nomystery-opt11-strips-hstar", 
+                  "openstacks-opt08-strips-hstar", "openstacks-strips-hstar", "parcprinter-08-strips-hstar", "pathways-noneg-hstar", "pegsol-08-strips-hstar", 
+                  "psr-small-hstar", "rovers-hstar", "satellite-hstar", "scanalyzer-08-strips-hstar", "scanalyzer-opt11-strips-hstar", 
+                  "storage-hstar", "tpp-hstar", "transport-opt08-strips-hstar", "transport-opt11-strips-hstar", "transport-opt14-strips-hstar", 
+                  "trucks-strips-hstar", "visitall-opt11-strips-hstar", "visitall-opt14-strips-hstar", "woodworking-opt08-strips-hstar", "zenotravel-hstar"
+        ]
+   },
+   {
+        "name": "OpSearch_oc",
+        "search": "socwsss(heuristic=operatorcounting, operator_counting_constraints=seq_landmarks)",
+        "domains": [
+                  "blocks-hstar", "depot-hstar", "driverlog-hstar", "elevators-opt08-strips-hstar", "elevators-opt11-strips-hstar", 
+                  "ged-opt14-strips-hstar", "gripper-hstar", "hiking-opt14-strips-hstar", "logistics00-hstar", "logistics98-hstar", 
+                  "miconic-hstar", "movie-hstar", "mprime-hstar", "mystery-hstar", "nomystery-opt11-strips-hstar", 
+                  "openstacks-opt08-strips-hstar", "openstacks-strips-hstar", "parcprinter-08-strips-hstar", "pathways-noneg-hstar", "pegsol-08-strips-hstar", 
+                  "psr-small-hstar", "rovers-hstar", "satellite-hstar", "scanalyzer-08-strips-hstar", "scanalyzer-opt11-strips-hstar", 
+                  "storage-hstar", "tpp-hstar", "transport-opt08-strips-hstar", "transport-opt11-strips-hstar", "transport-opt14-strips-hstar", 
+                  "trucks-strips-hstar", "visitall-opt11-strips-hstar", "visitall-opt14-strips-hstar", "woodworking-opt08-strips-hstar", "zenotravel-hstar"
+        ]
+   },
+   {
+        "name": "OpSearch_hstar",
+        "search": "socwsss(heuristic=hstar_pdb)",
+        "domains": [
+                  "blocks-hstar", "depot-hstar", "driverlog-hstar", "elevators-opt08-strips-hstar", "elevators-opt11-strips-hstar", 
+                  "ged-opt14-strips-hstar", "gripper-hstar", "hiking-opt14-strips-hstar", "logistics00-hstar", "logistics98-hstar", 
+                  "miconic-hstar", "movie-hstar", "mprime-hstar", "mystery-hstar", "nomystery-opt11-strips-hstar", 
+                  "openstacks-opt08-strips-hstar", "openstacks-strips-hstar", "parcprinter-08-strips-hstar", "pathways-noneg-hstar", "pegsol-08-strips-hstar", 
+                  "psr-small-hstar", "rovers-hstar", "satellite-hstar", "scanalyzer-08-strips-hstar", "scanalyzer-opt11-strips-hstar", 
+                  "storage-hstar", "tpp-hstar", "transport-opt08-strips-hstar", "transport-opt11-strips-hstar", "transport-opt14-strips-hstar", 
+                  "trucks-strips-hstar", "visitall-opt11-strips-hstar", "visitall-opt14-strips-hstar", "woodworking-opt08-strips-hstar", "zenotravel-hstar"
+        ]
+   }
+]

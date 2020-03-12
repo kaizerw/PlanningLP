@@ -1,0 +1,2 @@
+export CPLEXHOME=/home/wlkaizer/.cplex1210
+export DOWNWARD_CPLEX_ROOT=/home/wlkaizer/.cplex1210/cplex

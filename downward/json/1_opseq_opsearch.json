@@ -1,7 +1,7 @@
 [
-      {
-        "name": "LMCUT_T3",
-        "search": "socwsss(constraint_type=3, constraint_generators=seq_landmarks_h+, heuristic=lmcut, ignore_zero_cost_ops=true)",
+   {
+        "name": "OpSeq",
+        "search": "socwsss(sat_seq=true)",
         "domains": [
             "barman-opt11-strips",
             "elevators-opt11-strips",
@@ -17,8 +17,8 @@
         ]
    },
    {
-        "name": "SAT",
-        "search": "socwsss(sat_seq=true, constraint_generators=seq_landmarks_h+, ignore_zero_cost_ops=true)",
+        "name": "OpSearch",
+        "search": "socwsss()",
         "domains": [
             "barman-opt11-strips",
             "elevators-opt11-strips",
