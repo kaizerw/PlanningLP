@@ -1,0 +1,3 @@
+nohup ./run_tests.py --configs json/1_opseq_opsearch.json --n_procs 4 --name 1_opseq_opsearch &
+nohup ./run_tests.py --configs json/2_impact_h_function_part1.json --n_procs 4 --name 2_impact_h_function_part1 &
+nohup ./run_tests.py --configs json/3_impact_h_function_part2.json --n_procs 4 --name 3_impact_h_function_part2 &
