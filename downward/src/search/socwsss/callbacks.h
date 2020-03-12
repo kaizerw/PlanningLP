@@ -225,13 +225,12 @@ struct Shared {
 
         cout << (sat >= 1 ? "GLC SATISFIED" : "GLC NOT SATISFIED") << "(" << sat
              << "):" << endl;
-        if (glc->yt_bound > 0) cout << "+ [YT >= " << glc->yt_bound << "]";
-        if (glc->yf_bound > 0) cout << "+ [YF >= " << glc->yf_bound << "]";
+        if (glc->yt_bound > 0) cout << "\t[YT >= " << glc->yt_bound << "] (" << plan_op_counts[yt_index] << ")" << endl;
+        if (glc->yf_bound > 0) cout << "\t[YF >= " << glc->yf_bound << "] (" << plan_op_counts[yf_index] << ")" << endl;
         for (auto &[op_id, op_bound] : glc->ops_bounds) {
-            cout << " + [" << ops[op_id].get_name() << " >= " << op_bound
-                 << "]";
+            cout << "\t[" << ops[op_id].get_name() << " >= " << op_bound
+                 << "] (" << plan_op_counts[op_id] << ")" << endl;
         }
-        cout << " >= 1" << endl;
     }
 
     shared_ptr<vector<vector<int>>> bounds_literals;

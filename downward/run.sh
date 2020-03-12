@@ -1,28 +1,14 @@
-run_pref="./fast-downward.py --overall-memory-limit 4096M --overall-time-limit 30m"
+run_pref="./fast-downward.py --overall-memory-limit 4096M --overall-time-limit 5m"
+
+export CPLEXHOME="/opt/ibm/ILOG/CPLEX_Studio128" && export DOWNWARD_CPLEX_ROOT="/opt/ibm/ILOG/CPLEX_Studio128/cplex"
+./build.py
 
 opts="socwsss(heuristic=hstar_pdb, print_log=false)"
-export CPLEXHOME="/opt/ibm/ILOG/CPLEX_Studio128" && export DOWNWARD_CPLEX_ROOT="/opt/ibm/ILOG/CPLEX_Studio128/cplex"
-rm -rf builds && ./build.py
-$run_pref $DOWNWARD_BENCHMARKS/gripper-hstar/prob05.sas --search "$opts" > log_gripper_hstar_cplex1208.txt
-export CPLEXHOME="/home/wlkaizer/.cplex1210" && export DOWNWARD_CPLEX_ROOT="/home/wlkaizer/.cplex1210/cplex"
-rm -rf builds && ./build.py
-$run_pref $DOWNWARD_BENCHMARKS/gripper-hstar/prob05.sas --search "$opts" > log_gripper_hstar_cplex1210.txt
-
-opts="socwsss(heuristic=lmcut, print_log=false)"
-export CPLEXHOME="/opt/ibm/ILOG/CPLEX_Studio128" && export DOWNWARD_CPLEX_ROOT="/opt/ibm/ILOG/CPLEX_Studio128/cplex"
-rm -rf builds && ./build.py
-$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts" > log_blocks_lmcut_cplex1208.txt
-export CPLEXHOME="/home/wlkaizer/.cplex1210" && export DOWNWARD_CPLEX_ROOT="/home/wlkaizer/.cplex1210/cplex"
-rm -rf builds && ./build.py
-$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts" > log_blocks_lmcut_cplex1210.txt
-
-opts="socwsss(heuristic=operatorcounting, operator_counting_constraints=seq_landmarks, print_log=false)"
-export CPLEXHOME="/opt/ibm/ILOG/CPLEX_Studio128" && export DOWNWARD_CPLEX_ROOT="/opt/ibm/ILOG/CPLEX_Studio128/cplex"
-rm -rf builds && ./build.py
-$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts" > log_blocks_oc_cplex1208.txt
-export CPLEXHOME="/home/wlkaizer/.cplex1210" && export DOWNWARD_CPLEX_ROOT="/home/wlkaizer/.cplex1210/cplex"
-rm -rf builds && ./build.py
-$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts" > log_blocks_oc_cplex1210.txt
+$run_pref $DOWNWARD_BENCHMARKS/gripper-hstar/prob05.sas --search "$opts"
+#opts="socwsss(heuristic=lmcut, print_log=false)"
+#$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts"
+#opts="socwsss(heuristic=operatorcounting, operator_counting_constraints=seq_landmarks, print_log=false)"
+#$run_pref $DOWNWARD_BENCHMARKS/blocks-hstar/probBLOCKS-6-2.sas --search "$opts"
 
 ##############################################################################
 #opts="socwsss()"

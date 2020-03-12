@@ -321,8 +321,8 @@ void SOCWSSS::create_cplex_model() {
 
     cplex = make_shared<IloCplex>((*model));
 
-    //cplex->setOut(env->getNullStream());
-    //cplex->setWarning(env->getNullStream());
+    // cplex->setOut(env->getNullStream());
+    // cplex->setWarning(env->getNullStream());
     cplex->setParam(IloCplex::MIPInterval, 1);
 
     cplex->setParam(IloCplex::Threads, 1);
@@ -502,26 +502,18 @@ SearchStatus SOCWSSS::step() {
         cplex->getStatus() == IloAlgorithm::Status::InfeasibleOrUnbounded) {
         cout << "INFEASIBLE" << endl;
 
-        /*
-        for (OperatorProxy op : ops) {
-            cout << op.get_name() << endl;
-        }
+        cplex->exportModel(string("model_inf.lp").c_str());
 
-        
-        //cout << "LAST ONLY ADDED GLC VERIFICATION:" << endl;
-        //for (auto &[glc, state] : shr->cache_glcs.cache) {
-        //    if (state != GLCState::NEW) {
-        //        shr->verify_glc(glc);
-        //    }
+        // for (OperatorProxy op : ops) {
+        //    cout << op.get_name() << endl;
         //}
 
-        cout << "LAST ALL GLC VERIFICATION:" << endl;
-        for (auto &[glc, state] : shr->cache_glcs.cache) {
-            shr->verify_glc(glc);
-        }
+        //cout << "LAST ALL GLC VERIFICATION:" << endl;
+        //for (auto &[glc, state] : shr->cache_glcs.cache) {
+        //    shr->verify_glc(glc);
+        //}
 
-
-
+        /*
         ////////////////////////////////////////////////////////////////////////
         for (auto &[k, v] : shr->cache_op_counts.cache) {
             cout << "\t sequenciable? " << v->sequenciable;
@@ -532,9 +524,8 @@ SearchStatus SOCWSSS::step() {
             bool subset = true;
             for (size_t i = 0; i < ops.size(); ++i) {
                 if (!(opcount[i] >= shr->plan_op_counts[i])) {
-                    cout << "\t op " << i << " = [" << opcount[i] << " -> " << shr->plan_op_counts[i] << "]";
-                    subset = false;
-                    break;
+                    cout << "\t op " << i << " = [" << opcount[i] << " -> " <<
+        shr->plan_op_counts[i] << "]"; subset = false; break;
                 }
             }
             cout << "\t subset? " << subset << endl;
@@ -543,18 +534,18 @@ SearchStatus SOCWSSS::step() {
         ////////////////////////////////////////////////////////////////////////
         */
 
-
         /*
         cout << "SOLVING AGAIN..." << endl;
         create_cplex_model();
-        
-        //cplex->setParam(IloCplex::Param::MIP::Strategy::Search, IloCplex::Traditional);
+
+        //cplex->setParam(IloCplex::Param::MIP::Strategy::Search,
+        IloCplex::Traditional);
         //cplex->setParam(IloCplex::Reduce, 0);
         //cplex->setParam(IloCplex::Param::Preprocessing::Dual, -1);
         //cplex->setParam(IloCplex::Param::Preprocessing::Linear, 0);
         //cplex->setParam(IloCplex::Param::Preprocessing::RepeatPresolve, 0);
         //cplex->setParam(IloCplex::PreInd, 0);
-        
+
         //cplex->use(EmptyLazyCallback(shr));
         //cplex->use((*lazy_callback));
         //cplex->use((*usercut_callback));
