@@ -1,0 +1,6 @@
+08/04/2020:
+Verificar quais operadores da solução ótima faltam.
+Testar com mais contadores, verificar se restarts tem efeito.
+Verificar quando o problema acontece usando o custo do plano ótimo e do lower bound global.
+Verificar se nodos relaxação dos nodos recebidos vs. menor lower bound do CPLEX.
+

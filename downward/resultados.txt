@@ -1,0 +1,22 @@
+TIMEOUT = 2min
+
+                        CPLEX 12.8           CPLEX 12.8          CPLEX 12.8        CPLEX 12.10
+                        lmcut/blocks-6-2     oc/blocks-6-2       h*/gripper05      oc/blocks-7-1
+                        C* = 20              C* = 20             C* = 35           C* = 22
+
+WITH LOG,K=2            SOLVED               SOLVED              INF               SOLVED
+
+NO LOG,K=2              INF                  INF                 INF               INF
+NO LOG,K=5              TIMEOUT              TIMEOUT             TIMEOUT           TIMEOUT
+NO LOG,K=10             TIMEOUT              TIMEOUT             TIMEOUT           TIMEOUT
+NO LOG,K=20             SOLVED               TIMEOUT             TIMEOUT           TIMEOUT
+NO LOG,K=30             SOLVED               SOLVED              TIMEOUT           TIMEOUT
+NO LOG,K=40             SOLVED               TIMEOUT             TIMEOUT           TIMEOUT
+
+NO LOG,ALL OPS=10       SOLVED               SOLVED              SOLVED            SOLVED
+
+WITH FIX,NO LOG         SOLVED               TIMEOUT             TIMEOUT           INF
+WITH FIX,WITH LOG       SOLVED               TIMEOUT             TIMEOUT           SOLVED
+
+WITH FIX,NO LOG,K=30    SOLVED               SOLVED              TIMEOUT           TIMEOUT
+WITH FIX,WITH LOG,K=30  SOLVED               SOLVED              TIMEOUT           TIMEOUT
