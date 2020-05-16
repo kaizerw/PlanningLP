@@ -428,9 +428,9 @@ IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc,
     int last_yt_bound = (*bounds_literals)[yt_index].size() - 1;
     if (yt_bound > 0) {
         if (yt_bound <= last_yt_bound) {
-            cut += 1.0 * (*x)[(*bounds_literals)[yt_index][yt_bound]];
+	    cut += 1.0 * (*x)[(*bounds_literals)[yt_index][yt_bound]];
         } else {
-            missing_bounds++;
+	    missing_bounds++;
             cut += (1.0 / yt_bound) * (*x)[yt_index];
         }
     }
@@ -439,28 +439,25 @@ IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc,
     int last_yf_bound = (*bounds_literals)[yf_index].size() - 1;
     if (yf_bound > 0) {
         if (yf_bound <= last_yf_bound) {
-            cut += 1.0 * (*x)[(*bounds_literals)[yf_index][yf_bound]];
+	    cut += 1.0 * (*x)[(*bounds_literals)[yf_index][yf_bound]];
         } else {
-            missing_bounds++;
+	    missing_bounds++;
             cut += (1.0 / yf_bound) * (*x)[yf_index];
         }
     }
-
+   
     for (auto& [op_id, op_bound] : learned_glc->ops_bounds) {
         int last_op_bound = (*bounds_literals)[op_id].size() - 1;
 
         if (op_bound <= last_op_bound) {
-            cut += 1.0 * (*x)[(*bounds_literals)[op_id][op_bound]];
+	    cut += 1.0 * (*x)[(*bounds_literals)[op_id][op_bound]];
         } else {
-            missing_bounds++;
+	    missing_bounds++;
             cut += (1.0 / op_bound) * (*x)[op_id];
         }
     }
 
-    if (missing_bounds > 1) {
-        restart = true;
-        callback->abort();
-    }
+    if (missing_bounds > 1) restart = true;
 
     return cut;
 }
@@ -577,11 +574,12 @@ void Shared::log(IloCplex::ControlCallbackI* callback, CallbackType type) {
         }
     }
     cerr << string(80, '*') << endl;
+
 }
 
 void Shared::log() {
     if (!opts.get<bool>("print_log")) return;
-
+    
     cerr << string(80, '*') << endl;
     cerr << boolalpha;
     cerr << "SEQ: " << seq << endl;
@@ -819,7 +817,7 @@ void Shared::step_sat_loop() {
 }
 
 void LazyCallbackI::main() {
-    if (shr->restart) return;
+    if (shr->restart) { abort(); return; }
     if (isUnboundedNode()) return;
 
     shr->extract_sol(this);
@@ -829,12 +827,13 @@ void LazyCallbackI::main() {
     if (!shr->info->sequenciable) {
         for (auto& glc : shr->info->learned_glcs) {
             auto cut = shr->get_cut(glc, this);
-            if (shr->restart) return;
+            if (shr->restart) { abort(); return; }
             add(cut >= 1.0).end();
             shr->cache_glcs.set(glc, GLCState::ADDED_AS_LAZY);
         }
     }
     shr->log(this, CallbackType::LAZY);
+    if (shr->restart) { abort(); return; }
 }
 
 IloCplex::Callback LazyCallback(shared_ptr<Shared> shr) {
@@ -842,7 +841,7 @@ IloCplex::Callback LazyCallback(shared_ptr<Shared> shr) {
 }
 
 void UserCutCallbackI::main() {
-    if (shr->restart) return;
+    if (shr->restart) { abort(); return; }
     if (!isAfterCutLoop()) return;
 
     shr->extract_sol(this);
@@ -852,12 +851,13 @@ void UserCutCallbackI::main() {
     if (!shr->info->sequenciable) {
         for (auto& glc : shr->info->learned_glcs) {
             auto cut = shr->get_cut(glc, this);
-            if (shr->restart) return;
+            if (shr->restart) { abort(); return; }
             add(cut >= 1.0).end();
             shr->cache_glcs.set(glc, GLCState::ADDED_AS_USERCUT);
         }
     }
     shr->log(this, CallbackType::USERCUT);
+    if (shr->restart) { abort(); return; }
 }
 
 IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
@@ -865,11 +865,15 @@ IloCplex::Callback UserCutCallback(shared_ptr<Shared> shr) {
 }
 
 void HeuristicCallbackI::main() {
-    if (shr->restart) return;
+    if (shr->restart) { abort(); return; }
 
     shr->extract_sol(this);
     if (shr->test_card()) {
         shr->sequence();
+        for (auto& glc : shr->info->learned_glcs) {
+	    auto cut = shr->get_cut(glc, this);
+	    if (shr->restart) { abort(); return; }
+	}
         shr->log(this, CallbackType::HEURISTIC);
     }
 
