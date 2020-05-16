@@ -32,7 +32,8 @@ class Slave:
         
         name = os.path.join(self.config['name'], self.domain, self.instance)
         output_folder = os.path.join('.', 'OUTPUT', name)
-        lb = self.infos.loc[(self.domain, self.instance), 'lower_bound']
+        #lb = self.infos.loc[(self.domain, self.instance), 'lower_bound']
+        lb = 0
         try:
             command = [os.path.join('.', 'fast-downward.py')]
             command += ["--overall-time-limit", f"{self.args.max_time}m", "--overall-memory-limit", f"{self.args.max_memory}M"]
@@ -59,8 +60,9 @@ class Slave:
             self.parsed_output = {parser: '' for parser in self.parsers}
             self.parsed_output['instance'] = os.path.join(self.config['name'], self.domain, self.instance)
 
-            lb = self.infos.loc[(self.domain, self.instance), 'lower_bound']
-            
+            #lb = self.infos.loc[(self.domain, self.instance), 'lower_bound']
+            lb = 0
+
             with open(os.path.join('.', 'OUTPUT', self.parsed_output['instance'], 'output1.txt')) as file:
                 for line in file:
                     for name, parser in self.parsers.items():
@@ -129,6 +131,17 @@ class Master:
                             'openstacks-opt11-strips', 'parcprinter-opt11-strips', 'pegsol-opt11-strips', 'scanalyzer-opt11-strips', 'sokoban-opt11-strips',
                             'transport-opt11-strips', 'visitall-opt11-strips', 'woodworking-opt11-strips', 'elevators-selected', 'nomystery-selected', 
                             'scanalyzer-selected', 'transport-selected', 'visitall-selected', 'elevators-epsilon']
+
+        self.all_domains += ["blocks-hstar", "depot-hstar", "driverlog-hstar", "elevators-opt08-strips-hstar", "elevators-opt11-strips-hstar", 
+                             "ged-opt14-strips-hstar", "gripper-hstar", "hiking-opt14-strips-hstar", "logistics00-hstar", "logistics98-hstar", 
+                             "miconic-hstar", "movie-hstar", "mprime-hstar", "mystery-hstar", "nomystery-opt11-strips-hstar", 
+                             "openstacks-opt08-strips-hstar", "openstacks-strips-hstar", "parcprinter-08-strips-hstar", "pathways-noneg-hstar", "pegsol-08-strips-hstar", 
+                             "psr-small-hstar", "rovers-hstar", "satellite-hstar", "scanalyzer-08-strips-hstar", "scanalyzer-opt11-strips-hstar", 
+                             "storage-hstar", "tpp-hstar", "transport-opt08-strips-hstar", "transport-opt11-strips-hstar", "transport-opt14-strips-hstar", 
+                             "trucks-strips-hstar", "visitall-opt11-strips-hstar", "visitall-opt14-strips-hstar", "woodworking-opt08-strips-hstar", "zenotravel-hstar"]
+
+        self.all_domains += ["0804blocks62", "0804gripper05", "0804blocks71"]
+
         self.all_instances = {domain: self.fetch_and_translate_files(domain) for domain in self.all_domains}
 
         # Read in informations about problems
@@ -259,8 +272,8 @@ class Master:
                     infeasible = (df['infeasible'] == 1).all()
                     if infeasible:  infeasibles.append(os.path.join(name, domain, instance))
 
-                    not_optimal = ((df['solved'] == 1).all() and (df['plan_cost'] != self.infos.loc[(domain, instance), 'lower_bound']).all())
-                    if not_optimal: not_optimals.append(os.path.join(name, domain, instance))
+                    #not_optimal = ((df['solved'] == 1).all() and (df['plan_cost'] != self.infos.loc[(domain, instance), 'lower_bound']).all())
+                    #if not_optimal: not_optimals.append(os.path.join(name, domain, instance))
                     
                     other_error = (df['other_error'] == 1).all()
                     if other_error:  other_errors.append(os.path.join(name, domain, instance))

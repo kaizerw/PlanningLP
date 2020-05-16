@@ -499,6 +499,68 @@ SearchStatus SOCWSSS::step() {
     if (cplex->getStatus() == IloAlgorithm::Status::Infeasible ||
         cplex->getStatus() == IloAlgorithm::Status::InfeasibleOrUnbounded) {
         cout << "INFEASIBLE" << endl;
+        
+        /*
+        for (OperatorProxy op : ops) {
+            cout << op.get_name() << endl;
+        }
+
+        cout << "ALL GLC VERIFICATION:" << endl;
+        for (auto &[glc, state] : shr->cache_glcs.cache) {
+            shr->verify_glc(glc);
+        }
+
+        for (auto &[k, v] : shr->cache_op_counts.cache) {
+            cout << "\t sequenciable? " << v->sequenciable;
+
+            vector<int> opcount(ops.size(), 0);
+            for (auto &[k1, v1] : k) opcount[k1] = v1;
+
+            bool subset = true;
+            for (size_t i = 0; i < ops.size(); ++i) {
+                if (!(opcount[i] >= shr->plan_op_counts[i])) {
+                    cout << "\t op " << i << " = [" << opcount[i] << " -> " << shr->plan_op_counts[i] << "]";
+                    subset = false;
+                    break;
+                }
+            }
+            cout << "\t subset? " << subset << endl;
+        }
+        */
+                
+        cout << "SOLVING AGAIN..." << endl;
+        
+        /*
+		cout << "FIXING SOLUTION..." << endl;
+		for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
+			int count = shr->plan_op_counts[op_id];
+			lp::LPConstraint cnt(count, count);
+			cnt.insert(op_id, 1.0);
+			lp_constraints->emplace_back(cnt);
+			cout << "\t" << shr->ops[op_id].get_name() << "=" << count << endl;
+		}
+		*/
+		        
+        create_cplex_model();
+        
+        //cplex->use((*lazy_callback));
+        //cplex->use((*usercut_callback));
+        //cplex->use((*heuristic_callback));
+        
+        //cplex->use(EmptyLazyCallback(shr));
+        //cplex->use(EmptyUserCutCallback(shr));
+        //cplex->use(EmptyHeuristicCallback(shr));
+        
+        cplex->solve();
+
+        cout << "STATUS: " << cplex->getStatus() << endl;
+        cout << "OBJ VALUE: " << cplex->getObjValue() << endl;
+        cout << "PRIMAL: " << endl;
+        for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
+            cout << "\t" << ops[op_id].get_name();
+            cout << " -> " << cplex->getValue((*x)[op_id]) << endl;
+        }
+                        
         exit(13);
     }
 

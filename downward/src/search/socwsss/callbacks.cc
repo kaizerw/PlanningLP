@@ -63,7 +63,7 @@ void Shared::extract_sol(IloCplex::ControlCallbackI* callback) {
     original_x.clear();
     for (size_t i = 0; i < ops.size(); ++i) {
         original_x.emplace_back(callback->getValue((*x)[i]));
-    }
+	}
     original_z = callback->getObjValue();
 
     rounded_x.clear();
@@ -428,9 +428,9 @@ IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc,
     int last_yt_bound = (*bounds_literals)[yt_index].size() - 1;
     if (yt_bound > 0) {
         if (yt_bound <= last_yt_bound) {
-	    cut += 1.0 * (*x)[(*bounds_literals)[yt_index][yt_bound]];
+			cut += 1.0 * (*x)[(*bounds_literals)[yt_index][yt_bound]];
         } else {
-	    missing_bounds++;
+			missing_bounds++;
             cut += (1.0 / yt_bound) * (*x)[yt_index];
         }
     }
@@ -439,9 +439,9 @@ IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc,
     int last_yf_bound = (*bounds_literals)[yf_index].size() - 1;
     if (yf_bound > 0) {
         if (yf_bound <= last_yf_bound) {
-	    cut += 1.0 * (*x)[(*bounds_literals)[yf_index][yf_bound]];
+			cut += 1.0 * (*x)[(*bounds_literals)[yf_index][yf_bound]];
         } else {
-	    missing_bounds++;
+			missing_bounds++;
             cut += (1.0 / yf_bound) * (*x)[yf_index];
         }
     }
@@ -450,9 +450,9 @@ IloExpr Shared::get_cut(shared_ptr<GLC> learned_glc,
         int last_op_bound = (*bounds_literals)[op_id].size() - 1;
 
         if (op_bound <= last_op_bound) {
-	    cut += 1.0 * (*x)[(*bounds_literals)[op_id][op_bound]];
+			cut += 1.0 * (*x)[(*bounds_literals)[op_id][op_bound]];
         } else {
-	    missing_bounds++;
+			missing_bounds++;
             cut += (1.0 / op_bound) * (*x)[op_id];
         }
     }
@@ -871,9 +871,9 @@ void HeuristicCallbackI::main() {
     if (shr->test_card()) {
         shr->sequence();
         for (auto& glc : shr->info->learned_glcs) {
-	    auto cut = shr->get_cut(glc, this);
-	    if (shr->restart) { abort(); return; }
-	}
+			auto cut = shr->get_cut(glc, this);
+			if (shr->restart) { abort(); return; }
+		}
         shr->log(this, CallbackType::HEURISTIC);
     }
 
@@ -882,4 +882,19 @@ void HeuristicCallbackI::main() {
 
 IloCplex::Callback HeuristicCallback(shared_ptr<Shared> shr) {
     return (IloCplex::Callback(new (*shr->env) HeuristicCallbackI(shr)));
+}
+
+
+
+
+IloCplex::Callback EmptyLazyCallback(shared_ptr<Shared> shr) {
+    return (IloCplex::Callback(new (*shr->env) EmptyLazyCallbackI(shr)));
+}
+
+IloCplex::Callback EmptyUserCutCallback(shared_ptr<Shared> shr) {
+    return (IloCplex::Callback(new (*shr->env) EmptyUserCutCallbackI(shr)));
+}
+
+IloCplex::Callback EmptyHeuristicCallback(shared_ptr<Shared> shr) {
+    return (IloCplex::Callback(new (*shr->env) EmptyHeuristicCallbackI(shr)));
 }

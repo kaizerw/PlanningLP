@@ -36,8 +36,9 @@ run_pref="./fast-downward.py --overall-memory-limit 3584M --overall-time-limit 3
 #	$run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/$i.sas --search "$opts" > logs_sat/$i-output1 2> logs_sat/$i-output2
 #done
 
-opts="socwsss(constraint_type=3, constraint_generators=_, mip_start=false)"
+#opts="socwsss(constraint_type=3, constraint_generators=_, mip_start=false)"
 #opts="socwsss(sat_seq=true, constraint_generators=_, mip_start=false)"
+opts="astar(operatorcounting([lmcut_constraints(), state_equation_constraints()]))"
 $run_pref $DOWNWARD_BENCHMARKS/visitall-opt11-strips/problem02-full.sas --search "$opts"
 
 #opts="socwsss(sat_seq=true, constraint_generators=_, mip_start=false)"

@@ -1,36 +1,32 @@
 [
-      {
-        "name": "LMCUT_T3",
-        "search": "socwsss(constraint_type=3, constraint_generators=seq_landmarks_h+, heuristic=lmcut, ignore_zero_cost_ops=true)",
-        "domains": [
-            "barman-opt11-strips",
-            "elevators-opt11-strips",
-            "nomystery-opt11-strips",
-            "openstacks-opt11-strips",
-            "parcprinter-opt11-strips",
-            "pegsol-opt11-strips",
-            "scanalyzer-opt11-strips",
-            "sokoban-opt11-strips",
-            "transport-opt11-strips",
-            "visitall-opt11-strips",
-            "woodworking-opt11-strips"
-        ]
+   {
+        "name": "OpSearch_lmcut_semlog",
+        "search": "socwsss(heuristic=lmcut, print_log=false)",
+        "domains": ["0804blocks62"]
    },
    {
-        "name": "SAT",
-        "search": "socwsss(sat_seq=true, constraint_generators=seq_landmarks_h+, ignore_zero_cost_ops=true)",
-        "domains": [
-            "barman-opt11-strips",
-            "elevators-opt11-strips",
-            "nomystery-opt11-strips",
-            "openstacks-opt11-strips",
-            "parcprinter-opt11-strips",
-            "pegsol-opt11-strips",
-            "scanalyzer-opt11-strips",
-            "sokoban-opt11-strips",
-            "transport-opt11-strips",
-            "visitall-opt11-strips",
-            "woodworking-opt11-strips"
-        ]
+        "name": "OpSearch_oc_semlog",
+        "search": "socwsss(heuristic=operatorcounting, operator_counting_constraints=seq_landmarks, print_log=false)",
+        "domains": ["0804blocks62"]
+   },
+   {
+        "name": "OpSearch_hstar_semlog",
+        "search": "socwsss(heuristic=hstar_pdb, print_log=false)",
+        "domains": ["0804gripper05"]
+   },
+   {
+        "name": "OpSearch_lmcut_comlog",
+        "search": "socwsss(heuristic=lmcut, print_log=true)",
+        "domains": ["0804blocks62"]
+   },
+   {
+        "name": "OpSearch_oc_comlog",
+        "search": "socwsss(heuristic=operatorcounting, operator_counting_constraints=seq_landmarks, print_log=true)",
+        "domains": ["0804blocks62"]
+   },
+   {
+        "name": "OpSearch_hstar_comlog",
+        "search": "socwsss(heuristic=hstar_pdb, print_log=true)",
+        "domains": ["0804gripper05"]
    }
 ]
